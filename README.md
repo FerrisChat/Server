@@ -1,6 +1,6 @@
 # FerrisChat Server
 
-Fuck Discord's shitty, restrictive, and downright rude backend. Enter the world of Ferris! Ferris is here to save everyone from the hell that is Electron.
+Fuck Discord's shitty, restrictive, slash-command-loving, and downright rude backend! Enter the world of Ferris! Ferris is here to save everyone from the hell that is Electron.
 
 One day Ferris aspires to be at the core of the fastest, leanest, and most feature-rich
 chat app ever written. But until that day arrives, this is where Ferris will oversee
