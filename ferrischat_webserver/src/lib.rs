@@ -1,5 +1,8 @@
+#![feature(once_cell)]
+
 mod channels;
 mod entrypoint;
+mod get_db_or_fail;
 mod guilds;
 mod members;
 mod messages;
