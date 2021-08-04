@@ -12,6 +12,5 @@ members = [
 ]
 
 [dependencies]
-ferrischat_db = { path = "ferrischat_db" }
 ferrischat_webserver = { path = "ferrischat_webserver" }
-tokio = { version = "1.8", features = ["full"]}
+actix-web = "3"
