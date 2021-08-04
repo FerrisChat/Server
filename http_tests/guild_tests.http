@@ -13,3 +13,9 @@ Content-Type: application/json
 DELETE http://localhost:8080/api/v0/guilds/8
 Accept: application/json
 Content-Type: application/json
+
+###
+
+PATCH http://localhost:8080/api/v0/guilds/8
+Accept: application/json
+Content-Type: application/json
