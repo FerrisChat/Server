@@ -14,3 +14,4 @@ members = [
 [dependencies]
 ferrischat_webserver = { path = "ferrischat_webserver" }
 actix-web = "3"
+env_logger = "0.9"

@@ -1,6 +1,6 @@
-use rocket::http::Status;
-use rocket::response::{content, status};
+use actix_web::{web::Path, HttpResponse, Responder};
 
-pub async fn delete_member(id: u64) -> status::Custom<&'static str> {
-    status::Custom(Status::Ok, "deleted member test")
+/// DELETE /api/v1/members/{guild_id}/{member_id}
+pub async fn delete_member(Path(member_id): Path<i64>) -> impl Responder {
+    HttpResponse::NoContent().body("deleted member test")
 }

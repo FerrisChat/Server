@@ -1,6 +1,6 @@
-use rocket::http::Status;
-use rocket::response::{content, status};
+use actix_web::{HttpResponse, Responder};
 
-pub async fn create_user() -> status::Custom<&'static str> {
-    status::Custom(Status::Created, "created user test")
+/// POST /api/v1/users/
+pub async fn create_user() -> impl Responder {
+    HttpResponse::Created().body("created user test")
 }

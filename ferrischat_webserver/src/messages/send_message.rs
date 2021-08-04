@@ -1,6 +1,7 @@
-use rocket::http::Status;
-use rocket::response::{content, status};
+use actix_web::{HttpResponse, Responder};
 
-pub async fn send_message(id: u64) -> status::Custom<&'static str> {
-    status::Custom(Status::Created, "Send message test")
+/// POST /api/v1/channels/{id}/send/
+// TODO: add the ID argument
+pub async fn create_message() -> impl Responder {
+    HttpResponse::Created().body("created message test")
 }

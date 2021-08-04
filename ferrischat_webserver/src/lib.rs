@@ -1,6 +1,3 @@
-#[macro_use]
-extern crate rocket;
-
 mod channels;
 mod entrypoint;
 mod guilds;

@@ -1,6 +1,6 @@
-use rocket::http::Status;
-use rocket::response::{content, status};
+use actix_web::{HttpResponse, Responder};
 
-pub async fn create_channel() -> status::Custom<&'static str> {
-    status::Custom(Status::Created, "created channel test")
+/// POST /api/v1/channels/
+pub async fn create_channel() -> impl Responder {
+    HttpResponse::Created().body("created channel test")
 }
