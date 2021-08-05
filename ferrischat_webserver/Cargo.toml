@@ -9,6 +9,7 @@ edition = "2018"
 actix-web = "3"
 
 ferrischat_db = { path = "../ferrischat_db" }
+ferrischat_common = "0.1"
 
 [dependencies.sqlx]
 version = "0.4"
