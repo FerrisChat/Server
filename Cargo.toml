@@ -8,7 +8,8 @@ edition = "2018"
 [workspace]
 members = [
   "ferrischat_db",
-  "ferrischat_webserver"
+  "ferrischat_webserver",
+  "ferrischat_macros",
 ]
 
 [dependencies]
