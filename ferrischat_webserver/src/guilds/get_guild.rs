@@ -1,9 +1,9 @@
-use crate::get_db_or_fail;
 use actix_web::{
     web::{Json, Path},
     HttpResponse, Responder,
 };
 use ferrischat_common::types::{Guild, InternalServerErrorJson};
+use ferrischat_macros::{bigdecimal_to_u128, get_db_or_fail};
 use num_traits::cast::ToPrimitive;
 use sqlx::types::BigDecimal;
 
@@ -18,20 +18,7 @@ pub async fn get_guild(Path(guild_id): Path<i64>) -> impl Responder {
     match resp {
         Ok(resp) => match resp {
             Some(guild) => HttpResponse::Ok().json(Guild {
-                id: match guild
-                    .id
-                    .with_scale(0)
-                    .into_bigint_and_exponent()
-                    .0
-                    .to_u128()
-                {
-                    Some(id) => id,
-                    None => {
-                        return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                            reason: "snowflake ID overflowed 128 bit integer".to_string(),
-                        })
-                    }
-                },
+                id: bigdecimal_to_u128!(guild.id),
                 owner_id: guild.owner_id,
                 name: guild.name,
                 channels: None,

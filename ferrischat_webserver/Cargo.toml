@@ -11,6 +11,7 @@ num-traits = "0.2"
 
 ferrischat_db = { path = "../ferrischat_db" }
 ferrischat_common = "0.1"
+ferrischat_macros = { path = "../ferrischat_macros" }
 
 [dependencies.sqlx]
 version = "0.4"

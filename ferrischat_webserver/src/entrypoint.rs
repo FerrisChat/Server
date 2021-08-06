@@ -1,5 +1,5 @@
 use crate::channels::*;
-use crate::expand_version;
+use ferrischat_macros::expand_version;
 use crate::guilds::*;
 use crate::members::*;
 use crate::messages::*;
