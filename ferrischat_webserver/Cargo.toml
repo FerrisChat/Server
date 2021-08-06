@@ -12,6 +12,7 @@ num-traits = "0.2"
 ferrischat_db = { path = "../ferrischat_db" }
 ferrischat_common = "0.1"
 ferrischat_macros = { path = "../ferrischat_macros" }
+ferrischat_snowflake_generator = "0.1"
 
 [dependencies.sqlx]
 version = "0.4"
