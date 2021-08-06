@@ -3,7 +3,7 @@
 /// v{} replaced with the current API version, 0 as of this writing.
 macro_rules! expand_version {
     ($path:expr) => {{
-        use $crate::API_VERSION;
+        use crate::API_VERSION;
         format!("/api/v{}/{}", API_VERSION, $path).as_str()
     }};
 }
