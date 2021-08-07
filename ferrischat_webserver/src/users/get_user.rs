@@ -2,7 +2,7 @@ use actix_web::{
     web::{Json, Path},
     HttpResponse, Responder,
 };
-use ferrischat_common::types::{User, InternalServerErrorJson};
+use ferrischat_common::types::{InternalServerErrorJson, User};
 use ferrischat_macros::{bigdecimal_to_u128, get_db_or_fail};
 use num_traits::cast::ToPrimitive;
 use sqlx::types::BigDecimal;

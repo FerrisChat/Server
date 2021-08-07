@@ -1,5 +1,4 @@
 use crate::channels::*;
-use ferrischat_macros::expand_version;
 use crate::guilds::*;
 use crate::members::*;
 use crate::messages::*;
@@ -7,6 +6,7 @@ use crate::not_implemented::not_implemented;
 use crate::users::*;
 use actix_web::{web, App, HttpResponse, HttpServer};
 use ferrischat_db::load_db;
+use ferrischat_macros::expand_version;
 
 pub async fn entrypoint() {
     load_db().await;
