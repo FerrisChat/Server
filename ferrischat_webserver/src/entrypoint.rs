@@ -7,8 +7,24 @@ use crate::users::*;
 use actix_web::{web, App, HttpResponse, HttpServer};
 use ferrischat_db::load_db;
 use ferrischat_macros::expand_version;
+use ring::rand::{SecureRandom, SystemRandom};
 
 pub async fn entrypoint() {
+    // the very, very first thing we should do is load the RNG
+    // we expect here, since without it we literally cannot generate tokens whatsoever
+    crate::RNG_CORE
+        .set(SystemRandom::new())
+        .expect("failed to set RNG");
+    {
+        let mut v = Vec::with_capacity(32);
+        // we call fill here to be sure that the RNG will block if required here instead of
+        // in the webserver loop
+        crate::RNG_CORE
+            .get()
+            .expect("RNG was already set but unloaded?")
+            .fill(&mut v);
+    }
+
     load_db().await;
 
     HttpServer::new(|| {

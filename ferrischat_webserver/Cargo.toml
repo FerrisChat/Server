@@ -8,6 +8,9 @@ edition = "2018"
 [dependencies]
 actix-web = "3"
 num-traits = "0.2"
+ring = "0.16"
+futures = "0.3"
+base64 = "0.13"
 
 ferrischat_db = { path = "../ferrischat_db" }
 ferrischat_common = "0.1"
