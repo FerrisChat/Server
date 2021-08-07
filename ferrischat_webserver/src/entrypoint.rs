@@ -22,7 +22,8 @@ pub async fn entrypoint() {
         crate::RNG_CORE
             .get()
             .expect("RNG was already set but unloaded?")
-            .fill(&mut v);
+            .fill(&mut v)
+            .expect("failed to generate RNG");
     }
 
     load_db().await;
