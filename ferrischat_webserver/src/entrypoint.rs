@@ -1,10 +1,10 @@
+use crate::auth::get_token;
 use crate::channels::*;
 use crate::guilds::*;
 use crate::members::*;
 use crate::messages::*;
 use crate::not_implemented::not_implemented;
 use crate::users::*;
-use crate::auth::get_token;
 use actix_web::{web, App, HttpResponse, HttpServer};
 use ferrischat_db::load_db;
 use ferrischat_macros::expand_version;
@@ -83,10 +83,7 @@ pub async fn entrypoint() {
                 web::delete().to(delete_user),
             )
             // GET    /auth/{user_id}
-            .route(
-                expand_version!("auth/{user_id}"),
-                web::get().to(get_token)
-            )
+            .route(expand_version!("auth/{user_id}"), web::get().to(get_token))
             .default_service(web::route().to(|| HttpResponse::NotFound()))
         // TODO: member and message endpoints
     })

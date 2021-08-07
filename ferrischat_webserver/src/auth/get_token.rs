@@ -1,10 +1,10 @@
 use crate::auth::token_gen::generate_random_bits;
 use actix_web::web::{self, HttpResponse, Path};
-use actix_web::{Responder, HttpRequest};
+use actix_web::{HttpRequest, Responder};
 use ferrischat_common::types::InternalServerErrorJson;
 use ferrischat_macros::get_db_or_fail;
-use sqlx::types::BigDecimal;
 use num_traits::FromPrimitive;
+use sqlx::types::BigDecimal;
 
 pub async fn get_token(req: HttpRequest) -> impl Responder {
     let bits = match generate_random_bits() {
@@ -18,13 +18,17 @@ pub async fn get_token(req: HttpRequest) -> impl Responder {
     let user_id: u128 = match req.match_info().get("user_id") {
         Some(id) => match id.parse() {
             Ok(id) => id,
-            Err(e) => return HttpResponse::BadRequest().json(InternalServerErrorJson {
-                reason: format!("Failed to parse user ID as u128: {}", e)
-            })
+            Err(e) => {
+                return HttpResponse::BadRequest().json(InternalServerErrorJson {
+                    reason: format!("Failed to parse user ID as u128: {}", e),
+                })
+            }
         },
-        None => return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-            reason: "User ID not found in match_info".to_string()
-        }),
+        None => {
+            return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                reason: "User ID not found in match_info".to_string(),
+            })
+        }
     };
 
     let token = base64::encode_config(bits, base64::URL_SAFE);
