@@ -1,3 +1,4 @@
+#[macro_export]
 macro_rules! get_item_id {
     ($req:expr, $name:expr) => {{
         use actix_web::HttpResponse;
