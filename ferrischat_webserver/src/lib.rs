@@ -14,7 +14,7 @@ mod not_implemented;
 mod users;
 
 pub const API_VERSION: u8 = 0;
-pub static RNG_CORE: OnceCell<ring::rand::SystemRandom> = OnceCell::new();
+pub static RNG_CORE: std::lazy::SyncOnceCell<ring::rand::SystemRandom> = std::lazy::SyncOnceCell::new();
 
 pub use entrypoint::*;
-use std::lazy::SyncOnceCell as OnceCell;
+pub use auth::Authorization;
