@@ -74,7 +74,7 @@ impl FromRequest for Authorization {
                 }
             };
             let token = match auth.next() {
-                Some(token) => parse_b64_to_string!(token),
+                Some(token) => token.to_string(),
                 None => {
                     return Err(ErrorBadRequest(
                         "`Authorization` header contained only one part".to_string(),
@@ -92,11 +92,11 @@ impl FromRequest for Authorization {
             };
 
             let db_token = match sqlx::query!(
-            "SELECT (auth_token) FROM auth_tokens WHERE user_id = $1",
-            id_bigint
-        )
-                .fetch_optional(db)
-                .await
+                "SELECT (auth_token) FROM auth_tokens WHERE user_id = $1",
+                id_bigint
+            )
+            .fetch_optional(db)
+            .await
             {
                 Ok(t) => match t {
                     Some(t) => t.auth_token,
