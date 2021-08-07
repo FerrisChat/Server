@@ -7,13 +7,13 @@ use num_traits::FromPrimitive;
 use sqlx::types::BigDecimal;
 
 /// POST /api/v1/guilds/
-pub async fn create_guild() -> impl Responder {
+pub async fn create_guild(auth: crate::Authorization) -> impl Responder {
     let db = get_db_or_fail!();
     let guild_id = generate_snowflake::<0>(0, 0);
     match sqlx::query!(
         "INSERT INTO guilds VALUES ($1, $2, $3, 0, 0)",
         BigDecimal::from_u128(guild_id),
-        0,
+        BigDecimal::from_u128(auth.0),
         "New Guild"
     )
     .execute(db)
