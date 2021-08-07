@@ -29,7 +29,7 @@ macro_rules! parse_b64_to_string {
     }};
 }
 
-pub struct Authorization(u128);
+pub struct Authorization(pub u128);
 impl FromRequest for Authorization {
     type Error = Error;
     type Future = impl Future<Output = Result<Self, Error>>;
