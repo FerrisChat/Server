@@ -4,3 +4,4 @@ use actix_web::{web::Path, HttpResponse, Responder};
 pub async fn delete_user(Path(user_id): Path<i64>) -> impl Responder {
     HttpResponse::NoContent()
 }
+
