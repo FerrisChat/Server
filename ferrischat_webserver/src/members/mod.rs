@@ -1,3 +1,5 @@
+// TODO: add arguments for guild to each function here
+
 mod create_member;
 mod delete_member;
 mod get_member;

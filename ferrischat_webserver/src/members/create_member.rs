@@ -1,6 +1,6 @@
-use rocket::http::Status;
-use rocket::response::{content, status};
+use actix_web::{HttpResponse, Responder};
 
-pub async fn create_member(id: u64) -> status::Custom<&'static str> {
-    status::Custom(Status::Created, "created guild test member test")
+/// POST /api/v1/members/{guild_id}/
+pub async fn create_member() -> impl Responder {
+    HttpResponse::Created().body("created guild member test")
 }

@@ -12,5 +12,5 @@ version = "1.8"
 features = ["full"]
 
 [dependencies.sqlx]
-version = "0.5"
-features = ["postgres", "macros", "offline", "runtime-tokio-native-tls"]
+version = "0.4"
+features = ["postgres", "macros", "offline", "runtime-actix-rustls", "bigdecimal"]

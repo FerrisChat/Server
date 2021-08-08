@@ -6,6 +6,21 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-rocket = "0.5.0-rc.1"
+actix-web = "3"
+num-traits = "0.2"
+ring = "0.16"
+futures = "0.3"
+base64 = "0.13"
+tokio = { version = "1.9", features = ["full"] }
+argonautica = { version = "0.2", features = ["serde", "simd"]}
+futures-cpupool = "0.1"
+dotenv = "0.15"
 
 ferrischat_db = { path = "../ferrischat_db" }
+ferrischat_common = "0.1"
+ferrischat_macros = { path = "../ferrischat_macros" }
+ferrischat_snowflake_generator = "0.1"
+
+[dependencies.sqlx]
+version = "0.4"
+features = ["postgres", "macros", "offline", "runtime-actix-rustls"]

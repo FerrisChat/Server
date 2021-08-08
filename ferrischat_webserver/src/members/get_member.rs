@@ -1,6 +1,6 @@
-use rocket::http::Status;
-use rocket::response::{content, status};
+use actix_web::{web::Path, HttpResponse, Responder};
 
-pub async fn get_member(id: u64) -> status::Custom<&'static str> {
-    status::Custom(Status::Ok, "found member test")
+/// GET /api/v1/members/{guild_id}/{member_id}
+pub async fn get_member(Path(member_id): Path<i64>) -> impl Responder {
+    HttpResponse::Found().body("found member test")
 }

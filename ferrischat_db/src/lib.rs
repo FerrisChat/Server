@@ -1,9 +1,8 @@
 #![feature(once_cell)]
 
 use sqlx::postgres::{PgConnectOptions, PgPoolOptions};
-use sqlx::{PgPool, Pool, Postgres};
+use sqlx::{Pool, Postgres};
 use std::lazy::SyncOnceCell as OnceCell;
-use std::path::PathBuf;
 use std::time::Duration;
 
 pub static DATABASE_POOL: OnceCell<Pool<Postgres>> = OnceCell::new();
