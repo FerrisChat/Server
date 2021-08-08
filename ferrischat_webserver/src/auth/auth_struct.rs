@@ -6,6 +6,9 @@ use actix_web::{FromRequest, HttpRequest};
 use futures::Future;
 use num_traits::FromPrimitive;
 use sqlx::types::BigDecimal;
+use tokio::sync::mpsc::Sender;
+use tokio::sync::oneshot::channel;
+use tokio::sync::oneshot::error::RecvError;
 
 macro_rules! parse_b64_to_string {
     ($input:expr) => {{
@@ -113,7 +116,33 @@ impl FromRequest for Authorization {
                     )));
                 }
             };
-            if token == db_token {
+            let verifier = match crate::GLOBAL_VERIFIER.get() {
+                Some(v) => v,
+                None => {
+                    return Err(ErrorInternalServerError(
+                        "Global hash verifier not found".to_string(),
+                    ))
+                }
+            };
+            let (tx, rx) = channel();
+            verifier.send(((token, db_token), tx)).await;
+            let res = match rx.await {
+                Ok(r) => match r {
+                    Ok(r) => r,
+                    Err(e) => {
+                        return Err(ErrorInternalServerError(format!(
+                            "Failed to verify token: {}",
+                            e
+                        )))
+                    }
+                },
+                Err(e) => {
+                    return Err(ErrorInternalServerError(
+                        "A impossible situation seems to have happened".to_string(),
+                    ))
+                }
+            };
+            if res {
                 return Ok(Self(id));
             } else {
                 // we specifically do not define the boundary between no token and

@@ -6,11 +6,22 @@ use crate::messages::*;
 use crate::not_implemented::not_implemented;
 use crate::users::*;
 use actix_web::{web, App, HttpResponse, HttpServer};
+use argonautica::input::Salt;
+use argonautica::{
+    config::{Backend, Variant, Version},
+    Hasher, Verifier,
+};
 use ferrischat_db::load_db;
 use ferrischat_macros::expand_version;
+use futures::future::Future;
+use futures_cpupool::CpuPool;
 use ring::rand::{SecureRandom, SystemRandom};
+use std::env::var;
+use tokio::sync::mpsc::{channel, Receiver as MpscReceiver, Sender as MpscSender};
 
 pub async fn entrypoint() {
+    dotenv::dotenv();
+
     // the very, very first thing we should do is load the RNG
     // we expect here, since without it we literally cannot generate tokens whatsoever
     crate::RNG_CORE
@@ -25,6 +36,70 @@ pub async fn entrypoint() {
             .expect("RNG was already set but unloaded?")
             .fill(&mut v)
             .expect("failed to generate RNG");
+    }
+
+    {
+        let (tx, mut rx) = channel::<(
+            String,
+            tokio::sync::oneshot::Sender<Result<String, argonautica::Error>>,
+        )>(250);
+        let mut hasher = argonautica::Hasher::new();
+        hasher
+            .opt_out_of_secret_key(true) // we don't need secret keys atm
+            .configure_password_clearing(true) // clear passwords from memory after hashing
+            .configure_memory_size(8_192); // use 8MiB memory to hash
+
+        actix_web::rt::spawn(async move {
+            actix_web::rt::blocking::run::<_, (), ()>(move || {
+                loop {
+                    match rx.blocking_recv() {
+                        Some(d) => {
+                            let (password, sender) = d;
+
+                            let r = hasher.with_password(password).hash();
+                            let _ = sender.send(r);
+                        }
+                        None => break,
+                    };
+                }
+
+                Ok(())
+            })
+            .await;
+        });
+
+        crate::GLOBAL_HASHER.set(tx);
+    }
+    {
+        let (tx, mut rx) = channel::<(
+            (String, String),
+            tokio::sync::oneshot::Sender<Result<bool, argonautica::Error>>,
+        )>(250);
+        let mut verifier = argonautica::Verifier::new();
+        verifier
+            .configure_password_clearing(true)
+            .configure_secret_key_clearing(true);
+
+        actix_web::rt::spawn(async move {
+            actix_web::rt::blocking::run::<_, (), ()>(move || {
+                loop {
+                    match rx.blocking_recv() {
+                        Some(d) => {
+                            let (password, sender) = d;
+
+                            let r = verifier.with_password(password.0).with_hash(password.1).verify();
+                            let _ = sender.send(r);
+                        }
+                        None => break,
+                    }
+                }
+
+                Ok(())
+            })
+            .await;
+        });
+
+        crate::GLOBAL_VERIFIER.set(tx);
     }
 
     load_db().await;
