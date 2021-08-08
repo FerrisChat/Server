@@ -15,3 +15,7 @@ Look at the issue thread and make sure no one's claimed it yet. If no one has, g
 ahead and write a comment saying you're claiming it.
 
 You must run `rustfmt` **with default settings** on a PR for it to be merged.
+
+# Temporary Discord
+
+Join us in our Discord server while we develop FerrisChat! https://discord.gg/ARwnUwWXNY
