@@ -39,7 +39,7 @@ jobs:
 
       - uses: actions-rs/toolchain@v1
         env:
-          SQLX_OFFLINE: true
+          SQLX_OFFLINE: "true"
         with:
           toolchain: nightly
           components: clippy
