@@ -87,7 +87,10 @@ pub async fn entrypoint() {
                         Some(d) => {
                             let (password, sender) = d;
 
-                            let r = verifier.with_password(password.0).with_hash(password.1).verify();
+                            let r = verifier
+                                .with_password(password.0)
+                                .with_hash(password.1)
+                                .verify();
                             let _ = sender.send(r);
                         }
                         None => break,
