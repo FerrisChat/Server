@@ -1,0 +1,185 @@
+{
+  "db": "PostgreSQL",
+  "176e9bb27f777e766d00cd3156970576b57d692490048c314fccedb470a77018": {
+    "query": "SELECT * FROM guilds WHERE id = $1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 1,
+          "name": "owner_id",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 2,
+          "name": "name",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 3,
+          "name": "channels",
+          "type_info": "Int8"
+        },
+        {
+          "ordinal": 4,
+          "name": "users",
+          "type_info": "Int8"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Numeric"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        true,
+        true
+      ]
+    }
+  },
+  "5134de61c3f67717d39e26419fe78c7629f4297ee857c0df6875336eedae5d6a": {
+    "query": "INSERT INTO users VALUES ($1, $2, null, $3)",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Numeric",
+          "Varchar",
+          "Int8"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "6877932b9699af87f88d621440db971391c9e3cb45f5b24daf670d946fd53929": {
+    "query": "INSERT INTO channels VALUES ($1, $2)",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Numeric",
+          "Varchar"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "69a61d4b66262fe2319e3696e78a31f168e4cf3b14b26e3506727e4e9fdde932": {
+    "query": "INSERT INTO guilds VALUES ($1, $2, $3, 0, 0)",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Numeric",
+          "Numeric",
+          "Varchar"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "7f813b27be144fc94d17ae988930ac69f097d09d3d0e9e27f4fd560cd1bb59be": {
+    "query": "INSERT INTO auth_tokens VALUES ($1, $2) ON CONFLICT (user_id) DO UPDATE SET auth_token = $2",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Numeric",
+          "Text"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "843923b9a0257cf80f1dff554e7dc8fdfc05f489328e8376513124dfb42996e3": {
+    "query": "SELECT * FROM users WHERE id = $1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 1,
+          "name": "name",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 2,
+          "name": "guilds",
+          "type_info": "Int8"
+        },
+        {
+          "ordinal": 3,
+          "name": "flags",
+          "type_info": "Int8"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Numeric"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        true,
+        true
+      ]
+    }
+  },
+  "878a86670eec24ecd8a7e1864d6edd105c177cfbab10a652a947c5491bc6c0ff": {
+    "query": "SELECT (auth_token) FROM auth_tokens WHERE user_id = $1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "auth_token",
+          "type_info": "Text"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Numeric"
+        ]
+      },
+      "nullable": [
+        false
+      ]
+    }
+  },
+  "e9f8d85417fdc81bd2dbfe749c7da303738ef2b5b1bd2f4fc1a22947108d93a2": {
+    "query": "SELECT * FROM channels WHERE id = $1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 1,
+          "name": "name",
+          "type_info": "Varchar"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Numeric"
+        ]
+      },
+      "nullable": [
+        false,
+        false
+      ]
+    }
+  }
+}
