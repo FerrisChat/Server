@@ -17,7 +17,7 @@ futures-cpupool = "0.1"
 dotenv = "0.15"
 
 ferrischat_db = { path = "../ferrischat_db" }
-ferrischat_common = "0.1"
+ferrischat_common = { git = "https://github.com/FerrisChat/Common.git" }
 ferrischat_macros = { path = "../ferrischat_macros" }
 ferrischat_snowflake_generator = "0.1"
 
