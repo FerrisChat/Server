@@ -7,8 +7,8 @@ use ferrischat_macros::{bigdecimal_to_u128, get_db_or_fail};
 use num_traits::cast::ToPrimitive;
 use sqlx::types::BigDecimal;
 
-/// GET /api/v1/channels/{id}
-pub async fn get_channel(Path(channel_id): Path<i64>) -> impl Responder {
+/// GET /api/v0/guilds/{guild_id/channels/{channel_id}
+pub async fn get_channel(Path(channel_id): Path<i64>, _:crate::Authorization) -> impl Responder {
     let db = get_db_or_fail!();
     let channel_id = BigDecimal::from(channel_id);
     let resp = sqlx::query!("SELECT * FROM channels WHERE id = $1", channel_id)

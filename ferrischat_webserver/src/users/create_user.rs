@@ -6,10 +6,10 @@ use ferrischat_snowflake_generator::generate_snowflake;
 use num_traits::FromPrimitive;
 use sqlx::types::BigDecimal;
 
-/// POST /api/v1/users/
-pub async fn create_user() -> impl Responder {
+/// POST /api/v0/users/
+pub async fn create_user(_:crate::Authorization) -> impl Responder {
     let db = get_db_or_fail!();
-    let user_id = generate_snowflake::<0>(0, 0);
+    let user_id = generate_snowflake::<API_VERSION>(0, 0);
     match sqlx::query!(
         "INSERT INTO users VALUES ($1, $2, null, $3)",
         BigDecimal::from_u128(user_id),

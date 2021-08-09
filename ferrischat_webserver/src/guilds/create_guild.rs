@@ -6,10 +6,10 @@ use ferrischat_snowflake_generator::generate_snowflake;
 use num_traits::FromPrimitive;
 use sqlx::types::BigDecimal;
 
-/// POST /api/v1/guilds/
+/// POST /api/v0/guilds/
 pub async fn create_guild(auth: crate::Authorization) -> impl Responder {
     let db = get_db_or_fail!();
-    let guild_id = generate_snowflake::<0>(0, 0);
+    let guild_id = generate_snowflake::<API_VERSION>(0, 0);
     match sqlx::query!(
         "INSERT INTO guilds VALUES ($1, $2, $3, 0, 0)",
         BigDecimal::from_u128(guild_id),

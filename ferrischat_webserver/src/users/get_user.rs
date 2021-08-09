@@ -7,8 +7,8 @@ use ferrischat_macros::{bigdecimal_to_u128, get_db_or_fail};
 use num_traits::cast::ToPrimitive;
 use sqlx::types::BigDecimal;
 
-/// GET /api/v1/users/{id}
-pub async fn get_user(Path(user_id): Path<i64>) -> impl Responder {
+/// GET /api/v0/users/{user_id}
+pub async fn get_user(Path(user_id): Path<i64>, _:crate::Authorization) -> impl Responder {
     let db = get_db_or_fail!();
     let user_id = BigDecimal::from(user_id);
     let resp = sqlx::query!("SELECT * FROM users WHERE id = $1", user_id)
