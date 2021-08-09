@@ -124,27 +124,67 @@ pub async fn entrypoint() {
             // DELETE /guilds/{guild_id}
             .route(
                 expand_version!("guilds/{guild_id}"),
-                web::delete().to(delete_guild),
+                web::delete().to(not_implemented),
             )
-            // POST   /guilds/{guild_id}/channels
+            // POST   guilds/{guild_id}/channels
             .route(
                 expand_version!("guilds/{guild_id}/channels"),
                 web::post().to(create_channel),
             )
-            // GET    /channels/{channel_id}
+            // GET    guilds/{guild_id}/channels/{channel_id}
             .route(
-                expand_version!("channels/{channel_id}"),
+                expand_version!("guilds/{guild_id}/channels/{channel_id}"),
                 web::get().to(get_channel),
             )
-            // PATCH  /channels/{channel_id}
+            // PATCH  guilds/{guild_id}/channels/{channel_id}
             .route(
-                expand_version!("channels/{channel_id}"),
+                expand_version!("guilds/{guild_id}/channels/{channel_id}"),
                 web::patch().to(not_implemented),
             )
-            // DELETE /channels/{channel_id}
+            // DELETE guilds/{guild_id}/channels/{channel_id}
             .route(
-                expand_version!("channels/{channel_id}"),
-                web::delete().to(delete_channel),
+                expand_version!("guilds/{guild_id}/channels/{channel_id}"),
+                web::delete().to(not_implemented),
+            )
+            // POST   guilds/{guild_id}/channels/{channel_id}/messages
+            .route(
+                expand_version!("guilds/{guild_id}/channels/{channel_id}/messages"),
+                web::post().to(not_implemented),
+            )
+            // GET     guilds/{guild_id}/channels/{channel_id}/messages/{message_id}
+            .route(
+                expand_version!("guilds/{guild_id}/channels/{channel_id}/messages/{message_id}"),
+                web::get().to(not_implemented),
+            )
+            // PATCH  guilds/{guild_id}/channels/{channel_id}/messages/{message_id}
+            .route(
+                expand_version!("guilds/{guild_id}/channels/{message_id}"),
+                web::patch().to(not_implemented),
+            )
+            // DELETE guilds/{guild_id}/channels/{channel_id}/messages/{message_id}
+            .route(
+                expand_version!("guilds/{guild_id}/channels/{channel_id}/messages/{message_id}"),
+                web::delete().to(not_implemented),
+            )
+            // POST   guilds/{guild_id}/members
+            .route(
+                expand_version!("guilds/{guild_id}/members"),
+                web::post().to(not_implemented),
+            )
+            // GET    guilds/{guild_id}/members/{member_id}
+            .route(
+                expand_version!("guilds/{guild_id}/members/{member_id}"),
+                web::get().to(not_implemented),
+            )
+            // PATCH  guilds/{guild_id}/members/{member_id}
+            .route(
+                expand_version!("guilds/{guild_id}/members/{member_id}"),
+                web::patch().to(not_implemented),
+            )
+            // DELETE guilds/{guild_id}/members/{member_id}
+            .route(
+                expand_version!("guilds/{guild_id}/members/{member_id}"),
+                web::delete().to(not_implemented),
             )
             // POST   /users/
             .route(expand_version!("users"), web::post().to(create_user))
@@ -155,10 +195,10 @@ pub async fn entrypoint() {
                 expand_version!("users/{user_id}"),
                 web::patch().to(not_implemented),
             )
-            // DELETE /users/{channel_id}
+            // DELETE /users/{user_id}
             .route(
                 expand_version!("users/{user_id}"),
-                web::delete().to(delete_user),
+                web::delete().to(not_implemented),
             )
             // GET    /auth/{user_id}
             .route(expand_version!("auth/{user_id}"), web::get().to(get_token))
