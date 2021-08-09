@@ -7,7 +7,7 @@ use num_traits::FromPrimitive;
 use sqlx::types::BigDecimal;
 
 /// POST /api/v0/guilds/{guild_id/channels
-pub async fn create_channel(_:crate::Authorization) -> impl Responder {
+pub async fn create_channel(_: crate::Authorization) -> impl Responder {
     let db = get_db_or_fail!();
     let channel_id = generate_snowflake::<API_VERSION>(0, 0);
     match sqlx::query!(

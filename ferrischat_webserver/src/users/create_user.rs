@@ -7,7 +7,7 @@ use num_traits::FromPrimitive;
 use sqlx::types::BigDecimal;
 
 /// POST /api/v0/users/
-pub async fn create_user(_:crate::Authorization) -> impl Responder {
+pub async fn create_user(_: crate::Authorization) -> impl Responder {
     let db = get_db_or_fail!();
     let user_id = generate_snowflake::<API_VERSION>(0, 0);
     match sqlx::query!(
