@@ -1,4 +1,3 @@
-use crate::API_VERSION;
 use actix_web::{HttpResponse, Responder};
 use ferrischat_common::types::{Guild, InternalServerErrorJson};
 use ferrischat_macros::get_db_or_fail;
@@ -9,7 +8,7 @@ use sqlx::types::BigDecimal;
 /// POST /api/v0/guilds/
 pub async fn create_guild(auth: crate::Authorization) -> impl Responder {
     let db = get_db_or_fail!();
-    let guild_id = generate_snowflake::<API_VERSION>(0, 0);
+    let guild_id = generate_snowflake::<0>(0, 0);
     match sqlx::query!(
         "INSERT INTO guilds VALUES ($1, $2, $3, 0, 0)",
         BigDecimal::from_u128(guild_id),
@@ -19,9 +18,9 @@ pub async fn create_guild(auth: crate::Authorization) -> impl Responder {
     .execute(db)
     .await
     {
-        Ok(r) => HttpResponse::Created().json(Guild {
+        Ok(_) => HttpResponse::Created().json(Guild {
             id: guild_id,
-            owner_id: 0,
+            owner_id: auth.0,
             name: "New Guild".to_string(),
             channels: None,
             members: None,
