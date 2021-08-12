@@ -8,6 +8,10 @@ POST http://localhost:8080/api/v0/guilds
 Accept: application/json
 Content-Type: application/json
 
+{
+  "name": "Guild 0"
+}
+
 ###
 
 DELETE http://localhost:8080/api/v0/guilds/8
