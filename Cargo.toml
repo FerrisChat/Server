@@ -10,6 +10,7 @@ members = [
   "ferrischat_db",
   "ferrischat_webserver",
   "ferrischat_macros",
+  "ferrischat_redis",
 ]
 
 [dependencies]
