@@ -196,8 +196,8 @@ pub async fn entrypoint() {
                 expand_version!("users/{user_id}"),
                 web::delete().to(not_implemented),
             )
-            // GET    /auth/{user_id}
-            .route(expand_version!("auth/{user_id}"), web::get().to(get_token))
+            // POST    /auth/{user_id}
+            .route(expand_version!("auth/{user_id}"), web::post().to(get_token))
             .default_service(web::route().to(|| HttpResponse::NotFound()))
         // TODO: member and message endpoints
     })
