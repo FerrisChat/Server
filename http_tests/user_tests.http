@@ -1,0 +1,12 @@
+POST http://localhost:8080/api/v0/users
+# should return 400 Bad Request
+
+###
+POST http://localhost:8080/api/v0/users
+Content-Type: application/json
+
+{
+  "username": "0/0",
+  "email": "zero@ferris.chat",
+  "password": "a1b2c3d4e5"
+}

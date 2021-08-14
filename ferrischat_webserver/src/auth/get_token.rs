@@ -1,5 +1,5 @@
 use crate::auth::token_gen::generate_random_bits;
-use actix_web::web::{self, HttpResponse, Path};
+use actix_web::web::HttpResponse;
 use actix_web::{HttpRequest, Responder};
 use ferrischat_common::types::InternalServerErrorJson;
 use ferrischat_macros::{get_db_or_fail, get_item_id};
@@ -22,7 +22,7 @@ pub async fn get_token(req: HttpRequest) -> impl Responder {
         let rx = match crate::GLOBAL_HASHER.get() {
             Some(h) => {
                 let (tx, rx) = channel();
-                if let Err(e) = h.send((token.clone(), tx)).await {
+                if let Err(_) = h.send((token.clone(), tx)).await {
                     return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                         reason: "Password hasher has hung up connection".to_string(),
                     });

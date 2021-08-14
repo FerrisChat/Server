@@ -1,7 +1,4 @@
-use actix_web::{
-    web::{Json, Path},
-    HttpResponse, Responder,
-};
+use actix_web::{web::Path, HttpResponse, Responder};
 use ferrischat_common::types::{Guild, InternalServerErrorJson};
 use ferrischat_macros::{bigdecimal_to_u128, get_db_or_fail};
 use num_traits::cast::ToPrimitive;

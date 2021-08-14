@@ -6,9 +6,7 @@ use actix_web::{FromRequest, HttpRequest};
 use futures::Future;
 use num_traits::FromPrimitive;
 use sqlx::types::BigDecimal;
-use tokio::sync::mpsc::Sender;
 use tokio::sync::oneshot::channel;
-use tokio::sync::oneshot::error::RecvError;
 
 macro_rules! parse_b64_to_string {
     ($input:expr) => {{
@@ -125,7 +123,8 @@ impl FromRequest for Authorization {
                 }
             };
             let (tx, rx) = channel();
-            verifier.send(((token, db_token), tx)).await;
+            // if the send failed, we'll know because the receiver we wait upon below will fail instantly
+            let _ = verifier.send(((token, db_token), tx)).await;
             let res = match rx.await {
                 Ok(r) => match r {
                     Ok(r) => r,
@@ -136,7 +135,7 @@ impl FromRequest for Authorization {
                         )))
                     }
                 },
-                Err(e) => {
+                Err(_) => {
                     return Err(ErrorInternalServerError(
                         "A impossible situation seems to have happened".to_string(),
                     ))
