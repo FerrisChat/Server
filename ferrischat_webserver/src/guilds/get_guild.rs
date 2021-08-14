@@ -1,13 +1,10 @@
-use actix_web::{
-    web::{Json, Path},
-    HttpResponse, Responder,
-};
+use actix_web::{web::Path, HttpResponse, Responder};
 use ferrischat_common::types::{Guild, InternalServerErrorJson};
 use ferrischat_macros::{bigdecimal_to_u128, get_db_or_fail};
 use num_traits::cast::ToPrimitive;
 use sqlx::types::BigDecimal;
 
-/// GET /api/v1/guilds/{id}
+/// GET /api/v0/guilds/{guild_id}
 pub async fn get_guild(Path(guild_id): Path<i64>, _: crate::Authorization) -> impl Responder {
     let db = get_db_or_fail!();
     let guild_id = BigDecimal::from(guild_id);

@@ -12,6 +12,7 @@ mod members;
 mod messages;
 mod not_implemented;
 mod users;
+mod ws;
 
 trait SizedErr: std::error::Error + std::marker::Sized {}
 
