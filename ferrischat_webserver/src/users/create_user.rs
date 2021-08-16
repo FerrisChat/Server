@@ -1,6 +1,6 @@
 use actix_web::{web::Json, HttpResponse, Responder};
 use ferrischat_common::request_json::UserCreateJson;
-use ferrischat_common::types::{InternalServerErrorJson, User};
+use ferrischat_common::types::{InternalServerErrorJson, User, ModelType};
 use ferrischat_macros::get_db_or_fail;
 use ferrischat_snowflake_generator::generate_snowflake;
 use num_traits::FromPrimitive;
@@ -10,7 +10,7 @@ use tokio::sync::oneshot::channel;
 /// POST /api/v0/users/
 pub async fn create_user(user_data: Json<UserCreateJson>) -> impl Responder {
     let db = get_db_or_fail!();
-    let user_id = generate_snowflake::<0>(0, 0);
+    let user_id = generate_snowflake::<0>(ModelType::User as u8, 0);
     let UserCreateJson {
         username,
         email,
