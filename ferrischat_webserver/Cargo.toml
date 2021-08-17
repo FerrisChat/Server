@@ -21,7 +21,7 @@ dotenv = "0.15"
 ferrischat_db = { path = "../ferrischat_db" }
 ferrischat_common = { git = "https://github.com/FerrisChat/Common.git" }
 ferrischat_macros = { path = "../ferrischat_macros" }
-ferrischat_snowflake_generator = "0.1"
+ferrischat_snowflake_generator = "1"
 
 [dependencies.sqlx]
 version = "0.4"
