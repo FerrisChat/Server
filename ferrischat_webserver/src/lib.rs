@@ -4,6 +4,9 @@
 #[cfg(not(target_os = "linux"))]
 compile_error!("the server of FerrisChat is only supported on Linux systems");
 
+#[macro_use]
+extern crate ferrischat_macros;
+
 mod auth;
 mod channels;
 mod entrypoint;
