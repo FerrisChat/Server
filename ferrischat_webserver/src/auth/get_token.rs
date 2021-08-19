@@ -62,15 +62,23 @@ pub async fn get_token(req: HttpRequest) -> impl Responder {
     let db = get_db_or_fail!();
 
     let bigint_user_id = BigDecimal::from_u128(user_id);
-    match sqlx::query!("SELECT email, password FROM users WHERE id = $1", bigint_user_id).fetch_one(db).await {
+    match sqlx::query!(
+        "SELECT email, password FROM users WHERE id = $1",
+        bigint_user_id
+    )
+    .fetch_one(db)
+    .await
+    {
         Ok(r) => {
             if !((user_email == r.email) && (user_password == r.password)) {
-                return HttpResponse::Unauthorized().finish()
+                return HttpResponse::Unauthorized().finish();
             }
         }
-        Err(e) => return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-            reason: format!("DB returned a error: {}", e)
-        })
+        Err(e) => {
+            return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                reason: format!("DB returned a error: {}", e),
+            })
+        }
     };
 
     let hashed_token = {
