@@ -71,14 +71,13 @@ pub async fn get_token(req: HttpRequest) -> impl Responder {
         Err(e) => return HttpResponse::InternalServerError().json(InternalServerErrorJson {
             reason: format!("DB returned a error: {}", e)
         })
-
     };
 
     let hashed_token = {
         let rx = match crate::GLOBAL_HASHER.get() {
             Some(h) => {
                 let (tx, rx) = channel();
-                if let Err(_) = h.send((token.clone(), tx)).await {
+                if h.send((token.clone(), tx)).await.is_err() {
                     return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                         reason: "Password hasher has hung up connection".to_string(),
                     });

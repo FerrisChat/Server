@@ -41,16 +41,11 @@ pub async fn entrypoint() {
 
         actix_web::rt::spawn(async move {
             actix_web::rt::blocking::run::<_, (), ()>(move || {
-                loop {
-                    match rx.blocking_recv() {
-                        Some(d) => {
-                            let (password, sender) = d;
+                while let Some(d) = rx.blocking_recv() {
+                    let (password, sender) = d;
 
-                            let r = hasher.with_password(password).hash();
-                            let _ = sender.send(r);
-                        }
-                        None => break,
-                    };
+                    let r = hasher.with_password(password).hash();
+                    let _ = sender.send(r);
                 }
 
                 Ok(())
@@ -75,19 +70,14 @@ pub async fn entrypoint() {
 
         actix_web::rt::spawn(async move {
             actix_web::rt::blocking::run::<_, (), ()>(move || {
-                loop {
-                    match rx.blocking_recv() {
-                        Some(d) => {
-                            let (password, sender) = d;
+                while let Some(d) = rx.blocking_recv() {
+                    let (password, sender) = d;
 
-                            let r = verifier
-                                .with_password(password.0)
-                                .with_hash(password.1)
-                                .verify();
-                            let _ = sender.send(r);
-                        }
-                        None => break,
-                    }
+                    let r = verifier
+                        .with_password(password.0)
+                        .with_hash(password.1)
+                        .verify();
+                    let _ = sender.send(r);
                 }
 
                 Ok(())
@@ -198,7 +188,7 @@ pub async fn entrypoint() {
             )
             // POST    /auth/{user_id}
             .route(expand_version!("auth/{user_id}"), web::post().to(get_token))
-            .default_service(web::route().to(|| HttpResponse::NotFound()))
+            .default_service(web::route().to(HttpResponse::NotFound))
         // TODO: member and message endpoints
     })
     .bind("0.0.0.0:8080")
