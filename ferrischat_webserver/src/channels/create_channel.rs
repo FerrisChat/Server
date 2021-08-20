@@ -11,7 +11,7 @@ pub async fn create_channel(_: crate::Authorization) -> impl Responder {
     let channel_id = generate_snowflake::<0>(ModelType::Channel as u8, 0);
     match sqlx::query!(
         "INSERT INTO channels VALUES ($1, $2)",
-        BigDecimal::from_u128(channel_id),
+        u128_to_bigdecimal!(channel_id),
         "New Channel"
     )
     .execute(db)
