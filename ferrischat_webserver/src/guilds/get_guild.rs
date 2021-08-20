@@ -1,13 +1,14 @@
-use actix_web::{web::Path, HttpResponse, Responder};
+use actix_web::{HttpResponse, Responder, HttpRequest};
 use ferrischat_common::types::{Guild, InternalServerErrorJson};
 use ferrischat_macros::{bigdecimal_to_u128, get_db_or_fail};
 use num_traits::cast::ToPrimitive;
 use sqlx::types::BigDecimal;
 
 /// GET /api/v0/guilds/{guild_id}
-pub async fn get_guild(Path(guild_id): Path<i64>, _: crate::Authorization) -> impl Responder {
+pub async fn get_guild(req: HttpRequest, _: crate::Authorization) -> impl Responder {
+    let user_id = get_item_id!(req, "guild_id");
     let db = get_db_or_fail!();
-    let guild_id = BigDecimal::from(guild_id);
+    let guild_id = u128_to_bigdecimal!(guild_id);
     let resp = sqlx::query!("SELECT * FROM guilds WHERE id = $1", guild_id)
         .fetch_optional(db)
         .await;
