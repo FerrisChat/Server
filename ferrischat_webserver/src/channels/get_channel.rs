@@ -1,8 +1,5 @@
-use actix_web::{web::Path, HttpResponse, Responder, HttpRequest};
+use actix_web::{ HttpResponse, Responder, HttpRequest};
 use ferrischat_common::types::{Channel, InternalServerErrorJson};
-use ferrischat_macros::{bigdecimal_to_u128, get_db_or_fail};
-use num_traits::cast::ToPrimitive;
-use sqlx::types::BigDecimal;
 
 /// GET /api/v0/guilds/{guild_id/channels/{channel_id}
 pub async fn get_channel(req: HttpRequest, _: crate::Authorization) -> impl Responder {

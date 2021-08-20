@@ -2,10 +2,7 @@ use actix_web::web::Json;
 use actix_web::{HttpResponse, Responder};
 use ferrischat_common::request_json::GuildCreateJson;
 use ferrischat_common::types::{Guild, InternalServerErrorJson, ModelType};
-use ferrischat_macros::get_db_or_fail;
 use ferrischat_snowflake_generator::generate_snowflake;
-use num_traits::FromPrimitive;
-use sqlx::types::BigDecimal;
 
 /// POST /api/v0/guilds/
 pub async fn create_guild(

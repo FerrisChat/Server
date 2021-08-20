@@ -1,9 +1,6 @@
 use actix_web::{HttpResponse, Responder};
 use ferrischat_common::types::{Channel, InternalServerErrorJson, ModelType};
-use ferrischat_macros::get_db_or_fail;
 use ferrischat_snowflake_generator::generate_snowflake;
-use num_traits::FromPrimitive;
-use sqlx::types::BigDecimal;
 
 /// POST /api/v0/guilds/{guild_id/channels
 pub async fn create_channel(_: crate::Authorization) -> impl Responder {
