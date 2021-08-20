@@ -1,8 +1,7 @@
-use actix_web::{web::Path, HttpRequest, HttpResponse, Responder};
+use actix_web::{HttpRequest, HttpResponse, Responder};
 use ferrischat_common::types::{Guild, InternalServerErrorJson, User};
-use ferrischat_macros::{bigdecimal_to_u128, get_db_or_fail};
+use num_bigint::BigInt;
 use num_traits::cast::ToPrimitive;
-use num_traits::FromPrimitive;
 use sqlx::types::BigDecimal;
 
 /// GET /api/v0/users/{user_id}
