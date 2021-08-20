@@ -4,8 +4,6 @@ use actix_web::http::HeaderValue;
 use actix_web::Error;
 use actix_web::{FromRequest, HttpRequest};
 use futures::Future;
-use num_traits::FromPrimitive;
-use sqlx::types::BigDecimal;
 use tokio::sync::oneshot::channel;
 
 macro_rules! parse_b64_to_string {
@@ -82,7 +80,7 @@ impl FromRequest for Authorization {
                     ));
                 }
             };
-            let id_bigint = BigDecimal::from_u128(id);
+            let id_bigint = u128_to_bigdecimal!(id);
             let db = match ferrischat_db::DATABASE_POOL.get() {
                 Some(db) => db,
                 None => {
