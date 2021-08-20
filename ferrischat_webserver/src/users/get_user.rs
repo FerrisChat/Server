@@ -1,5 +1,5 @@
 use actix_web::{HttpRequest, HttpResponse, Responder};
-use ferrischat_common::types::{Guild, InternalServerErrorJson, User};
+use ferrischat_common::types::{Guild, InternalServerErrorJson, User, NotFoundJson};
 use num_traits::cast::ToPrimitive;
 
 /// GET /api/v0/users/{user_id}
@@ -66,7 +66,9 @@ pub async fn get_user(req: HttpRequest, auth: crate::Authorization) -> impl Resp
                     0
                 },
             }),
-            None => HttpResponse::NotFound().finish(),
+            None => HttpResponse::NotFound().json(NotFoundJson {
+                message: "User Not Found"
+            }),
         },
         Err(e) => HttpResponse::InternalServerError().json(InternalServerErrorJson {
             reason: format!("database returned a error: {}", e),
