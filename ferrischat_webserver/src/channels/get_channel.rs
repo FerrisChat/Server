@@ -1,5 +1,5 @@
 use actix_web::{ HttpResponse, Responder, HttpRequest};
-use ferrischat_common::types::{Channel, InternalServerErrorJson};
+use ferrischat_common::types::{Channel, InternalServerErrorJson, NotFoundJson};
 
 /// GET /api/v0/guilds/{guild_id/channels/{channel_id}
 pub async fn get_channel(req: HttpRequest, _: crate::Authorization) -> impl Responder {
@@ -15,7 +15,9 @@ pub async fn get_channel(req: HttpRequest, _: crate::Authorization) -> impl Resp
                 id: bigdecimal_to_u128!(channel.id),
                 name: channel.name,
             }),
-            None => HttpResponse::NotFound().finish(),
+            None => HttpResponse::NotFound().json(NotFoundJson {
+                message: "Channel Not Found"
+            }),
         },
         Err(e) => HttpResponse::InternalServerError().json(InternalServerErrorJson {
             reason: format!("database returned a error: {}", e),
