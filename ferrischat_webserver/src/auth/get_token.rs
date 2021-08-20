@@ -68,7 +68,46 @@ pub async fn get_token(req: HttpRequest) -> impl Responder {
     .await
     {
         Ok(r) => {
-            if !((user_email == r.email) && (user_password == r.password)) {
+            let matches = {
+                let rx = match crate::GLOBAL_VERIFIER.get() {
+                    Some(v) => {
+                        let (tx, rx) = channel();
+                        // you either shut up about these clones or fix it all: deal?
+                        if v.send(((user_password.clone(), r.password.clone()), tx))
+                            .await
+                            .is_err()
+                        {
+                            return HttpResponse::InternalServerError().json(
+                                InternalServerErrorJson {
+                                    reason: "Password verifier has hung up connection".to_string(),
+                                },
+                            );
+                        };
+                        rx
+                    }
+                    None => {
+                        return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                            reason: "password verifier not found".to_string(),
+                        })
+                    }
+                };
+                match rx.await {
+                    Ok(r) => {
+                        match r {
+                            Ok(d) => d,
+                            Err(e) => return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                                reason: format!("failed to verify password: {}", e),
+                            })
+
+                        }
+                    }
+                    Err(e) => unreachable!(
+                        "failed to receive value from channel despite value being sent earlier on: {}",
+                        e
+                    )
+                }
+            };
+            if !(matches && (user_email == r.email)) {
                 return HttpResponse::Unauthorized().finish();
             }
         }
