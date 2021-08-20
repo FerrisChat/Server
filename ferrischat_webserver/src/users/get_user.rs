@@ -20,13 +20,15 @@ pub async fn get_user(req: HttpRequest, auth: crate::Authorization) -> impl Resp
                 id: user_id,
                 name: user.name,
                 guilds: if authorized_user == user_id {
+                    // this code is shit, can probably make it better but i can't figure out the
+                    // unsatisfied trait bounds that happens when you get rid of .iter()
                     match sqlx::query!(
                         "SELECT * FROM guilds INNER JOIN members m on guilds.id = m.guild_id"
                     )
                     .fetch_all(db)
                     .await
                     {
-                        Ok(mut d) => Some(
+                        Ok(d) => Some(
                             d.iter()
                                 .filter_map(|x| {
                                     Some(Guild {
