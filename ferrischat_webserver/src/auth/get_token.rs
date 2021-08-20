@@ -3,8 +3,6 @@ use actix_web::web::HttpResponse;
 use actix_web::{HttpRequest, Responder};
 use ferrischat_common::types::{BadRequestJson, BadRequestJsonLocation, InternalServerErrorJson};
 use ferrischat_macros::{get_db_or_fail, get_item_id};
-use num_traits::FromPrimitive;
-use sqlx::types::BigDecimal;
 use tokio::sync::oneshot::channel;
 
 pub async fn get_token(req: HttpRequest) -> impl Responder {
@@ -61,7 +59,7 @@ pub async fn get_token(req: HttpRequest) -> impl Responder {
 
     let db = get_db_or_fail!();
 
-    let bigint_user_id = BigDecimal::from_u128(user_id);
+    let bigint_user_id = u128_to_bigdecimal!(user_id);
     match sqlx::query!(
         "SELECT email, password FROM users WHERE id = $1",
         bigint_user_id
@@ -114,7 +112,7 @@ pub async fn get_token(req: HttpRequest) -> impl Responder {
         }
     };
 
-    if let Err(e) = sqlx::query!("INSERT INTO auth_tokens VALUES ($1, $2) ON CONFLICT (user_id) DO UPDATE SET auth_token = $2", BigDecimal::from_u128(user_id), hashed_token).execute(db).await {
+    if let Err(e) = sqlx::query!("INSERT INTO auth_tokens VALUES ($1, $2) ON CONFLICT (user_id) DO UPDATE SET auth_token = $2", bigint_user_id, hashed_token).execute(db).await {
         return HttpResponse::InternalServerError().json(InternalServerErrorJson {
             reason: format!("DB returned a error: {}", e)
         })
