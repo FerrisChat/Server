@@ -1,5 +1,5 @@
 use actix_web::{HttpResponse, Responder, HttpRequest};
-use ferrischat_common::types::{Guild, InternalServerErrorJson};
+use ferrischat_common::types::{Guild, InternalServerErrorJson, NotFoundJson};
 
 /// GET /api/v0/guilds/{guild_id}
 pub async fn get_guild(req: HttpRequest, _: crate::Authorization) -> impl Responder {
@@ -18,7 +18,9 @@ pub async fn get_guild(req: HttpRequest, _: crate::Authorization) -> impl Respon
                 channels: None,
                 members: None,
             }),
-            None => HttpResponse::NotFound().finish(),
+            None => HttpResponse::NotFound().json(NotFoundJson {
+                message: "Guild Not Found"
+            }),
         },
         Err(e) => HttpResponse::InternalServerError().json(InternalServerErrorJson {
             reason: format!("database returned a error: {}", e),
