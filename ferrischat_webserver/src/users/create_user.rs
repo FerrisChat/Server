@@ -3,8 +3,6 @@ use ferrischat_common::request_json::UserCreateJson;
 use ferrischat_common::types::{InternalServerErrorJson, ModelType, User};
 use ferrischat_macros::get_db_or_fail;
 use ferrischat_snowflake_generator::generate_snowflake;
-use num_traits::FromPrimitive;
-use sqlx::types::BigDecimal;
 use tokio::sync::oneshot::channel;
 
 /// POST /api/v0/users/
@@ -47,9 +45,10 @@ pub async fn create_user(user_data: Json<UserCreateJson>) -> impl Responder {
         }
     };
 
+    let bigint_user_id = u128_to_bigdecimal!(user_id);
     match sqlx::query!(
         "INSERT INTO users VALUES ($1, $2, null, $3, $4, $5)",
-        BigDecimal::from_u128(user_id),
+        bigint_user_id,
         username,
         0,
         email,
