@@ -9,7 +9,7 @@ use sqlx::types::BigDecimal;
 pub async fn get_user(req: HttpRequest, auth: crate::Authorization) -> impl Responder {
     let user_id = get_item_id!(req, "user_id");
     let db = get_db_or_fail!();
-    let bigint_user_id = BigDecimal::from_u128(user_id);
+    let bigint_user_id = u128_to_bigdecimal!(user_id);
     let authorized_user = auth.0;
     let resp = sqlx::query!("SELECT * FROM users WHERE id = $1", bigint_user_id)
         .fetch_optional(db)
