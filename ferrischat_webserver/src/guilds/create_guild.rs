@@ -17,8 +17,8 @@ pub async fn create_guild(
     let GuildCreateJson { name } = guild_info.0;
     match sqlx::query!(
         "INSERT INTO guilds VALUES ($1, $2, $3, 0, 0)",
-        BigDecimal::from_u128(guild_id),
-        BigDecimal::from_u128(auth.0),
+        u128_to_bigdecimal!(guild_id),
+        u128_to_bigdecimal!(auth.0),
         name
     )
     .execute(db)
