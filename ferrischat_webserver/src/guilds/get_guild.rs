@@ -6,9 +6,8 @@ use sqlx::types::BigDecimal;
 
 /// GET /api/v0/guilds/{guild_id}
 pub async fn get_guild(req: HttpRequest, _: crate::Authorization) -> impl Responder {
-    let user_id = get_item_id!(req, "guild_id");
+    let guild_id = u128_to_bigdecimal!(get_item_id!(req, "guild_id"));
     let db = get_db_or_fail!();
-    let guild_id = u128_to_bigdecimal!(guild_id);
     let resp = sqlx::query!("SELECT * FROM guilds WHERE id = $1", guild_id)
         .fetch_optional(db)
         .await;
