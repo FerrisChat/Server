@@ -1,4 +1,4 @@
-use actix_web::{HttpResponse, Responder, HttpRequest};
+use actix_web::{HttpRequest, HttpResponse, Responder};
 use ferrischat_common::types::{Guild, InternalServerErrorJson};
 
 /// GET /api/v0/guilds/{guild_id}
