@@ -4,5 +4,5 @@ use actix_web::{HttpResponse, Responder};
 pub async fn not_implemented() -> impl Responder {
     HttpResponse::NotImplemented()
         .header("Retry-After", "Fri, 01 Apr 2022 00:00:00 GMT")
-        .body("")
+        .finish()
 }
