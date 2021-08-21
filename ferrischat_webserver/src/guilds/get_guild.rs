@@ -19,7 +19,7 @@ pub async fn get_guild(req: HttpRequest, _: crate::Authorization) -> impl Respon
                 members: None,
             }),
             None => HttpResponse::NotFound().json(NotFoundJson {
-                message: "Guild Not Found",
+                message: "Guild Not Found".to_string(),
             }),
         },
         Err(e) => HttpResponse::InternalServerError().json(InternalServerErrorJson {

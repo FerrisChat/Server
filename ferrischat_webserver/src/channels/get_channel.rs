@@ -16,7 +16,7 @@ pub async fn get_channel(req: HttpRequest, _: crate::Authorization) -> impl Resp
                 name: channel.name,
             }),
             None => HttpResponse::NotFound().json(NotFoundJson {
-                message: "Channel Not Found",
+                message: "Channel Not Found".to_string(),
             }),
         },
         Err(e) => HttpResponse::InternalServerError().json(InternalServerErrorJson {
