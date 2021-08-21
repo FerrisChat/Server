@@ -1,13 +1,10 @@
-use actix_web::{web::Path, HttpResponse, Responder};
-use ferrischat_common::types::{Guild, InternalServerErrorJson};
-use ferrischat_macros::{bigdecimal_to_u128, get_db_or_fail};
-use num_traits::cast::ToPrimitive;
-use sqlx::types::BigDecimal;
+use actix_web::{HttpRequest, HttpResponse, Responder};
+use ferrischat_common::types::{Guild, InternalServerErrorJson, NotFoundJson};
 
 /// GET /api/v0/guilds/{guild_id}
-pub async fn get_guild(Path(guild_id): Path<i64>, _: crate::Authorization) -> impl Responder {
+pub async fn get_guild(req: HttpRequest, _: crate::Authorization) -> impl Responder {
+    let guild_id = u128_to_bigdecimal!(get_item_id!(req, "guild_id"));
     let db = get_db_or_fail!();
-    let guild_id = BigDecimal::from(guild_id);
     let resp = sqlx::query!("SELECT * FROM guilds WHERE id = $1", guild_id)
         .fetch_optional(db)
         .await;
@@ -21,7 +18,9 @@ pub async fn get_guild(Path(guild_id): Path<i64>, _: crate::Authorization) -> im
                 channels: None,
                 members: None,
             }),
-            None => HttpResponse::NotFound().finish(),
+            None => HttpResponse::NotFound().json(NotFoundJson {
+                message: "Guild Not Found".to_string(),
+            }),
         },
         Err(e) => HttpResponse::InternalServerError().json(InternalServerErrorJson {
             reason: format!("database returned a error: {}", e),

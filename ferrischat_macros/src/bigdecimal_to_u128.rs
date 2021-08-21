@@ -3,6 +3,7 @@
 /// or returns a HTTP 500 from the function.
 macro_rules! bigdecimal_to_u128 {
     ($decimal:expr) => {{
+        use num_traits::cast::ToPrimitive;
         match $decimal
             .with_scale(0)
             .into_bigint_and_exponent()
