@@ -1,6 +1,7 @@
 use actix_web::{HttpRequest, HttpResponse, Responder};
 use ferrischat_common::types::{Guild, InternalServerErrorJson, NotFoundJson, User};
 use num_traits::cast::ToPrimitive;
+use sqlx::Error;
 
 /// GET /api/v0/users/{user_id}
 pub async fn get_user(req: HttpRequest, auth: crate::Authorization) -> impl Responder {
@@ -70,8 +71,16 @@ pub async fn get_user(req: HttpRequest, auth: crate::Authorization) -> impl Resp
                 message: "User Not Found".to_string(),
             }),
         },
-        Err(e) => HttpResponse::InternalServerError().json(InternalServerErrorJson {
-            reason: format!("database returned a error: {}", e),
-        }),
+        Err(e) => {
+            if e == Error::RowNotFound {
+                HttpResponse::NotFound().json(NotFoundJson {
+                    message: "user not found".to_string(),
+                })
+            } else {
+                HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                    reason: format!("database returned a error: {}", e),
+                })
+            }
+        }
     }
 }
