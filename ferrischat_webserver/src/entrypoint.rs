@@ -110,7 +110,7 @@ pub async fn entrypoint() {
             // DELETE /guilds/{guild_id}
             .route(
                 expand_version!("guilds/{guild_id}"),
-                web::delete().to(not_implemented),
+                web::delete().to(delete_guild),
             )
             // POST   guilds/{guild_id}/channels
             .route(
