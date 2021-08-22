@@ -60,9 +60,9 @@ pub async fn get_token(req: HttpRequest) -> impl Responder {
 
     return HttpResponse::Ok().json(AuthResponse {
         token: format!(
-        "{}.{}",
-        base64::encode_config(user_id.to_string(), base64::URL_SAFE),
-        token,
-    )}
-    );
+            "{}.{}",
+            base64::encode_config(user_id.to_string(), base64::URL_SAFE),
+            token,
+        ),
+    });
 }
