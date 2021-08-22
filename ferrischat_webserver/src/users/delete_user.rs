@@ -1,4 +1,4 @@
-use actix_web::{web::Path, HttpResponse, Responder};
+use actix_web::{HttpRequest, HttpResponse, Responder};
 use ferrischat_common::types::{InternalServerErrorJson, NotFoundJson};
 
 /// DELETE /api/v0/users/{user_id}
