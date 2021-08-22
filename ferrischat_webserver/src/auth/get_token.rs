@@ -1,7 +1,9 @@
 use crate::auth::token_gen::generate_random_bits;
 use actix_web::web::HttpResponse;
 use actix_web::{HttpRequest, Responder};
-use ferrischat_common::types::{AuthResponse, BadRequestJson, BadRequestJsonLocation, InternalServerErrorJson};
+use ferrischat_common::types::{
+    AuthResponse, BadRequestJson, BadRequestJsonLocation, InternalServerErrorJson,
+};
 use tokio::sync::oneshot::channel;
 
 pub async fn get_token(req: HttpRequest) -> impl Responder {
