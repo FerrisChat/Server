@@ -46,7 +46,7 @@ pub async fn create_user(user_data: Json<UserCreateJson>) -> impl Responder {
 
     let bigint_user_id = u128_to_bigdecimal!(user_id);
     match sqlx::query!(
-        "INSERT INTO users VALUES ($1, $2, null, $3, $4, $5)",
+        "INSERT INTO users VALUES ($1, $2, $3, $4, $5)",
         bigint_user_id,
         username,
         0,

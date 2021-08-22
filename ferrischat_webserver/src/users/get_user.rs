@@ -61,11 +61,7 @@ pub async fn get_user(req: HttpRequest, auth: crate::Authorization) -> impl Resp
                 } else {
                     None
                 },
-                flags: if let Some(f) = user.flags {
-                    f as u64
-                } else {
-                    0
-                },
+                flags: user.flags as u64,
             }),
             None => HttpResponse::NotFound().json(NotFoundJson {
                 message: "User Not Found".to_string(),

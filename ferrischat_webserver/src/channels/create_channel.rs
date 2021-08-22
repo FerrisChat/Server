@@ -33,6 +33,7 @@ pub async fn create_channel(
         Ok(_) => HttpResponse::Created().json(Channel {
             id: channel_id,
             name,
+            guild_id,
         }),
         Err(e) => HttpResponse::InternalServerError().json(InternalServerErrorJson {
             reason: format!("DB returned a error: {}", e),

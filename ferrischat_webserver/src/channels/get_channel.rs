@@ -14,6 +14,7 @@ pub async fn get_channel(req: HttpRequest, _: crate::Authorization) -> impl Resp
             Some(channel) => HttpResponse::Ok().json(Channel {
                 id: bigdecimal_to_u128!(channel.id),
                 name: channel.name,
+                guild_id: bigdecimal_to_u128!(channel.guild_id),
             }),
             None => HttpResponse::NotFound().json(NotFoundJson {
                 message: "Channel Not Found".to_string(),

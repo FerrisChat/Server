@@ -46,6 +46,12 @@ pub async fn get_guild(
                     Some(Channel {
                         id: x.id.with_scale(0).into_bigint_and_exponent().0.to_u128()?,
                         name: x.name.clone(),
+                        guild_id: x
+                            .guild_id
+                            .with_scale(0)
+                            .into_bigint_and_exponent()
+                            .0
+                            .to_u128()?,
                     })
                 })
                 .collect(),
