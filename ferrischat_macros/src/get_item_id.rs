@@ -7,7 +7,7 @@ macro_rules! get_item_id {
                 Ok(id) => id,
                 Err(e) => {
                     return HttpResponse::BadRequest().json(InternalServerErrorJson {
-                        reason: format!("Failed to parse user ID as u128: {}", e),
+                        reason: format!(stringify!("Failed to parse " $name " as u128: {}"), e),
                     })
                 }
             },
