@@ -45,7 +45,7 @@ pub async fn create_message(
 
     HttpResponse::Created().json(Message {
         id: message_id,
-        content,
+        content: Some(content),
         channel_id,
         author_id,
     })
