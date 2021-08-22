@@ -6,7 +6,7 @@ pub async fn delete_user(req: HttpRequest, auth: crate::Authorization) -> impl R
     let user_id = get_item_id!(req, "user_id");
 
     if user_id != auth.0 {
-        HttpResponse::Forbidden().finsh()
+        HttpResponse::Forbidden().finish()
     }
     let bigint_user_id = u128_to_bigdecimal!(user_id);
 
