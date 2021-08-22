@@ -135,7 +135,7 @@ pub async fn entrypoint() {
             // POST   guilds/{guild_id}/channels/{channel_id}/messages
             .route(
                 expand_version!("guilds/{guild_id}/channels/{channel_id}/messages"),
-                web::post().to(not_implemented),
+                web::post().to(create_message),
             )
             // GET     guilds/{guild_id}/channels/{channel_id}/messages/{message_id}
             .route(
