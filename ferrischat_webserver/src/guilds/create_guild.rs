@@ -13,7 +13,7 @@ pub async fn create_guild(
     let guild_id = generate_snowflake::<0>(ModelType::Guild as u8, 0);
     let GuildCreateJson { name } = guild_info.0;
     match sqlx::query!(
-        "INSERT INTO guilds VALUES ($1, $2, $3, 0, 0)",
+        "INSERT INTO guilds VALUES ($1, $2, $3)",
         u128_to_bigdecimal!(guild_id),
         u128_to_bigdecimal!(auth.0),
         name
