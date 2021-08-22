@@ -2,8 +2,19 @@
 name = "ferrischat_redis"
 version = "0.1.0"
 edition = "2018"
+description = "Redis utilities for FerrisChat"
+license = "EUPL-1.2"
+homepage = "https://ferris.chat"
+repository = "https://github.com/FerrisChat/Server"
+include = [
+  "**/*.rs",
+  "Cargo.toml",
+  "/.gitignore",
+  "/LICENSE",
+  "/README.md"
+]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-redis = { version = "0.21", features = ["tokio-comp", "cluster", "connection-manager" ] }
+redis = { version = "0.21", features = ["cluster"] }

@@ -11,6 +11,7 @@ use ferrischat_macros::expand_version;
 use ring::rand::{SecureRandom, SystemRandom};
 use tokio::sync::mpsc::channel;
 
+#[allow(clippy::expect_used)]
 pub async fn entrypoint() {
     // the very, very first thing we should do is load the RNG
     // we expect here, since without it we literally cannot generate tokens whatsoever
@@ -41,16 +42,11 @@ pub async fn entrypoint() {
 
         actix_web::rt::spawn(async move {
             actix_web::rt::blocking::run::<_, (), ()>(move || {
-                loop {
-                    match rx.blocking_recv() {
-                        Some(d) => {
-                            let (password, sender) = d;
+                while let Some(d) = rx.blocking_recv() {
+                    let (password, sender) = d;
 
-                            let r = hasher.with_password(password).hash();
-                            let _ = sender.send(r);
-                        }
-                        None => break,
-                    };
+                    let r = hasher.with_password(password).hash();
+                    let _ = sender.send(r);
                 }
 
                 Ok(())
@@ -75,19 +71,14 @@ pub async fn entrypoint() {
 
         actix_web::rt::spawn(async move {
             actix_web::rt::blocking::run::<_, (), ()>(move || {
-                loop {
-                    match rx.blocking_recv() {
-                        Some(d) => {
-                            let (password, sender) = d;
+                while let Some(d) = rx.blocking_recv() {
+                    let (password, sender) = d;
 
-                            let r = verifier
-                                .with_password(password.0)
-                                .with_hash(password.1)
-                                .verify();
-                            let _ = sender.send(r);
-                        }
-                        None => break,
-                    }
+                    let r = verifier
+                        .with_password(password.0)
+                        .with_hash(password.1)
+                        .verify();
+                    let _ = sender.send(r);
                 }
 
                 Ok(())
@@ -120,7 +111,7 @@ pub async fn entrypoint() {
             // DELETE /guilds/{guild_id}
             .route(
                 expand_version!("guilds/{guild_id}"),
-                web::delete().to(not_implemented),
+                web::delete().to(delete_guild),
             )
             // POST   guilds/{guild_id}/channels
             .route(
@@ -140,17 +131,17 @@ pub async fn entrypoint() {
             // DELETE guilds/{guild_id}/channels/{channel_id}
             .route(
                 expand_version!("guilds/{guild_id}/channels/{channel_id}"),
-                web::delete().to(not_implemented),
+                web::delete().to(delete_channel),
             )
             // POST   guilds/{guild_id}/channels/{channel_id}/messages
             .route(
                 expand_version!("guilds/{guild_id}/channels/{channel_id}/messages"),
-                web::post().to(not_implemented),
+                web::post().to(create_message),
             )
             // GET     guilds/{guild_id}/channels/{channel_id}/messages/{message_id}
             .route(
                 expand_version!("guilds/{guild_id}/channels/{channel_id}/messages/{message_id}"),
-                web::get().to(not_implemented),
+                web::get().to(get_message),
             )
             // PATCH  guilds/{guild_id}/channels/{channel_id}/messages/{message_id}
             .route(
@@ -160,7 +151,7 @@ pub async fn entrypoint() {
             // DELETE guilds/{guild_id}/channels/{channel_id}/messages/{message_id}
             .route(
                 expand_version!("guilds/{guild_id}/channels/{channel_id}/messages/{message_id}"),
-                web::delete().to(not_implemented),
+                web::delete().to(delete_message),
             )
             // POST   guilds/{guild_id}/members
             .route(
@@ -198,7 +189,7 @@ pub async fn entrypoint() {
             )
             // POST    /auth/{user_id}
             .route(expand_version!("auth/{user_id}"), web::post().to(get_token))
-            .default_service(web::route().to(|| HttpResponse::NotFound()))
+            .default_service(web::route().to(HttpResponse::NotFound))
         // TODO: member and message endpoints
     })
     .bind("0.0.0.0:8080")

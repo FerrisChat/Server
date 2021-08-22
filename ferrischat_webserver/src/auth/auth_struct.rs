@@ -4,8 +4,6 @@ use actix_web::http::HeaderValue;
 use actix_web::Error;
 use actix_web::{FromRequest, HttpRequest};
 use futures::Future;
-use num_traits::FromPrimitive;
-use sqlx::types::BigDecimal;
 use tokio::sync::oneshot::channel;
 
 macro_rules! parse_b64_to_string {
@@ -57,7 +55,7 @@ impl FromRequest for Authorization {
                 }
             };
 
-            let mut auth = token.split(".");
+            let mut auth = token.split('.');
             let id = match auth.next() {
                 Some(id) => match parse_b64_to_string!(id).parse::<u128>() {
                     Ok(id) => id,
@@ -82,7 +80,7 @@ impl FromRequest for Authorization {
                     ));
                 }
             };
-            let id_bigint = BigDecimal::from_u128(id);
+            let id_bigint = u128_to_bigdecimal!(id);
             let db = match ferrischat_db::DATABASE_POOL.get() {
                 Some(db) => db,
                 None => {
@@ -142,7 +140,7 @@ impl FromRequest for Authorization {
                 }
             };
             if res {
-                return Ok(Self(id));
+                Ok(Self(id))
             } else {
                 // we specifically do not define the boundary between no token and
                 // wrong tokens

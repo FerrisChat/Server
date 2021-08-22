@@ -10,3 +10,7 @@ Content-Type: application/json
   "email": "zero@ferris.chat",
   "password": "a1b2c3d4e5"
 }
+
+###
+GET http://localhost:8080/api/v0/users/952717397616068974358554476544
+Authorization: OTUxNzg3MzMxODM1MzU5MTcxMzA2MDg5MDg2OTc2.IBOHsLgx16w4DYmai3LmlPdfxQY8l19cFts8tH_xj0hJaQaL17MZKabUrckV7ZwMQic3EY-F8WiDCPnMc9V69mzACubyUJ3TiN4pjBTy-PbA8FniqPxVtZkEzS4dEQq7B8LMwGdbmxW_Gb3DgJY4sMK8J8W6ZGbo0hf0LbCfBXtEQiI3KBMH2xU7_3TkXS4GloouLKAO_FeiHMm-p8aJtbGt_pS9qI6DAAqkZnE7Rp2Mii5zxL2lwk4CHjzZ6d1RmszXztHQW_1JZQvhUaSMWYrQXGk5lphaMp5YRLnFD97ur76NIN-x9HJ80p0mVyvVpTml2MvC8mU_tpKb1T3xSQ==

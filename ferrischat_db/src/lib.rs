@@ -21,11 +21,13 @@ pub async fn load_db() -> Pool<Postgres> {
                 .statement_cache_capacity(1_048_576_usize),
         )
         .await
-        .expect("failed to connect to the database");
+        // don't ask
+        .unwrap_or_else(|_| panic!("failed to connect to DB"));
 
     DATABASE_POOL
         .set(db.clone())
-        .expect("failed to set the DB global: did you call load_db() twice?");
+        // also don't ask
+        .unwrap_or_else(|_| panic!("failed to set the DB global: did you call load_db() twice?"));
 
     db
 }
