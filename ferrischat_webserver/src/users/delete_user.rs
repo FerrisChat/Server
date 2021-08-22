@@ -16,7 +16,7 @@ pub async fn delete_user(req: HttpRequest, auth: crate::Authorization) -> impl R
         bigint_user_id
     )
     .fetch_optional(db)
-    .await?;
+    .await;
 
     match resp {
         Ok(r) => match r {
