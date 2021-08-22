@@ -1,7 +1,7 @@
 use crate::auth::token_gen::generate_random_bits;
 use actix_web::web::HttpResponse;
 use actix_web::{HttpRequest, Responder};
-use ferrischat_common::types::InternalServerErrorJson;
+use ferrischat_common::types::{AuthResponse, InternalServerErrorJson};
 use ferrischat_macros::{get_db_or_fail, get_item_id};
 use num_traits::FromPrimitive;
 use sqlx::types::BigDecimal;
@@ -58,9 +58,11 @@ pub async fn get_token(req: HttpRequest) -> impl Responder {
         })
     };
 
-    return HttpResponse::Ok().body(format!(
+    return HttpResponse::Ok().json(AuthResponse {
+        token: format!(
         "{}.{}",
         base64::encode_config(user_id.to_string(), base64::URL_SAFE),
         token,
-    ));
+    )}
+    );
 }
