@@ -1,0 +1,49 @@
+name: API 500 Error
+description: File a bug report where the server returned 500 Internal Server Error
+title: "[500]: "
+labels: [bug]
+assignees:
+  - tazz4843
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report!
+  - type: input
+    id: api-endpoint
+    attributes:
+      label: API Endpoint
+      description: What API endpoint did you discover this on?
+      placeholder: ex. /api/v0/guilds/{guild_id}
+    validations:
+      required: true
+  - type: textarea
+    id: json-response
+    attributes:
+      label: What's the JSON response you got?
+      description: This will be rendered to JSON automatically, please don't add backticks.
+      render: json
+    validations:
+      required: true
+  - type: textarea
+    id: request
+    attributes:
+      label: Request info
+      description: Give a brief overview of the request you made (headers, body, etc)
+    validations:
+      required: true
+  - type: textarea
+    id: more-info
+    attributes:
+      label: More Info
+      description: Anything else to add (such as using a API wrapper)? Put it here.
+    validations:
+     required: false
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Code of Conduct
+      description: By submitting this issue, you agree to follow the [Rust Language Code of Conduct](https://www.rust-lang.org/policies/code-of-conduct)
+      options:
+        - label: I agree to follow the Code of Conduct
+          required: true
