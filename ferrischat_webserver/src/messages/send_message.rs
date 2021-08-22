@@ -24,12 +24,16 @@ pub async fn create_message(
     let message_id = generate_snowflake::<0>(ModelType::Message as u8, 0);
     let bigint_message_id = u128_to_bigdecimal!(message_id);
 
+    let author_id = auth.0;
+    let bigint_author_id = u128_to_bigdecimal!(author_id);
+
     let db = get_db_or_fail!();
     let resp = sqlx::query!(
-        "INSERT INTO messages VALUES ($1, $2, $3)",
+        "INSERT INTO messages VALUES ($1, $2, $3, $4)",
         bigint_message_id,
         content,
-        bigint_channel_id
+        bigint_channel_id,
+        bigint_author_id
     )
     .execute(db)
     .await;
@@ -43,5 +47,6 @@ pub async fn create_message(
         id: message_id,
         content,
         channel_id,
+        author_id,
     })
 }
