@@ -1,7 +1,7 @@
 use crate::auth::token_gen::generate_random_bits;
 use actix_web::web::HttpResponse;
 use actix_web::{HttpRequest, Responder};
-use ferrischat_common::types::{BadRequestJson, BadRequestJsonLocation, InternalServerErrorJson};
+use ferrischat_common::types::{AuthResponse, BadRequestJson, BadRequestJsonLocation, InternalServerErrorJson};
 use tokio::sync::oneshot::channel;
 
 pub async fn get_token(req: HttpRequest) -> impl Responder {
@@ -156,9 +156,11 @@ pub async fn get_token(req: HttpRequest) -> impl Responder {
         })
     };
 
-    return HttpResponse::Ok().body(format!(
-        "{}.{}",
-        base64::encode_config(user_id.to_string(), base64::URL_SAFE),
-        token,
-    ));
+    return HttpResponse::Ok().json(AuthResponse {
+        token: format!(
+            "{}.{}",
+            base64::encode_config(user_id.to_string(), base64::URL_SAFE),
+            token,
+        ),
+    });
 }
