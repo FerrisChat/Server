@@ -118,19 +118,19 @@ pub async fn entrypoint() {
                 expand_version!("guilds/{guild_id}/channels"),
                 web::post().to(create_channel),
             )
-            // GET    guilds/{guild_id}/channels/{channel_id}
+            // GET    channels/{channel_id}
             .route(
-                expand_version!("guilds/{guild_id}/channels/{channel_id}"),
+                expand_version!("channels/{channel_id}"),
                 web::get().to(get_channel),
             )
-            // PATCH  guilds/{guild_id}/channels/{channel_id}
+            // PATCH  channels/{channel_id}
             .route(
-                expand_version!("guilds/{guild_id}/channels/{channel_id}"),
+                expand_version!("channels/{channel_id}"),
                 web::patch().to(not_implemented),
             )
-            // DELETE guilds/{guild_id}/channels/{channel_id}
+            // DELETE channels/{channel_id}
             .route(
-                expand_version!("guilds/{guild_id}/channels/{channel_id}"),
+                expand_version!("channels/{channel_id}"),
                 web::delete().to(delete_channel),
             )
             // POST   guilds/{guild_id}/channels/{channel_id}/messages
@@ -138,19 +138,19 @@ pub async fn entrypoint() {
                 expand_version!("guilds/{guild_id}/channels/{channel_id}/messages"),
                 web::post().to(create_message),
             )
-            // GET     guilds/{guild_id}/channels/{channel_id}/messages/{message_id}
+            // GET     channels/{channel_id}/messages/{message_id}
             .route(
-                expand_version!("guilds/{guild_id}/channels/{channel_id}/messages/{message_id}"),
+                expand_version!("channels/{channel_id}/messages/{message_id}"),
                 web::get().to(get_message),
             )
-            // PATCH  guilds/{guild_id}/channels/{channel_id}/messages/{message_id}
+            // PATCH  channels/{channel_id}/messages/{message_id}
             .route(
-                expand_version!("guilds/{guild_id}/channels/{message_id}"),
+                expand_version!("channels/{message_id}"),
                 web::patch().to(not_implemented),
             )
-            // DELETE guilds/{guild_id}/channels/{channel_id}/messages/{message_id}
+            // DELETE channels/{channel_id}/messages/{message_id}
             .route(
-                expand_version!("guilds/{guild_id}/channels/{channel_id}/messages/{message_id}"),
+                expand_version!("channels/{channel_id}/messages/{message_id}"),
                 web::delete().to(delete_message),
             )
             // POST   guilds/{guild_id}/members
