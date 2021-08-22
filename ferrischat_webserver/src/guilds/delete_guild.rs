@@ -1,6 +1,5 @@
-use actix_web::{web::Path, HttpRequest, HttpResponse, Responder};
+use actix_web::{HttpRequest, HttpResponse, Responder};
 use ferrischat_common::types::{InternalServerErrorJson, NotFoundJson};
-use sqlx::Error;
 
 /// DELETE /api/v0/guilds/{guild_id}
 pub async fn delete_guild(req: HttpRequest, auth: crate::Authorization) -> impl Responder {

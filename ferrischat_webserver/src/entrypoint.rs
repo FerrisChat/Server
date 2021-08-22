@@ -11,6 +11,7 @@ use ferrischat_macros::expand_version;
 use ring::rand::{SecureRandom, SystemRandom};
 use tokio::sync::mpsc::channel;
 
+#[allow(clippy::expect_used)]
 pub async fn entrypoint() {
     // the very, very first thing we should do is load the RNG
     // we expect here, since without it we literally cannot generate tokens whatsoever

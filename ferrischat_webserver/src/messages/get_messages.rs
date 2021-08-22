@@ -1,4 +1,4 @@
-use actix_web::{web::Path, HttpRequest, HttpResponse, Responder};
+use actix_web::{HttpRequest, HttpResponse, Responder};
 use ferrischat_common::types::{InternalServerErrorJson, Message, NotFoundJson};
 
 /// GET /api/v0/guilds/{guild_id}/channels/{channel_id}/messages/{message_id}
