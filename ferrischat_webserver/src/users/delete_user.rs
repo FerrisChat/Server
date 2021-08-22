@@ -29,5 +29,4 @@ pub async fn delete_user(req: HttpRequest, auth: crate::Authorization) -> impl R
             reason: format!("DB Returned a error: {}", e),
         }),
     }
-    HttpResponse::NoContent()
 }
