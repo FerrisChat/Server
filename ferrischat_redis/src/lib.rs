@@ -6,7 +6,7 @@ use std::lazy::SyncOnceCell as OnceCell;
 
 pub static REDIS_MANAGER: OnceCell<ConnectionManager> = OnceCell::new();
 
-pub fn load_redis() -> ConnectionManager {
+pub async fn load_redis() -> ConnectionManager {
     let client = Client::open("redis://127.0.0.1:6379/").expect("initial redis connection failed");
     let manager = ConnectionManager::new(client)
         .await
