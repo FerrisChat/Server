@@ -136,9 +136,9 @@ pub async fn entrypoint() {
                 expand_version!("channels/{channel_id}"),
                 web::delete().to(delete_channel),
             )
-            // POST   guilds/{guild_id}/channels/{channel_id}/messages
+            // POST   channels/{channel_id}/messages
             .route(
-                expand_version!("guilds/{guild_id}/channels/{channel_id}/messages"),
+                expand_version!("channels/{channel_id}/messages"),
                 web::post().to(create_message),
             )
             // GET     channels/{channel_id}/messages/{message_id}
