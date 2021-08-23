@@ -1,5 +1,10 @@
 use actix::{Actor, StreamHandler};
+use actix_web::{web, Error, HttpRequest, HttpResponse};
 use actix_web_actors::ws::{self, CloseCode, CloseReason, Message, ProtocolError};
+
+pub async fn ws_connect(req: HttpRequest, stream: web::Payload) -> Result<HttpResponse, Error> {
+    ws::start(WsHandler, &req, stream)
+}
 
 pub struct WsHandler;
 impl Actor for WsHandler {

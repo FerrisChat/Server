@@ -190,7 +190,10 @@ pub async fn entrypoint() {
             )
             // POST    /auth/{user_id}
             .route(expand_version!("auth/{user_id}"), web::post().to(get_token))
+            // GET     /ws/info
             .route(expand_version!("ws/info"), web::get().to(ws_info))
+            // GET     /ws/connect
+            .route(expand_version!("ws/connect"), web::get().to(ws_connect))
             .default_service(web::route().to(HttpResponse::NotFound))
         // TODO: member and message endpoints
     })
