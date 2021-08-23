@@ -9,6 +9,7 @@ use crate::ws::*;
 use actix_web::{web, App, HttpResponse, HttpServer};
 use ferrischat_db::load_db;
 use ferrischat_macros::expand_version;
+use ferrischat_redis::load_redis;
 use ring::rand::{SecureRandom, SystemRandom};
 use tokio::sync::mpsc::channel;
 
@@ -93,6 +94,7 @@ pub async fn entrypoint() {
             .expect("failed to set password verifier");
     }
 
+    load_redis().await;
     load_db().await;
 
     HttpServer::new(|| {

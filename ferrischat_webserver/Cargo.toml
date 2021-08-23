@@ -33,6 +33,7 @@ dotenv = "0.15"
 ferrischat_db = { path = "../ferrischat_db", version = "0.1" }
 ferrischat_common = { git = "https://github.com/FerrisChat/Common.git", version = "0.1" }
 ferrischat_macros = { path = "../ferrischat_macros", version = "0.1" }
+ferrischat_redis = { path = "../ferrischat_redis", version = "0.1"}
 ferrischat_snowflake_generator = "1"
 
 [dependencies.sqlx]
