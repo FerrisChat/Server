@@ -29,6 +29,7 @@ tokio = { version = "1.9", features = ["full"] }
 argonautica = { version = "0.2", features = ["serde", "simd"]}
 futures-cpupool = "0.1"
 dotenv = "0.15"
+libc = "0.2"
 
 ferrischat_db = { path = "../ferrischat_db", version = "0.1" }
 ferrischat_common = { git = "https://github.com/FerrisChat/Common.git", version = "0.1" }
