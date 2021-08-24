@@ -1,6 +1,5 @@
 use crate::auth::token_gen::generate_random_bits;
-use actix_web::web::HttpResponse;
-use actix_web::{HttpRequest, Responder};
+use actix_web::{HttpRequest, HttpResponse, Responder};
 use ferrischat_common::types::{
     AuthResponse, BadRequestJson, BadRequestJsonLocation, InternalServerErrorJson,
 };
@@ -99,7 +98,6 @@ pub async fn get_token(req: HttpRequest) -> impl Responder {
                             Err(e) => return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                                 reason: format!("failed to verify password: {}", e),
                             })
-
                         }
                     }
                     Err(e) => unreachable!(

@@ -17,9 +17,9 @@ include = [
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-actix-web = "3"
-actix-web-actors = "3"
-actix = "0.10"
+actix-web = { git = "https://github.com/actix/actix-web/" }
+actix-web-actors = { git = "https://github.com/actix/actix-web/" }
+actix = { git = "https://github.com/actix/actix" }
 num-traits = "0.2"
 num-bigint = "0.3"
 ring = "0.16"
@@ -30,6 +30,8 @@ argonautica = { version = "0.2", features = ["serde", "simd"]}
 futures-cpupool = "0.1"
 dotenv = "0.15"
 libc = "0.2"
+nix = { git = "https://github.com/tazz4843/nix" }
+http = "0.2"
 
 ferrischat_db = { path = "../ferrischat_db", version = "0.1" }
 ferrischat_common = { git = "https://github.com/FerrisChat/Common.git", version = "0.1" }
@@ -38,5 +40,5 @@ ferrischat_redis = { path = "../ferrischat_redis", version = "0.1"}
 ferrischat_snowflake_generator = "1"
 
 [dependencies.sqlx]
-version = "0.4"
+version = "0.5"
 features = ["postgres", "macros", "offline", "runtime-actix-rustls"]

@@ -1,6 +1,6 @@
-use actix_web::{web::Path, HttpResponse, Responder};
+use actix_web::{HttpRequest, HttpResponse, Responder};
 
 /// GET /api/v0/guilds/{guild_id}/members/{member_id}
-pub async fn get_member(Path(member_id): Path<i64>) -> impl Responder {
+pub async fn get_member(req: HttpRequest) -> impl Responder {
     HttpResponse::Found().body("found member test")
 }

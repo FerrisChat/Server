@@ -1,6 +1,6 @@
 #![feature(once_cell)]
 #![feature(type_alias_impl_trait)]
-#![forbid(unsafe_code)]
+#![deny(unsafe_code)]
 
 #[cfg(not(target_os = "linux"))]
 compile_error!("the server of FerrisChat is only supported on Linux systems");

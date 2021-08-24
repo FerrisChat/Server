@@ -1,6 +1,6 @@
-use actix_web::{web::Path, HttpResponse, Responder};
+use actix_web::{HttpRequest, HttpResponse, Responder};
 
 /// DELETE /api/v0/guilds/{guild_id}/members/{member_id}
-pub async fn delete_member(Path(member_id): Path<i64>) -> impl Responder {
+pub async fn delete_member(req: HttpRequest) -> impl Responder {
     HttpResponse::NoContent()
 }

@@ -17,3 +17,9 @@ members = [
 ferrischat_webserver = { path = "ferrischat_webserver", version = "0.1.0" }
 actix-web = "3"
 env_logger = "0.9"
+
+[patch.crates-io]
+actix = { git = "https://github.com/actix/actix" }
+actix-web = { git = "https://github.com/actix/actix-web" }
+actix-codec = { git = "https://github.com/actix/actix-net" }
+bitflags = { git = "https://github.com/bitflags/bitflags" }
