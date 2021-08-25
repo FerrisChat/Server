@@ -42,17 +42,13 @@ pub async fn entrypoint() {
             .configure_password_clearing(true) // clear passwords from memory after hashing
             .configure_memory_size(8_192); // use 8MiB memory to hash
 
-        actix_web::rt::spawn(async move {
-            actix_web::rt::task::spawn_blocking(move || {
-                while let Some(d) = rx.blocking_recv() {
-                    let (password, sender) = d;
+        std::thread::spawn(move || {
+            while let Some(d) = rx.blocking_recv() {
+                let (password, sender) = d;
 
-                    let r = hasher.with_password(password).hash();
-                    let _ = sender.send(r);
-                }
-            })
-            .await
-            .expect("background task for password hasher failed");
+                let r = hasher.with_password(password).hash();
+                let _ = sender.send(r);
+            }
         });
 
         crate::GLOBAL_HASHER
@@ -69,20 +65,16 @@ pub async fn entrypoint() {
             .configure_password_clearing(true)
             .configure_secret_key_clearing(true);
 
-        actix_web::rt::spawn(async move {
-            actix_web::rt::task::spawn_blocking(move || {
-                while let Some(d) = rx.blocking_recv() {
-                    let (password, sender) = d;
+        std::thread::spawn(move || {
+            while let Some(d) = rx.blocking_recv() {
+                let (password, sender) = d;
 
-                    let r = verifier
-                        .with_password(password.0)
-                        .with_hash(password.1)
-                        .verify();
-                    let _ = sender.send(r);
-                }
-            })
-            .await
-            .expect("background task for password verifier failed");
+                let r = verifier
+                    .with_password(password.0)
+                    .with_hash(password.1)
+                    .verify();
+                let _ = sender.send(r);
+            }
         });
 
         crate::GLOBAL_VERIFIER
