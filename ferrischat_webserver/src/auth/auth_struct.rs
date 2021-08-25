@@ -30,9 +30,9 @@ macro_rules! parse_b64_to_string {
 
 pub struct Authorization(pub u128);
 impl FromRequest for Authorization {
+    type Config = ();
     type Error = Error;
     type Future = impl Future<Output = Result<Self, Self::Error>>;
-    type Config = ();
 
     fn from_request(req: &HttpRequest, _: &mut Payload) -> Self::Future {
         let req = req.clone(); // we do not speak of this
