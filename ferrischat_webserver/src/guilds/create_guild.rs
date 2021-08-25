@@ -29,7 +29,7 @@ pub async fn create_guild(
     }
 
     if let Err(e) = sqlx::query!(
-        "INSERT INTO members VALUES ($1, $2)"
+        "INSERT INTO members VALUES ($1, $2)",
         bigint_user_id,
         bigint_guild_id
     )
