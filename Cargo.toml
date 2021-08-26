@@ -15,8 +15,9 @@ members = [
 
 [dependencies]
 ferrischat_webserver = { path = "ferrischat_webserver", version = "0.1.0" }
-actix-web = "3"
+actix-web = { git = "https://github.com/actix/actix-web/" }
 env_logger = "0.9"
+tokio = { version = "1.10.0", features = ["full", "rt-multi-thread"] }
 
 [patch.crates-io]
 actix = { git = "https://github.com/actix/actix" }
