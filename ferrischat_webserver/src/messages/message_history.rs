@@ -17,7 +17,7 @@ pub async fn get_message_history(
 
     let mut limit = params.limit;
 
-    if limit >= Some(18446744073709551616) {
+    if limit >= Some(9223372036854775807) {
         limit = None;
     }
 
