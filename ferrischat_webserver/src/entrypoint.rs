@@ -129,6 +129,10 @@ pub async fn entrypoint() {
                 expand_version!("channels/{channel_id}/messages"),
                 web::post().to(create_message),
             )
+            // GET    channels/{channel_id}/messages
+            .route(
+                expand_version!("channels/{channel_id}/messages"),
+                web::get().to(get_message_history),
             // GET     channels/{channel_id}/messages/{message_id}
             .route(
                 expand_version!("channels/{channel_id}/messages/{message_id}"),
