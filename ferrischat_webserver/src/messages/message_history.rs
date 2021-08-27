@@ -21,6 +21,14 @@ pub async fn get_message_history(
         limit = None;
     }
 
+    use ferrischat_common::types::BadRequestJson;
+    if limit < 0 {
+        return HttpResponse::BadRequest().json(BadRequestJson {
+            reason: "limit must be >0".to_string(),
+            location: None
+        });
+    }
+
     let messages = {
         let resp = sqlx::query!(
             "SELECT * FROM messages WHERE channel_id = $1 LIMIT $2",
