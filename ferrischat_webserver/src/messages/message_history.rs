@@ -39,9 +39,10 @@ pub async fn get_message_history(
                 return HttpResponse::InternalServerError(InternalServerErrorJson {
                     reason: format!("database returned a error: {}", e),
                 })
+            }
         })
 
-    }
+    };
 
     HttpResponse::Ok().json(MessageHistory {
         messages,
