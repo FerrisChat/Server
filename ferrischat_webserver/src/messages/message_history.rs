@@ -13,7 +13,7 @@ pub async fn get_message_history(
     let bigint_channel_id = u128_to_bigdecimal!(channel_id);
     let db = get_db_or_fail!();
 
-    let mut limit = params.limit.unwrap_or(100);
+    let mut limit = params.limit.unwrap_or(100).unwrap_or(100);
 
     if limit >= 18446744073709551616 {
         limit = None;
@@ -28,15 +28,23 @@ pub async fn get_message_history(
                 .iter()
                 .filter_map(|x| {
                     Some(Message {
-                        id: bigdecimal_to_u128!(x.id),
+                        id: x.id
+                            .with_scale(0)
+                            .into_bigint_and_exponent()
+                            .0
+                            .to_u128()?,
                         content: x.content,
                         channel_id,
-                        author_id: bigdecimal_to_u128!(x.author_id),
+                        author_id: x.author_id
+                                    .with_scale(0)
+                                    .into_bigint_and_exponent()
+                                    .0
+                                    .to_u128()?,
                     })
                 })
                 .collect(),
             Err(e) => {
-                return HttpResponse::InternalServerError(InternalServerErrorJson {
+                return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                     reason: format!("database returned a error: {}", e),
                 })
             }
