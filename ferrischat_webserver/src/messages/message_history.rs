@@ -13,21 +13,21 @@ pub async fn get_message_history(
     let bigint_channel_id = u128_to_bigdecimal!(channel_id);
     let db = get_db_or_fail!();
 
-    let mut limit = params.limit.unwrap_or(100).unwrap_or(100);
+    let mut limit = params.limit;
 
-    if limit >= 18446744073709551616 {
-        limit = None;
+    if limit >= Some(18446744073709551616) {
+      limit = None;
     }
 
     let messages = {
         let resp = sqlx::query!(
-            "SELECT * FROM messages WHERE message_id = $1 LIMIT $2",
+            "SELECT * FROM messages WHERE id = $1 LIMIT $2",
             bigint_channel_id,
             limit
         )
         .fetch_all(db)
         .await;
-        Some(match resp {
+        match resp {
             Ok(resp) => resp
                 .iter()
                 .filter_map(|x| {
@@ -49,7 +49,7 @@ pub async fn get_message_history(
                     reason: format!("database returned a error: {}", e),
                 })
             }
-        })
+        }
     };
 
     HttpResponse::Ok().json(MessageHistory { messages })
