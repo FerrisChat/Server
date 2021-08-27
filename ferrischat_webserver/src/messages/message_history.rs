@@ -1,7 +1,7 @@
 use actix_web::{web::Query, HttpRequest, HttpResponse, Responder};
 
 use ferrischat_common::request_json::GetMessageHistoryParams;
-use ferrischat_common::types::{InternalServerErrorJson, Message, MessageHistory, BadRequestJson};
+use ferrischat_common::types::{BadRequestJson, InternalServerErrorJson, Message, MessageHistory};
 
 use num_traits::ToPrimitive;
 
@@ -21,10 +21,10 @@ pub async fn get_message_history(
         limit = None;
     }
 
-    if limit < 0 {
+    if limit < Some(0) {
         return HttpResponse::BadRequest().json(BadRequestJson {
             reason: "limit must be > 0".to_string(),
-            location: None
+            location: None,
         });
     }
 
