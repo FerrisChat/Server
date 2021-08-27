@@ -32,6 +32,8 @@ dotenv = "0.15"
 libc = "0.2"
 nix = { git = "https://github.com/nix-rust/nix" }
 http = "0.2"
+serde_json = "1.0"
+bytes = "*"
 
 ferrischat_db = { path = "../ferrischat_db", version = "0.1" }
 ferrischat_common = { git = "https://github.com/FerrisChat/Common.git", version = "0.1" }
