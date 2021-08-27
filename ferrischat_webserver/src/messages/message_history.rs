@@ -20,26 +20,27 @@ pub async fn get_message_history(
     }
 
     let messages = {
-        let resp = sqlx::query!("SELECT * FROM messages WHERE message_id = $1 LIMIT $2", bigint_channel_id, limit)
-            .fetch_all(db)
-            .await;
+        let resp = sqlx::query!(
+            "SELECT * FROM messages WHERE message_id = $1 LIMIT $2",
+            bigint_channel_id,
+            limit
+        )
+        .fetch_all(db)
+        .await;
         Some(match resp {
             Ok(resp) => resp
                 .iter()
                 .filter_map(|x| {
                     Some(Message {
-                        id: x.id
+                        id: x.id.with_scale(0).into_bigint_and_exponent().0.to_u128()?,
+                        content: x.content,
+                        channel_id,
+                        author_id: x
+                            .author_id
                             .with_scale(0)
                             .into_bigint_and_exponent()
                             .0
                             .to_u128()?,
-                        content: x.content,
-                        channel_id,
-                        author_id: x.author_id
-                                    .with_scale(0)
-                                    .into_bigint_and_exponent()
-                                    .0
-                                    .to_u128()?,
                     })
                 })
                 .collect(),
@@ -49,11 +50,7 @@ pub async fn get_message_history(
                 })
             }
         })
-
     };
 
-    HttpResponse::Ok().json(MessageHistory {
-        messages,
-    })
-
+    HttpResponse::Ok().json(MessageHistory { messages })
 }
