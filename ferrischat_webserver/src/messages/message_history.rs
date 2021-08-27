@@ -21,7 +21,7 @@ pub async fn get_message_history(
 
     let messages = {
         let resp = sqlx::query!(
-            "SELECT * FROM messages WHERE id = $1 LIMIT $2",
+            "SELECT * FROM messages WHERE channel_id = $1 LIMIT $2",
             bigint_channel_id,
             limit
         )
