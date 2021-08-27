@@ -1,49 +1,65 @@
 use actix_web::web::Json;
 
 use actix_web::{HttpRequest, HttpResponse, Responder};
-use ferrischat_common::types::{InternalServerErrorJson, NotFoundJson, User};
 use ferrischat_common::request_json::UserUpdateJson;
+use ferrischat_common::types::{InternalServerErrorJson, NotFoundJson, User};
 
 use num_traits::ToPrimitive;
 use tokio::sync::oneshot::channel;
 
-
-pub async fn edit_user(req: HttpRequest, user_info: Json<UserUpdateJson>, auth: crate:Authorization) -> impl Responder {
+pub async fn edit_user(
+    req: HttpRequest,
+    user_info: Json<UserUpdateJson>,
+    auth: crate::Authorization,
+) -> impl Responder {
     let user_id = get_item_id!(req, "user_id");
 
     if user_id != auth.0 {
         return HttpResponse::Forbidden().finish();
     }
-    
+
     let bigint_user_id = u128_to_bigint!(user_id);
 
-    let UserUpdateJson { name, email, password, _ } = user_info.0;
+    let UserUpdateJson {
+        name,
+        email,
+        password,
+        avatar,
+    } = user_info.0;
 
     let db = get_db_or_fail!();
 
     if name.is_some() {
-        let resp = sqlx::query!("UPDATE users SET name = $1 WHERE id = $2", name, bigint_user_id)
-            .execute(db)
-            .await;
+        let resp = sqlx::query!(
+            "UPDATE users SET name = $1 WHERE id = $2",
+            name,
+            bigint_user_id
+        )
+        .execute(db)
+        .await;
         match resp {
             Ok(_) => (),
             Err(e) => {
                 return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                    message: format!("DB returned an error: {}", e);
+                    message: format!("DB returned an error: {}", e),
                 })
             }
         }
     }
 
     if email.is_some() {
-        let resp = sqlx::query!("UPDATE users SET email = $1 WHERE id = $2", email, bigint_user_id)
-            .execute(db)
-            .await;
+        let resp = sqlx::query!(
+            "UPDATE users SET email = $1 WHERE id = $2",
+            email,
+            bigint_user_id
+        )
+        .execute(db)
+        .await;
         match resp {
             Ok(_) => (),
             Err(e) => {
                 return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                    message: format!("DB returned an error: {}", e);
+                    message: format!("DB returned an error: {}", e),
                 })
             }
         }
@@ -79,14 +95,18 @@ pub async fn edit_user(req: HttpRequest, user_info: Json<UserUpdateJson>, auth: 
                 }
             }
         };
-        let resp = sqlx::query!("UPDATE users SET password = $1 WHERE id = $2", hashed_password, bigint_user_id)
-            .execute(db)
-            .await;
+        let resp = sqlx::query!(
+            "UPDATE users SET password = $1 WHERE id = $2",
+            hashed_password,
+            bigint_user_id
+        )
+        .execute(db)
+        .await;
         match resp {
             Ok(_) => (),
             Err(e) => {
                 return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                    message: format!("DB returned an error: {}", e);
+                    message: format!("DB returned an error: {}", e),
                 })
             }
         }
@@ -95,7 +115,7 @@ pub async fn edit_user(req: HttpRequest, user_info: Json<UserUpdateJson>, auth: 
     let resp = sqlx::query!("SELECT * FROM users WHERE id = $1", bigint_user_id)
         .fetch_optional(db)
         .await;
-    
+
     match resp {
         Ok(resp) => match resp {
             Some(user) => HttpResponse::Ok().json(User {
@@ -111,9 +131,8 @@ pub async fn edit_user(req: HttpRequest, user_info: Json<UserUpdateJson>, auth: 
         },
         Err(e) => {
             return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                message: format!("DB returned an error: {}", e);
+                message: format!("DB returned an error: {}", e),
             })
         }
     }
-    
 }
