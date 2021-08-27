@@ -7,5 +7,6 @@ use ferrischat_snowflake_generator::generate_snowflake;
 pub async fn create_invite(
 
 ) -> impl Responder {
-
+  let db = get_db_or_fail!();
+  
 }
