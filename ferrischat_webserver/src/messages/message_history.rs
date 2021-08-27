@@ -35,8 +35,13 @@ pub async fn get_message_history(
                 .filter_map(|x| {
                     Some(Message {
                         id: x.id.with_scale(0).into_bigint_and_exponent().0.to_u128()?,
-                        content: x.content.as_ref(),
-                        channel_id,
+                        content: x.content.clone(),
+                        channel_id: x
+                            .channel_id
+                            .with_scale(0)
+                            .into_bigint_and_exponent()
+                            .0
+                            .to_u128()?,
                         author_id: x
                             .author_id
                             .with_scale(0)
