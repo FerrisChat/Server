@@ -11,7 +11,7 @@ pub async fn get_message_history(
     _: crate::Authorization,
     params: Query<GetMessageHistoryParams>,
 ) -> impl Responder {
-    let channel_id = get_item_id!(req, "channel_Id");
+    let channel_id = get_item_id!(req, "channel_id");
     let bigint_channel_id = u128_to_bigdecimal!(channel_id);
     let db = get_db_or_fail!();
 
