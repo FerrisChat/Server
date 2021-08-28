@@ -3,7 +3,6 @@ use actix_web::{HttpRequest, HttpResponse, Responder};
 use ferrischat_common::request_json::InviteCreateJson;
 use ferrischat_common::types::{Invite, InternalServerErrorJson}
 use ferrischat_macros::get_db_or_fail;
-use ferrischat_snowflake_generator::generate_snowflake;
 
 // POST /api/v0/guilds/{guild_id}/invites
 pub async fn create_invite(
