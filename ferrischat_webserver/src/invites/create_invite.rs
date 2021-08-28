@@ -45,7 +45,7 @@ pub async fn create_invite(
             max_age: max_age
         })
         Err(e) => HttpResponse::InternalServerError().json(InternalServerErrorJson{
-            reason: format!("DB returned a error: {}", e)
+            reason: format!("DB returned an error: {}", e)
         })
     }
 }
