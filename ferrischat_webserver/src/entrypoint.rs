@@ -97,7 +97,7 @@ pub async fn entrypoint() {
             // PATCH  /guilds/{guild_id}
             .route(
                 expand_version!("guilds/{guild_id}"),
-                web::patch().to(not_implemented),
+                web::patch().to(edit_guild),
             )
             // DELETE /guilds/{guild_id}
             .route(
@@ -117,7 +117,7 @@ pub async fn entrypoint() {
             // PATCH  channels/{channel_id}
             .route(
                 expand_version!("channels/{channel_id}"),
-                web::patch().to(not_implemented),
+                web::patch().to(edit_channel),
             )
             // DELETE channels/{channel_id}
             .route(
@@ -129,6 +129,11 @@ pub async fn entrypoint() {
                 expand_version!("channels/{channel_id}/messages"),
                 web::post().to(create_message),
             )
+            // GET    channels/{channel_id}/messages
+            .route(
+                expand_version!("channels/{channel_id}/messages"),
+                web::get().to(get_message_history),
+            )
             // GET     channels/{channel_id}/messages/{message_id}
             .route(
                 expand_version!("channels/{channel_id}/messages/{message_id}"),
@@ -137,7 +142,7 @@ pub async fn entrypoint() {
             // PATCH  channels/{channel_id}/messages/{message_id}
             .route(
                 expand_version!("channels/{message_id}"),
-                web::patch().to(not_implemented),
+                web::patch().to(edit_message),
             )
             // DELETE channels/{channel_id}/messages/{message_id}
             .route(
@@ -171,7 +176,7 @@ pub async fn entrypoint() {
             // PATCH  /users/{user_id}
             .route(
                 expand_version!("users/{user_id}"),
-                web::patch().to(not_implemented),
+                web::patch().to(edit_user),
             )
             // DELETE /users/{user_id}
             .route(
