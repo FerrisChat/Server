@@ -12,6 +12,7 @@ mod auth;
 mod channels;
 mod entrypoint;
 mod guilds;
+mod invites;
 mod members;
 mod messages;
 mod not_implemented;
