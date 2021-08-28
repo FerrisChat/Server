@@ -55,6 +55,7 @@ pub async fn get_message_history(
                             .into_bigint_and_exponent()
                             .0
                             .to_u128()?,
+                        edited_at: x.edited_at,
                     })
                 })
                 .collect(),

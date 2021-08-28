@@ -18,10 +18,10 @@ pub async fn edit_user(
         return HttpResponse::Forbidden().finish();
     }
 
-    let bigint_user_id = u128_to_bigint!(user_id);
+    let bigint_user_id = u128_to_bigdecimal!(user_id);
 
     let UserUpdateJson {
-        name,
+        username,
         email,
         password,
         avatar,
@@ -29,10 +29,10 @@ pub async fn edit_user(
 
     let db = get_db_or_fail!();
 
-    if name.is_some() {
+    if let Some(user) = user {
         let resp = sqlx::query!(
-            "UPDATE users SET name = $1 WHERE id = $2",
-            name,
+            "UPDATE users SET username = $1 WHERE id = $2",
+            username,
             bigint_user_id
         )
         .execute(db)
@@ -47,7 +47,7 @@ pub async fn edit_user(
         }
     }
 
-    if email.is_some() {
+    if let Some(email) = email {
         let resp = sqlx::query!(
             "UPDATE users SET email = $1 WHERE id = $2",
             email,
@@ -65,7 +65,7 @@ pub async fn edit_user(
         }
     }
 
-    if password.is_some() {
+    if let Some(password) = password {
         let hashed_password = {
             let hasher = match crate::GLOBAL_HASHER.get() {
                 Some(h) => h,
@@ -120,7 +120,7 @@ pub async fn edit_user(
         Ok(resp) => match resp {
             Some(user) => HttpResponse::Ok().json(User {
                 id: user_id,
-                name: user.name.clone(),
+                username: user.username.clone(),
                 avatar: None,
                 guilds: None,
                 flags: 0,

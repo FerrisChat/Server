@@ -32,7 +32,7 @@ pub async fn edit_message(
                 Some(resp) => {
                     let author_id = bigdecimal_to_u128!(resp.author_id);
                     if author_id != auth.0 {
-                        return HttpResponse::Forbidden().finsh();
+                        return HttpResponse::Forbidden().finish();
                     }
                 }
                 None => {
@@ -56,7 +56,7 @@ pub async fn edit_message(
 
     match resp {
         Ok(resp) => match resp {
-            Some(resp) => HttpResponse::Ok().json(Message {
+            Some(message) => HttpResponse::Ok().json(Message {
                 id: message
                     .id
                     .with_scale(0)
