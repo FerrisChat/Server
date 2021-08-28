@@ -57,7 +57,7 @@ pub async fn edit_message(
     match resp {
         Ok(resp) => match resp {
             Some(message) => HttpResponse::Ok().json(Message {
-                id: bigdecimal_to_u128!(message.id),
+                id: message_id,
                 channel_id: channel_id,
                 author_id: bigdecimal_to_u128!(message.author_id),
                 content: message.content,
