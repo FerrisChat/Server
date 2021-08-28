@@ -1,5 +1,6 @@
 #![feature(once_cell)]
 
+pub use redis;
 use redis::aio::ConnectionManager;
 use redis::Client;
 use std::lazy::SyncOnceCell as OnceCell;
