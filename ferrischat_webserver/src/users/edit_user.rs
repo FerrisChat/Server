@@ -23,7 +23,7 @@ pub async fn edit_user(
         username,
         email,
         password,
-        avatar,
+        avatar: _,
     } = user_info.0;
 
     let db = get_db_or_fail!();
