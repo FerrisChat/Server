@@ -29,18 +29,8 @@ pub async fn edit_guild(
     match resp {
         Ok(resp) => match resp {
             Some(guild) => HttpResponse::Ok().json(Guild {
-                id: guild
-                    .id
-                    .with_scale(0)
-                    .into_bigint_and_exponent()
-                    .0
-                    .to_u128(),
-                owner_id: guild
-                    .owner_id
-                    .with_scale(0)
-                    .into_bigint_and_exponent()
-                    .0
-                    .to_u128(),
+                id: bigdecimal_to_u128!(guild.id),
+                owner_id: bigdecimal_to_u128!(guild.owner_id),
                 name: guild.name.clone(),
                 channels: None,
                 members: None,

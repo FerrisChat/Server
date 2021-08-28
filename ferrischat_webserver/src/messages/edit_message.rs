@@ -50,31 +50,16 @@ pub async fn edit_message(
     }
 
     let MessageUpdateJson { content } = message_info.0;
-    let resp = sqlx::query!("UPDATE messages SET content = $3, edited_at = now()::timestamp without time zone WHERE id = $1 AND id = $2 RETURNING *", bigint_message_id, bigint_channel_id, content)
+    let resp = sqlx::query!("UPDATE messages SET content = $3, edited_at = now()::timestamp without time zone WHERE channel_id = $1 AND id = $2 RETURNING *", bigint_message_id, bigint_channel_id, content)
         .fetch_optional(db)
         .await;
 
     match resp {
         Ok(resp) => match resp {
             Some(message) => HttpResponse::Ok().json(Message {
-                id: message
-                    .id
-                    .with_scale(0)
-                    .into_bigint_and_exponent()
-                    .0
-                    .to_u128(),
-                channel_id: message
-                    .bigint_channel_id
-                    .with_scale(0)
-                    .into_bigint_and_exponent()
-                    .0
-                    .to_u128(),
-                author_id: message
-                    .author_id
-                    .with_scale(0)
-                    .into_bigint_and_exponent()
-                    .0
-                    .to_u128(),
+                id: bigdecimal_to_u128!(message.id),
+                channel_id: bigdecimal_to_u128!(message.bigint_channel_id),
+                author_id: bigdecimal_to_u128!(message.author_id),
                 content: message.content,
                 edited_at: message.edited_at,
             }),
