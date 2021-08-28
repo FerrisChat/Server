@@ -4,7 +4,6 @@ use actix_web::{HttpRequest, HttpResponse, Responder};
 use ferrischat_common::request_json::GuildUpdateJson;
 use ferrischat_common::types::{Guild, InternalServerErrorJson, NotFoundJson};
 
-use num_traits::ToPrimitive;
 
 pub async fn edit_guild(
     req: HttpRequest,

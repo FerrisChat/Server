@@ -4,8 +4,6 @@ use actix_web::{HttpRequest, HttpResponse, Responder};
 use ferrischat_common::request_json::MessageUpdateJson;
 use ferrischat_common::types::{InternalServerErrorJson, Message, NotFoundJson};
 
-use num_traits::ToPrimitive;
-
 pub async fn edit_message(
     req: HttpRequest,
     message_info: Json<MessageUpdateJson>,

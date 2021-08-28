@@ -4,7 +4,6 @@ use actix_web::{HttpRequest, HttpResponse, Responder};
 use ferrischat_common::request_json::UserUpdateJson;
 use ferrischat_common::types::{InternalServerErrorJson, NotFoundJson, User};
 
-use num_traits::ToPrimitive;
 use tokio::sync::oneshot::channel;
 
 pub async fn edit_user(
