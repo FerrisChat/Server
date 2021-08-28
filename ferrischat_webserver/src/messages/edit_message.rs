@@ -50,7 +50,7 @@ pub async fn edit_message(
     }
 
     let MessageUpdateJson { content } = message_info.0;
-    let resp = sqlx::query!("UPDATE messages SET content = $3, edited_at = CURRENT_TIMESTAMP() WHERE message_id = $1 AND id = $2 RETURNING *", bigint_message_id, bigint_channel_id, content)
+    let resp = sqlx::query!("UPDATE messages SET content = $3, edited_at = CURRENT_TIMESTAMP WHERE message_id = $1 AND id = $2 RETURNING *", bigint_message_id, bigint_channel_id, content)
         .fetch_optional(db)
         .await;
 
