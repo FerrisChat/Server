@@ -41,7 +41,7 @@ pub async fn edit_user(
             Ok(_) => (),
             Err(e) => {
                 return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                    message: format!("DB returned an error: {}", e),
+                    reason: format!("DB returned an error: {}", e),
                 })
             }
         }
@@ -59,7 +59,7 @@ pub async fn edit_user(
             Ok(_) => (),
             Err(e) => {
                 return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                    message: format!("DB returned an error: {}", e),
+                    reason: format!("DB returned an error: {}", e),
                 })
             }
         }
@@ -106,7 +106,7 @@ pub async fn edit_user(
             Ok(_) => (),
             Err(e) => {
                 return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                    message: format!("DB returned an error: {}", e),
+                    reason: format!("DB returned an error: {}", e),
                 })
             }
         }
@@ -131,7 +131,7 @@ pub async fn edit_user(
         },
         Err(e) => {
             return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                message: format!("DB returned an error: {}", e),
+                reason: format!("DB returned an error: {}", e),
             })
         }
     }

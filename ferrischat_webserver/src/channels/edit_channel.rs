@@ -48,7 +48,7 @@ pub async fn edit_channel(
             }),
         },
         Err(e) => HttpResponse::InternalServerError().json(InternalServerErrorJson {
-            message: format!("DB returned an error: {}", e),
+            reason: format!("DB returned an error: {}", e),
         }),
     }
 }

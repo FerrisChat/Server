@@ -43,7 +43,7 @@ pub async fn edit_message(
             },
             Err(err) => {
                 return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                    message: format!("DB returned an error: {}", err),
+                    reason: format!("DB returned an error: {}", err),
                 })
             }
         }
@@ -83,7 +83,7 @@ pub async fn edit_message(
             }),
         },
         Err(e) => HttpResponse::InternalServerError().json(InternalServerErrorJson {
-            message: format!("DB returned an error: {}", e),
+            reason: format!("DB returned an error: {}", e),
         }),
     }
 }
