@@ -29,19 +29,9 @@ pub async fn edit_channel(
     match resp {
         Ok(resp) => match resp {
             Some(channel) => HttpResponse::Ok().json(Channel {
-                id: channel
-                    .id
-                    .with_scale(0)
-                    .into_bigint_and_exponent()
-                    .0
-                    .to_u128(),
+                id: bigdecimal_to_u128!(channel.id),
                 name: channel.name.clone(),
-                guild_id: channel
-                    .guild_id
-                    .with_scale(0)
-                    .into_bigint_and_exponent()
-                    .0
-                    .to_u128(),
+                guild_id: bigdecimal_to_u128!(channel.guild_id),
             }),
             None => HttpResponse::NotFound().json(NotFoundJson {
                 message: "Channel not found".to_string(),
