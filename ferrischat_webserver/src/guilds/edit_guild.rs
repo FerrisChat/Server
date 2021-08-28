@@ -17,9 +17,9 @@ pub async fn edit_guild(
     let db = get_db_or_fail!();
 
     let resp = sqlx::query!(
-        "UPDATE guilds SET name = $2 WHERE id = $1 RETURNING *",
-        bigint_guild_id,
-        name
+        "UPDATE guilds SET name = $1 WHERE id = $2 RETURNING *",
+        name,
+        bigint_guild_id
     )
     .fetch_optional(db)
     .await;
