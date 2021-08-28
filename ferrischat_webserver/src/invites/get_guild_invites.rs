@@ -13,14 +13,15 @@ pub async fn get_guild_invites(req: HttpRequest, auth: crate::Authorization) -> 
     .await;
 
     match member_query {
-        Ok(member_id) => match {
-            None => {return HttpResponse::Forbidden().finish()}
-            _ => None
-        },
+        Ok(member_id) => {
+            if member_id.is_none() {
+                return HttpResponse::Forbidden().finish()
+            }
+        }
         Err(e) => {
             return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                 reason: format!("DB returned an error: {}", e), 
-            }), 
+            })
         }
     }
     
@@ -35,7 +36,7 @@ pub async fn get_guild_invites(req: HttpRequest, auth: crate::Authorization) -> 
                 .iter()
                 .filter_map(|invite| {
                     Some(Invite {
-                        code: invite.code,
+                        code: invite.code.clone(),
                         owner_id: invite.owner_id.with_scale(0)
                         .into_bigint_and_exponent()
                         .0
