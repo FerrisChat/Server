@@ -38,7 +38,7 @@ pub async fn get_invite(req: HttpRequest, _: crate::Authorization) -> impl Respo
             }),
         },
         Err(e) => HttpResponse::InternalServerError().json(InternalServerErrorJson {
-            reason: format!("database returned a error: {}", e),
+            reason: format!("DB returned an error: {}", e),
         }),
     }
 }
