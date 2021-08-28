@@ -4,7 +4,7 @@ use ferrischat_common::request_json::InviteCreateJson;
 use ferrischat_common::types::{Invite, InternalServerErrorJson}
 use ferrischat_macros::get_db_or_fail;
 
-// POST /api/v0/guilds/{guild_id}/invites
+/// POST /api/v0/guilds/{guild_id}/invites
 pub async fn create_invite(
     auth: crate::Authorization,
     invite_info: Json<InviteCreateJson>,
