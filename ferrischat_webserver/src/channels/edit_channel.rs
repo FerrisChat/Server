@@ -4,7 +4,6 @@ use actix_web::{HttpRequest, HttpResponse, Responder};
 use ferrischat_common::request_json::ChannelUpdateJson;
 use ferrischat_common::types::{Channel, InternalServerErrorJson, NotFoundJson};
 
-
 pub async fn edit_channel(
     req: HttpRequest,
     channel_info: Json<ChannelUpdateJson>,
