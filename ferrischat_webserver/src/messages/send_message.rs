@@ -48,5 +48,6 @@ pub async fn create_message(
         content: Some(content),
         channel_id,
         author_id,
+        edited_at: None,
     })
 }
