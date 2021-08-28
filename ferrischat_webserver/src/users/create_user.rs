@@ -59,6 +59,7 @@ pub async fn create_user(user_data: Json<UserCreateJson>) -> impl Responder {
         Ok(_) => HttpResponse::Created().json(User {
             id: user_id,
             name: username,
+            avatar: None,
             guilds: None,
             flags: 0,
         }),
