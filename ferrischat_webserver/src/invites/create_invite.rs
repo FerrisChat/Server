@@ -40,7 +40,7 @@ pub async fn create_invite(
     .execute(db)
     .await
     {
-        Ok(code) => HttpRequest::Created().json(Invite {
+        Ok(code) => HttpResponse::Created().json(Invite {
             code: code,
             owner_id: owner_id,
             guild_id: guild_id,
