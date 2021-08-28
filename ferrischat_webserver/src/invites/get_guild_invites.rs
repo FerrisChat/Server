@@ -7,10 +7,11 @@ pub async fn get_guild_invites(req: HttpRequest, auth: crate::Authorization) -> 
     let db = get_db_or_fail!();
     let guild_id = get_item_id!(req, "guild_id");
     let bigint_guild_id = u128_to_bigdecimal!(guild_id);
+    let bigint_caller_id = u128_to_bigdecimal!(auth.0);
 
     let member_query = sqlx::query!(
-        "SELECT user_id FROM members WHERE user_id = $1, guild_id = $2",
-        auth.0,
+        "SELECT * FROM members WHERE user_id = $1 AND guild_id = $2",
+        bigint_caller_id,
         bigint_guild_id
     )
     .fetch_optional(db)
@@ -30,7 +31,7 @@ pub async fn get_guild_invites(req: HttpRequest, auth: crate::Authorization) -> 
     }
 
     let invites = {
-        let resp = sqlx::query!("SELECT * FROM invites WHERE guild_id = $1", guild_id)
+        let resp = sqlx::query!("SELECT * FROM invites WHERE guild_id = $1", bigint_guild_id)
             .fetch_all(db)
             .await;
 
