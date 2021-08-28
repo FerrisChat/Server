@@ -29,9 +29,9 @@ pub async fn edit_user(
 
     let db = get_db_or_fail!();
 
-    if let Some(user) = user {
+    if let Some(username) = username {
         let resp = sqlx::query!(
-            "UPDATE users SET username = $1 WHERE id = $2",
+            "UPDATE users SET name = $1 WHERE id = $2",
             username,
             bigint_user_id
         )
@@ -120,7 +120,7 @@ pub async fn edit_user(
         Ok(resp) => match resp {
             Some(user) => HttpResponse::Ok().json(User {
                 id: user_id,
-                username: user.username.clone(),
+                name: user.name.clone(),
                 avatar: None,
                 guilds: None,
                 flags: 0,
