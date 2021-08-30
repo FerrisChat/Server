@@ -182,6 +182,11 @@ pub async fn entrypoint() {
             )
             // GET /invites/{code}
             .route(expand_version!("invites/{code}"), web::get().to(get_invite))
+            // POST /invites/{code}
+            .route(
+                expand_version!("invites/{code}"),
+                web::post().to(use_invite),
+            )
             // POST   /users/
             .route(expand_version!("users"), web::post().to(create_user))
             // GET    /users/{user_id}
