@@ -97,11 +97,11 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
         },
         None => {
             return HttpResponse::NotFound().finish();
-        },
+        }
         Err(e) => {
             return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                 reason: format!("DB returned an error: {}", e),
-            }
+            });
         }
     }
 
