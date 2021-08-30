@@ -22,7 +22,7 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
                     let now = time::OffsetDateTime::now_utc();
                     time::PrimitiveDateTime::new(now.clone().date(), now.time())
                 };
-                if invite.max_uses < uses {
+                if uses > invite.max_uses {
                     let delete_resp =
                         sqlx::query!("DELETE FROM invites WHERE code = $1", invite_code)
                             .execute(db)
