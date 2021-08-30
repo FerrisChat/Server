@@ -3,10 +3,28 @@ use ferrischat_common::types::InternalServerErrorJson;
 use time;
 
 pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Responder {
-    let invite_code = get_item_id!(req, "code");
+    let invite_code = {
+        match req.match_info().get("invite_code") {
+            Some(invite_code) => match invite_code.parse::<String>() {
+                Ok(invite_code) => invite_code,
+                Err(_) => {
+                    return HttpResponse::BadRequest().json(InternalServerErrorJson {
+                        reason: "Failed to parse invite code as String".to_string(),
+                    });
+                }
+            },
+            None => {
+                return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                    reason: "invite_code not found in match_info: this is a bug, please report it at \
+                    https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&labels=bug&\
+                    template=api_bug_report.yml&title=%5B500%5D%3A+invite_code+not+found+in+match_info".to_string(),
+                })
+            }
+        }
+    };
 
     let user_id = auth.0;
-    let bigint_user_id = u128_to_bigdecimal(user_id);
+    let bigint_user_id = u128_to_bigdecimal!(user_id);
 
     let db = get_db_or_fail!();
 
