@@ -4,7 +4,7 @@ use sqlx::types::time::{OffsetDateTime, PrimitiveDateTime};
 
 pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Responder {
     let invite_code = {
-        match req.match_info().get("invite_code") {
+        match req.match_info().get("code") {
             Some(invite_code) => match invite_code.parse::<String>() {
                 Ok(invite_code) => invite_code,
                 Err(_) => {
@@ -15,9 +15,9 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
             },
             None => {
                 return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                    reason: "invite_code not found in match_info: this is a bug, please report it at \
+                    reason: "code not found in match_info: this is a bug, please report it at \
                     https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&labels=bug&\
-                    template=api_bug_report.yml&title=%5B500%5D%3A+invite_code+not+found+in+match_info".to_string(),
+                    template=api_bug_report.yml&title=%5B500%5D%3A+code+not+found+in+match_info".to_string(),
                 })
             }
         }
