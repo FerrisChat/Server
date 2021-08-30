@@ -2,6 +2,7 @@ use actix_web::web::Json;
 use actix_web::{HttpRequest, HttpResponse, Responder};
 use ferrischat_common::request_json::InviteCreateJson;
 use ferrischat_common::types::{InternalServerErrorJson, Invite};
+use sqlx::types::time::{OffsetDateTime, PrimitiveDateTime};
 
 /// POST /api/v0/guilds/{guild_id}/invites
 pub async fn create_invite(
@@ -19,10 +20,30 @@ pub async fn create_invite(
     let bigint_owner_id = u128_to_bigdecimal!(owner_id);
 
     let now = {
-        let now = time::OffsetDateTime::now_utc();
-        time::PrimitiveDateTime::new(now.clone().date(), now.time())
+        let now = OffsetDateTime::now_utc();
+        PrimitiveDateTime::new(now.clone().date(), now.time())
     };
+    {
+        let resp = sqlx::query!(
+            "SELECT user_id FROM members WHERE user_id = $1 AND guild_id = $2",
+            bigint_owner_id,
+            bigint_guild_id
+        )
+        .fetch_optional(db)
+        .await;
 
+        match resp {
+            Ok(_) => (),
+            None => {
+                return HttpResponse::Forbidden().finish();
+            }
+            Err(e) => {
+                return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                    reason: format!("DB returned an error: {}", e),
+                });
+            }
+        }
+    }
     let resp = sqlx::query!(
         "INSERT INTO invites VALUES ((SELECT array_to_string( \
             ARRAY(SELECT substr( \

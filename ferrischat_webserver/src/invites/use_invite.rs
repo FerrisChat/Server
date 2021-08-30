@@ -1,6 +1,6 @@
 use actix_web::{HttpRequest, HttpResponse, Responder};
 use ferrischat_common::types::InternalServerErrorJson;
-use time;
+use sqlx::types::time::{OffsetDateTime, PrimitiveDateTime};
 
 pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Responder {
     let invite_code = {
@@ -37,8 +37,8 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
             Some(invite) => {
                 let uses = invite.uses + 1;
                 let now = {
-                    let now = time::OffsetDateTime::now_utc();
-                    time::PrimitiveDateTime::new(now.clone().date(), now.time())
+                    let now = OffsetDateTime::now_utc();
+                    PrimitiveDateTime::new(now.clone().date(), now.time())
                 };
                 if let Some(max_uses) = invite.max_uses {
                     if uses > max_uses {
