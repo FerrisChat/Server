@@ -2,6 +2,7 @@ use actix_web::web::Json;
 use actix_web::{HttpRequest, HttpResponse, Responder};
 use ferrischat_common::request_json::InviteCreateJson;
 use ferrischat_common::types::{InternalServerErrorJson, Invite};
+use ferrischat_snowflake_generator::FERRIS_EPOCH;
 use sqlx::types::time::{OffsetDateTime, PrimitiveDateTime};
 
 /// POST /api/v0/guilds/{guild_id}/invites
@@ -19,10 +20,7 @@ pub async fn create_invite(
     let owner_id = auth.0;
     let bigint_owner_id = u128_to_bigdecimal!(owner_id);
 
-    let now = {
-        let now = OffsetDateTime::now_utc();
-        PrimitiveDateTime::new(now.clone().date(), now.time())
-    };
+    let now = OffsetDateTime::now_utc().unix_timestamp() - FERRIS_EPOCH;
     {
         let resp = sqlx::query!(
             "SELECT user_id FROM members WHERE user_id = $1 AND guild_id = $2",

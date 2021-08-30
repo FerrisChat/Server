@@ -1,5 +1,6 @@
 use actix_web::{HttpRequest, HttpResponse, Responder};
 use ferrischat_common::types::InternalServerErrorJson;
+use ferrischat_snowflake_generator::FERRIS_EPOCH;
 use sqlx::types::time::{OffsetDateTime, PrimitiveDateTime};
 
 pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Responder {
@@ -17,7 +18,8 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
                 return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                     reason: "code not found in match_info: this is a bug, please report it at \
                     https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&labels=bug&\
-                    template=api_bug_report.yml&title=%5B500%5D%3A+code+not+found+in+match_info".to_string(),
+                    template=api_bug_report.yml&title=%5B500%5D%3A+code+not+found+in+match_info"
+                        .to_string(),
                 })
             }
         }
@@ -36,10 +38,7 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
         Ok(resp) => match resp {
             Some(invite) => {
                 let uses = invite.uses + 1;
-                let now = {
-                    let now = OffsetDateTime::now_utc();
-                    PrimitiveDateTime::new(now.clone().date(), now.time())
-                };
+                let now = OffsetDateTime::now_utc().unix_timestamp() - FERRIS_EPOCH;
                 if let Some(max_uses) = invite.max_uses {
                     if uses > max_uses.into() {
                         let delete_resp =
@@ -61,7 +60,7 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
                 };
 
                 if let Some(max_age) = invite.max_age {
-                    if (now - invite.created_at).whole_seconds() > max_age {
+                    if (now - invite.created_at) > max_age {
                         let delete_resp =
                             sqlx::query!("DELETE FROM invites WHERE code = $1", invite_code)
                                 .execute(db)
