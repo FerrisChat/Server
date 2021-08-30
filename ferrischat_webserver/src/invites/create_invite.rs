@@ -19,7 +19,7 @@ pub async fn create_invite(
     let bigint_owner_id = u128_to_bigdecimal!(owner_id);
 
     let now = {
-        let now = time::OffsetDateTime::utc_now();
+        let now = time::OffsetDateTime::now_utc();
         time::PrimitiveDateTime::new(now.clone().date(), now.time())
     };
 
@@ -44,14 +44,7 @@ pub async fn create_invite(
             code: code,
             owner_id: owner_id,
             guild_id: guild_id,
-            created_at: match now {
-                Some(now) => now,
-                None => {
-                    return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                        reason: "Failed to get current time".to_string(),
-                    })
-                }
-            },
+            created_at: now,
             uses: 0,
             max_uses: max_uses,
             max_age: max_age,

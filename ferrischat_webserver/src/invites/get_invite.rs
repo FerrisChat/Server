@@ -1,4 +1,4 @@
-use actix_web::{HttpRequest, Responder};
+use actix_web::{HttpRequest, HttpResponse, HttpResponder};
 use ferrischat_common::types::{InternalServerErrorJson, Invite, NotFoundJson};
 
 /// GET api/v0/invites/{code}

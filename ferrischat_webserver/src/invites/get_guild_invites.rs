@@ -60,7 +60,7 @@ pub async fn get_guild_invites(req: HttpRequest, auth: crate::Authorization) -> 
                         max_age: invite.max_age,
                     })
                 })
-                .collect(),
+                .collect::<Vec<_>>(),
             Err(e) => {
                 return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                     reason: format!("DB returned an error: {}", e),
