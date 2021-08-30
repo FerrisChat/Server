@@ -18,16 +18,6 @@
           "ordinal": 2,
           "name": "name",
           "type_info": "Varchar"
-        },
-        {
-          "ordinal": 3,
-          "name": "channels",
-          "type_info": "Int8"
-        },
-        {
-          "ordinal": 4,
-          "name": "users",
-          "type_info": "Int8"
         }
       ],
       "parameters": {
@@ -38,48 +28,149 @@
       "nullable": [
         false,
         false,
-        false,
+        false
+      ]
+    }
+  },
+  "1f93e8ab4981375b2cfc3f88c7618a747045087bf98509065e690c57175b5bf1": {
+    "query": "SELECT id AS \"id!\", owner_id AS \"owner_id!\", name AS \"name!\" FROM guilds INNER JOIN members m on guilds.id = m.guild_id",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id!",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 1,
+          "name": "owner_id!",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 2,
+          "name": "name!",
+          "type_info": "Varchar"
+        }
+      ],
+      "parameters": {
+        "Left": []
+      },
+      "nullable": [
+        true,
         true,
         true
       ]
     }
   },
-  "5134de61c3f67717d39e26419fe78c7629f4297ee857c0df6875336eedae5d6a": {
-    "query": "INSERT INTO users VALUES ($1, $2, null, $3)",
+  "3092dad19fcff1bd8d71b87b7df9217243c9729425cf35caa2935d95e16b58be": {
+    "query": "DELETE FROM users WHERE id = $1 RETURNING (id)",
     "describe": {
-      "columns": [],
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Numeric"
+        }
+      ],
       "parameters": {
         "Left": [
-          "Numeric",
-          "Varchar",
-          "Int8"
+          "Numeric"
         ]
       },
-      "nullable": []
+      "nullable": [
+        false
+      ]
     }
   },
-  "6877932b9699af87f88d621440db971391c9e3cb45f5b24daf670d946fd53929": {
-    "query": "INSERT INTO channels VALUES ($1, $2)",
+  "3bfcb3e3ce3650f18cf0f61625744547910820f9d15c1cc61e371fcfce71bb3f": {
+    "query": "DELETE FROM messages WHERE id = $1 AND channel_id = $2 RETURNING (id)",
     "describe": {
-      "columns": [],
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Numeric"
+        }
+      ],
       "parameters": {
         "Left": [
           "Numeric",
-          "Varchar"
+          "Numeric"
         ]
       },
-      "nullable": []
+      "nullable": [
+        false
+      ]
     }
   },
-  "69a61d4b66262fe2319e3696e78a31f168e4cf3b14b26e3506727e4e9fdde932": {
-    "query": "INSERT INTO guilds VALUES ($1, $2, $3, 0, 0)",
+  "403f35a938b3f1ba26670331192c75eb5b1449fafd55b12bddf6d21210754972": {
+    "query": "SELECT * FROM messages WHERE id = $1 AND channel_id = $2",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 1,
+          "name": "content",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 2,
+          "name": "channel_id",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 3,
+          "name": "author_id",
+          "type_info": "Numeric"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Numeric",
+          "Numeric"
+        ]
+      },
+      "nullable": [
+        false,
+        true,
+        false,
+        false
+      ]
+    }
+  },
+  "44ee42be8640ceebc18f7708f2762c2a9828acbe1c32a03f40ed4c115f93f6f3": {
+    "query": "DELETE FROM guilds WHERE id = $1 AND owner_id = $2 RETURNING owner_id",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "owner_id",
+          "type_info": "Numeric"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Numeric",
+          "Numeric"
+        ]
+      },
+      "nullable": [
+        false
+      ]
+    }
+  },
+  "7ebd0aa1d91d1a8e8aa325c7e8903ad041bb364aa95f726700a32e80cda3ed45": {
+    "query": "INSERT INTO members VALUES ($1, $2)",
     "describe": {
       "columns": [],
       "parameters": {
         "Left": [
           "Numeric",
-          "Numeric",
-          "Varchar"
+          "Numeric"
         ]
       },
       "nullable": []
@@ -114,13 +205,18 @@
         },
         {
           "ordinal": 2,
-          "name": "guilds",
+          "name": "flags",
           "type_info": "Int8"
         },
         {
           "ordinal": 3,
-          "name": "flags",
-          "type_info": "Int8"
+          "name": "email",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 4,
+          "name": "password",
+          "type_info": "Text"
         }
       ],
       "parameters": {
@@ -131,9 +227,23 @@
       "nullable": [
         false,
         false,
-        true,
-        true
+        false,
+        false,
+        false
       ]
+    }
+  },
+  "86234148a3053132a3bc190577cacddb256bc53022513e45e479df6808b5cee0": {
+    "query": "DELETE FROM channels WHERE id = $1 AND guild_id = $2",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Numeric",
+          "Numeric"
+        ]
+      },
+      "nullable": []
     }
   },
   "878a86670eec24ecd8a7e1864d6edd105c177cfbab10a652a947c5491bc6c0ff": {
@@ -156,6 +266,109 @@
       ]
     }
   },
+  "88d5ba8d5b1cba33b89fbae96cc539adda6a6248712d44e29b3527081b158f55": {
+    "query": "INSERT INTO channels VALUES ($1, $2, $3)",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Numeric",
+          "Varchar",
+          "Numeric"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "8e8e06ebe38aac297f6e4f4420f65c6d230847a6647e4f8d86fb2fff6e9a1494": {
+    "query": "SELECT * FROM channels WHERE guild_id = $1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 1,
+          "name": "name",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 2,
+          "name": "guild_id",
+          "type_info": "Numeric"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Numeric"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false
+      ]
+    }
+  },
+  "989d01c7f20d9e0159c563670d300b6b0066c3dadc42135af176d88a873e2461": {
+    "query": "INSERT INTO users VALUES ($1, $2, $3, $4, $5)",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Numeric",
+          "Varchar",
+          "Int8",
+          "Varchar",
+          "Text"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "bdf561d927b33e70bfdf334fe29ba4e04e8c65b1f8098444a54faebcd8ce4639": {
+    "query": "INSERT INTO messages VALUES ($1, $2, $3, $4)",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Numeric",
+          "Text",
+          "Numeric",
+          "Numeric"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "cd7d52edaef4025a8c2024b737574293832bd3694e650b4750bf6c6466dca96a": {
+    "query": "SELECT * FROM members WHERE guild_id = $1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "user_id",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 1,
+          "name": "guild_id",
+          "type_info": "Numeric"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Numeric"
+        ]
+      },
+      "nullable": [
+        false,
+        false
+      ]
+    }
+  },
   "e9f8d85417fdc81bd2dbfe749c7da303738ef2b5b1bd2f4fc1a22947108d93a2": {
     "query": "SELECT * FROM channels WHERE id = $1",
     "describe": {
@@ -169,6 +382,52 @@
           "ordinal": 1,
           "name": "name",
           "type_info": "Varchar"
+        },
+        {
+          "ordinal": 2,
+          "name": "guild_id",
+          "type_info": "Numeric"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Numeric"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false
+      ]
+    }
+  },
+  "eedac4927172dfc0458f9e104f9d96eb08184b45e6b6bf769b8a2c4b9639b4b3": {
+    "query": "INSERT INTO guilds VALUES ($1, $2, $3)",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Numeric",
+          "Numeric",
+          "Varchar"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "f8e9111013066d6adef8023ddaf33091c9f346b098c7ff91b7a98feabdad42b8": {
+    "query": "SELECT email, password FROM users WHERE id = $1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "email",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 1,
+          "name": "password",
+          "type_info": "Text"
         }
       ],
       "parameters": {

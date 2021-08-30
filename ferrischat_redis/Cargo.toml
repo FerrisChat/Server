@@ -17,4 +17,4 @@ include = [
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-redis = { version = "0.21", features = ["cluster"] }
+redis = { version = "0.21", features = ["aio", "tokio", "tokio-comp", "connection-manager"] }

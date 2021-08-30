@@ -18,11 +18,15 @@ pub async fn get_user(req: HttpRequest, auth: crate::Authorization) -> impl Resp
             Some(user) => HttpResponse::Ok().json(User {
                 id: user_id,
                 name: user.name,
+                avatar: None,
                 guilds: if authorized_user == user_id {
                     // this code is shit, can probably make it better but i can't figure out the
                     // unsatisfied trait bounds that happens when you get rid of .iter()
+
+                    // note the AS statements here: SQLx cannot properly infer the type due to the `INNER JOIN`
+                    // the ! forces the type to `NOT NULL`
                     match sqlx::query!(
-                        "SELECT * FROM guilds INNER JOIN members m on guilds.id = m.guild_id"
+                        r#"SELECT id AS "id!", owner_id AS "owner_id!", name AS "name!" FROM guilds INNER JOIN members m on guilds.id = m.guild_id"#
                     )
                     .fetch_all(db)
                     .await
@@ -61,7 +65,7 @@ pub async fn get_user(req: HttpRequest, auth: crate::Authorization) -> impl Resp
                 } else {
                     None
                 },
-                flags: user.flags as u64,
+                flags: user.flags,
             }),
             None => HttpResponse::NotFound().json(NotFoundJson {
                 message: "User Not Found".to_string(),

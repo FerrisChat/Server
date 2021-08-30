@@ -1,13 +1,16 @@
 use crate::auth::get_token;
 use crate::channels::*;
 use crate::guilds::*;
+use crate::invites::*;
 use crate::members::*;
 use crate::messages::*;
 use crate::not_implemented::not_implemented;
 use crate::users::*;
+use crate::ws::*;
 use actix_web::{web, App, HttpResponse, HttpServer};
 use ferrischat_db::load_db;
 use ferrischat_macros::expand_version;
+use ferrischat_redis::load_redis;
 use ring::rand::{SecureRandom, SystemRandom};
 use tokio::sync::mpsc::channel;
 
@@ -40,19 +43,13 @@ pub async fn entrypoint() {
             .configure_password_clearing(true) // clear passwords from memory after hashing
             .configure_memory_size(8_192); // use 8MiB memory to hash
 
-        actix_web::rt::spawn(async move {
-            actix_web::rt::blocking::run::<_, (), ()>(move || {
-                while let Some(d) = rx.blocking_recv() {
-                    let (password, sender) = d;
+        std::thread::spawn(move || {
+            while let Some(d) = rx.blocking_recv() {
+                let (password, sender) = d;
 
-                    let r = hasher.with_password(password).hash();
-                    let _ = sender.send(r);
-                }
-
-                Ok(())
-            })
-            .await
-            .expect("background task for password hasher failed");
+                let r = hasher.with_password(password).hash();
+                let _ = sender.send(r);
+            }
         });
 
         crate::GLOBAL_HASHER
@@ -69,22 +66,16 @@ pub async fn entrypoint() {
             .configure_password_clearing(true)
             .configure_secret_key_clearing(true);
 
-        actix_web::rt::spawn(async move {
-            actix_web::rt::blocking::run::<_, (), ()>(move || {
-                while let Some(d) = rx.blocking_recv() {
-                    let (password, sender) = d;
+        std::thread::spawn(move || {
+            while let Some(d) = rx.blocking_recv() {
+                let (password, sender) = d;
 
-                    let r = verifier
-                        .with_password(password.0)
-                        .with_hash(password.1)
-                        .verify();
-                    let _ = sender.send(r);
-                }
-
-                Ok(())
-            })
-            .await
-            .expect("background task for password verifier failed");
+                let r = verifier
+                    .with_password(password.0)
+                    .with_hash(password.1)
+                    .verify();
+                let _ = sender.send(r);
+            }
         });
 
         crate::GLOBAL_VERIFIER
@@ -92,6 +83,7 @@ pub async fn entrypoint() {
             .expect("failed to set password verifier");
     }
 
+    load_redis().await;
     load_db().await;
 
     HttpServer::new(|| {
@@ -106,7 +98,7 @@ pub async fn entrypoint() {
             // PATCH  /guilds/{guild_id}
             .route(
                 expand_version!("guilds/{guild_id}"),
-                web::patch().to(not_implemented),
+                web::patch().to(edit_guild),
             )
             // DELETE /guilds/{guild_id}
             .route(
@@ -118,39 +110,44 @@ pub async fn entrypoint() {
                 expand_version!("guilds/{guild_id}/channels"),
                 web::post().to(create_channel),
             )
-            // GET    guilds/{guild_id}/channels/{channel_id}
+            // GET    channels/{channel_id}
             .route(
-                expand_version!("guilds/{guild_id}/channels/{channel_id}"),
+                expand_version!("channels/{channel_id}"),
                 web::get().to(get_channel),
             )
-            // PATCH  guilds/{guild_id}/channels/{channel_id}
+            // PATCH  channels/{channel_id}
             .route(
-                expand_version!("guilds/{guild_id}/channels/{channel_id}"),
-                web::patch().to(not_implemented),
+                expand_version!("channels/{channel_id}"),
+                web::patch().to(edit_channel),
             )
-            // DELETE guilds/{guild_id}/channels/{channel_id}
+            // DELETE channels/{channel_id}
             .route(
-                expand_version!("guilds/{guild_id}/channels/{channel_id}"),
+                expand_version!("channels/{channel_id}"),
                 web::delete().to(delete_channel),
             )
-            // POST   guilds/{guild_id}/channels/{channel_id}/messages
+            // POST   channels/{channel_id}/messages
             .route(
-                expand_version!("guilds/{guild_id}/channels/{channel_id}/messages"),
+                expand_version!("channels/{channel_id}/messages"),
                 web::post().to(create_message),
             )
-            // GET     guilds/{guild_id}/channels/{channel_id}/messages/{message_id}
+            // GET    channels/{channel_id}/messages
             .route(
-                expand_version!("guilds/{guild_id}/channels/{channel_id}/messages/{message_id}"),
+                expand_version!("channels/{channel_id}/messages"),
+                web::get().to(get_message_history),
+            )
+            // GET     channels/{channel_id}/messages/{message_id}
+            .route(
+                expand_version!("channels/{channel_id}/messages/{message_id}"),
                 web::get().to(get_message),
             )
-            // PATCH  guilds/{guild_id}/channels/{channel_id}/messages/{message_id}
+            // PATCH  channels/{channel_id}/messages/{message_id}
             .route(
-                expand_version!("guilds/{guild_id}/channels/{message_id}"),
-                web::patch().to(not_implemented),
+                expand_version!("channels/{message_id}"),
+                web::patch().to(edit_message),
             )
-            // DELETE guilds/{guild_id}/channels/{channel_id}/messages/{message_id}
+            // DELETE channels/{channel_id}/messages/{message_id}
             .route(
-                expand_version!("guilds/{guild_id}/channels/{channel_id}/messages/{message_id}"),
+                expand_version!("channels/{channel_id}/messages/{message_id}"),
                 web::delete().to(delete_message),
             )
             // POST   guilds/{guild_id}/members
@@ -173,6 +170,23 @@ pub async fn entrypoint() {
                 expand_version!("guilds/{guild_id}/members/{member_id}"),
                 web::delete().to(not_implemented),
             )
+            // POST guilds/{guild_id}/invites
+            .route(
+                expand_version!("guilds/{guild_id}/invites"),
+                web::post().to(create_invite),
+            )
+            // GET guilds/{guild_id}/invites
+            .route(
+                expand_version!("guilds/{guild_id}/invites"),
+                web::get().to(get_guild_invites),
+            )
+            // GET /invites/{code}
+            .route(expand_version!("invites/{code}"), web::get().to(get_invite))
+            // POST /invites/{code}
+            .route(
+                expand_version!("invites/{code}"),
+                web::post().to(use_invite),
+            )
             // POST   /users/
             .route(expand_version!("users"), web::post().to(create_user))
             // GET    /users/{user_id}
@@ -180,7 +194,7 @@ pub async fn entrypoint() {
             // PATCH  /users/{user_id}
             .route(
                 expand_version!("users/{user_id}"),
-                web::patch().to(not_implemented),
+                web::patch().to(edit_user),
             )
             // DELETE /users/{user_id}
             .route(
@@ -189,6 +203,10 @@ pub async fn entrypoint() {
             )
             // POST    /auth/{user_id}
             .route(expand_version!("auth/{user_id}"), web::post().to(get_token))
+            // GET     /ws/info
+            .route(expand_version!("ws/info"), web::get().to(ws_info))
+            // GET     /ws/connect
+            .route(expand_version!("ws/connect"), web::get().to(ws_connect))
             .default_service(web::route().to(HttpResponse::NotFound))
         // TODO: member and message endpoints
     })

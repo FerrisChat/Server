@@ -1,14 +1,19 @@
 #![feature(once_cell)]
 
-use redis::cluster::{ClusterClient, ClusterConnection};
+pub use redis;
+use redis::aio::ConnectionManager;
+use redis::Client;
+use std::lazy::SyncOnceCell as OnceCell;
 
-pub fn load_redis() -> (ClusterClient, ClusterConnection) {
-    let nodes = vec!["redis://127.0.0.1:6379/"];
+pub static REDIS_MANAGER: OnceCell<ConnectionManager> = OnceCell::new();
 
-    let client = ClusterClient::open(nodes).expect("initial redis connection failed");
-    let conn = client
-        .get_connection()
-        .expect("failed to open redis connection");
-
-    (client, conn)
+pub async fn load_redis() -> ConnectionManager {
+    let client = Client::open("redis://127.0.0.1:6379/").expect("initial redis connection failed");
+    let manager = ConnectionManager::new(client)
+        .await
+        .expect("failed to open connection to Redis");
+    REDIS_MANAGER.set(manager.clone()).unwrap_or_else(|_| {
+        panic!("failed to set Redis global static: did you call load_redis() twice?")
+    });
+    manager
 }
