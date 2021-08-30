@@ -1,7 +1,7 @@
 use actix_web::{HttpRequest, HttpResponse, Responder};
 use ferrischat_common::types::InternalServerErrorJson;
-use sqlx::types::time::{OffsetDateTime, PrimitiveDateTime};
 use ferrischat_snowflake_generator::FERRIS_EPOCH;
+use sqlx::types::time::{OffsetDateTime, PrimitiveDateTime};
 
 pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Responder {
     let invite_code = {
@@ -18,7 +18,8 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
                 return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                     reason: "code not found in match_info: this is a bug, please report it at \
                     https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&labels=bug&\
-                    template=api_bug_report.yml&title=%5B500%5D%3A+code+not+found+in+match_info".to_string(),
+                    template=api_bug_report.yml&title=%5B500%5D%3A+code+not+found+in+match_info"
+                        .to_string(),
                 })
             }
         }
