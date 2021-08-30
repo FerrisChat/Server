@@ -40,23 +40,25 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
                     let now = time::OffsetDateTime::now_utc();
                     time::PrimitiveDateTime::new(now.clone().date(), now.time())
                 };
-                if uses > invite.max_uses {
-                    let delete_resp =
-                        sqlx::query!("DELETE FROM invites WHERE code = $1", invite_code)
-                            .execute(db)
-                            .await;
+                if let Some(invite.max_uses) = invite.max_uses {
+                    if uses > invite.max_uses {
+                        let delete_resp =
+                            sqlx::query!("DELETE FROM invites WHERE code = $1", invite_code)
+                                .execute(db)
+                                .await;
 
-                    match delete_resp {
-                        Ok(_) => return HttpResponse::Gone().finish(),
-                        Err(e) => {
-                            return HttpResponse::InternalServerError().json(
-                                InternalServerErrorJson {
-                                    reason: format!("DB returned an error: {}", e),
-                                },
-                            )
+                        match delete_resp {
+                            Ok(_) => return HttpResponse::Gone().finish(),
+                            Err(e) => {
+                                return HttpResponse::InternalServerError().json(
+                                    InternalServerErrorJson {
+                                        reason: format!("DB returned an error: {}", e),
+                                    },
+                                )
+                            }
                         }
                     }
-                }
+                };
 
                 if invite.max_age.is_some() {
                     if (now - invite.created_at).whole_seconds() > invite.max_age {
