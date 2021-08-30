@@ -41,7 +41,7 @@ pub async fn create_invite(
 
     match resp {
         Ok(code) => HttpResponse::Created().json(Invite {
-            code: code,
+            code: code.code,
             owner_id: owner_id,
             guild_id: guild_id,
             created_at: now,
