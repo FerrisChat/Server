@@ -36,7 +36,7 @@ pub async fn create_invite(
             Ok(_) => (),
             None => {
                 return HttpResponse::Forbidden().finish();
-            }
+            },
             Err(e) => {
                 return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                     reason: format!("DB returned an error: {}", e),
