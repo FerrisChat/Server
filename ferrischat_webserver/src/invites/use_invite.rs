@@ -41,7 +41,7 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
                     PrimitiveDateTime::new(now.clone().date(), now.time())
                 };
                 if let Some(max_uses) = invite.max_uses {
-                    if uses > max_uses {
+                    if uses > max_uses.into() {
                         let delete_resp =
                             sqlx::query!("DELETE FROM invites WHERE code = $1", invite_code)
                                 .execute(db)
@@ -114,10 +114,10 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
                     }
                 }
             }
+            None => {
+                return HttpResponse::NotFound().finish();
+            }
         },
-        None => {
-            return HttpResponse::NotFound().finish();
-        }
         Err(e) => {
             return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                 reason: format!("DB returned an error: {}", e),

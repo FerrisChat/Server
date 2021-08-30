@@ -33,9 +33,11 @@ pub async fn create_invite(
         .await;
 
         match resp {
-            Ok(_) => (),
-            None => {
-                return HttpResponse::Forbidden().finish();
+            Ok(resp) => match resp {
+                Some(_) => (),
+                None => {
+                    return HttpResponse::Forbidden().finish();
+                }
             },
             Err(e) => {
                 return HttpResponse::InternalServerError().json(InternalServerErrorJson {
