@@ -2,7 +2,6 @@ use actix_web::web::Json;
 use actix_web::{HttpRequest, HttpResponse, Responder};
 use ferrischat_common::request_json::InviteCreateJson;
 use ferrischat_common::types::{InternalServerErrorJson, Invite};
-use ferrischat_macros::get_db_or_fail;
 
 /// POST /api/v0/guilds/{guild_id}/invites
 pub async fn create_invite(
@@ -24,7 +23,7 @@ pub async fn create_invite(
         time::PrimitiveDateTime::new(now.clone().date(), now.time())
     };
 
-    match sqlx::query!(
+    let resp = sqlx::query!(
         "INSERT INTO invites VALUES ((SELECT array_to_string( \
             ARRAY(SELECT substr( \
                 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789', \
@@ -35,16 +34,21 @@ pub async fn create_invite(
         now,
         0,
         max_uses,
-        max_age
-    )
-    .execute(db)
-    .await
-    {
+        max_age)
+    .fetch_one(db)
+    .await;
+
+    match resp {
         Ok(code) => HttpResponse::Created().json(Invite {
             code: code,
             owner_id: owner_id,
             guild_id: guild_id,
-            created_at: now,
+            created_at: match now {
+                Some(now) => now,
+                None => return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                    reason: "Failed to get current time".to_string(),
+                }),
+            }
             uses: 0,
             max_uses: max_uses,
             max_age: max_age,

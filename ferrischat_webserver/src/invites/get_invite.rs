@@ -1,6 +1,5 @@
-use actix_web::{HttpRequest, HttpResponse, Responder};
+use actix_web::{HttpRequest, Responder};
 use ferrischat_common::types::{InternalServerErrorJson, Invite, NotFoundJson};
-use ferrischat_macros::get_db_or_fail;
 
 /// GET api/v0/invites/{code}
 pub async fn get_invite(req: HttpRequest, _: crate::Authorization) -> impl Responder {
@@ -26,7 +25,7 @@ pub async fn get_invite(req: HttpRequest, _: crate::Authorization) -> impl Respo
     match resp {
         Ok(resp) => match resp {
             Some(invite) => HttpResponse::Ok().json(Invite {
-                code: code,
+                code: code.to_string(),
                 owner_id: bigdecimal_to_u128!(invite.owner_id),
                 guild_id: bigdecimal_to_u128!(invite.guild_id),
                 created_at: invite.created_at,
