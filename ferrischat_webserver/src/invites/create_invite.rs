@@ -34,7 +34,8 @@ pub async fn create_invite(
         now,
         0,
         max_uses,
-        max_age)
+        max_age
+    )
     .fetch_one(db)
     .await;
 
@@ -45,10 +46,12 @@ pub async fn create_invite(
             guild_id: guild_id,
             created_at: match now {
                 Some(now) => now,
-                None => return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                    reason: "Failed to get current time".to_string(),
-                }),
-            }
+                None => {
+                    return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                        reason: "Failed to get current time".to_string(),
+                    })
+                }
+            },
             uses: 0,
             max_uses: max_uses,
             max_age: max_age,
