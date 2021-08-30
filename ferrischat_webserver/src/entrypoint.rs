@@ -1,6 +1,7 @@
 use crate::auth::get_token;
 use crate::channels::*;
 use crate::guilds::*;
+use crate::invites::*;
 use crate::members::*;
 use crate::messages::*;
 use crate::not_implemented::not_implemented;
@@ -169,6 +170,18 @@ pub async fn entrypoint() {
                 expand_version!("guilds/{guild_id}/members/{member_id}"),
                 web::delete().to(not_implemented),
             )
+            // POST guilds/{guild_id}/invites
+            .route(
+                expand_version!("guilds/{guild_id}/invites"),
+                web::post().to(create_invite),
+            )
+            // GET guilds/{guild_id}/invites
+            .route(
+                expand_version!("guilds/{guild_id}/invites"),
+                web::get().to(get_guild_invites),
+            )
+            // GET /invites/{code}
+            .route(expand_version!("invites/{code}"), web::get().to(get_invite))
             // POST   /users/
             .route(expand_version!("users"), web::post().to(create_user))
             // GET    /users/{user_id}
