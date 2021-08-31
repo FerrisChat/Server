@@ -4,7 +4,7 @@ use ferrischat_common::request_json::InviteCreateJson;
 use ferrischat_common::types::{InternalServerErrorJson, Invite};
 use sqlx::types::time::{OffsetDateTime, PrimitiveDateTime};
 
-const FERRIS_EPOCH: i64 = 1_577_836_800_000;
+const FERRIS_EPOCH: i64 = 1_577_836_800;
 
 /// POST /api/v0/guilds/{guild_id}/invites
 pub async fn create_invite(
