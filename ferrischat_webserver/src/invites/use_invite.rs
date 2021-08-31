@@ -1,7 +1,8 @@
 use actix_web::{HttpRequest, HttpResponse, Responder};
 use ferrischat_common::types::InternalServerErrorJson;
-use ferrischat_snowflake_generator::FERRIS_EPOCH;
 use sqlx::types::time::{OffsetDateTime, PrimitiveDateTime};
+
+const FERRIS_EPOCH: i64 = 1_577_836_800_000;
 
 pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Responder {
     let invite_code = {
@@ -38,7 +39,8 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
         Ok(resp) => match resp {
             Some(invite) => {
                 let uses = invite.uses + 1;
-                let now = OffsetDateTime::now_utc().unix_timestamp() - FERRIS_EPOCH;
+                let unix_timestamp = OffsetDateTime::now_utc().unix_timestamp();
+                let now = unix_timestamp - FERRIS_EPOCH
                 if let Some(max_uses) = invite.max_uses {
                     if uses > max_uses.into() {
                         let delete_resp =
