@@ -142,7 +142,7 @@ pub async fn entrypoint() {
             )
             // PATCH  channels/{channel_id}/messages/{message_id}
             .route(
-                expand_version!("channels/{message_id}"),
+                expand_version!("channels/{channel_id}/messages/{message_id}"),
                 web::patch().to(edit_message),
             )
             // DELETE channels/{channel_id}/messages/{message_id}
