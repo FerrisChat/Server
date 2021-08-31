@@ -40,7 +40,7 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
             Some(invite) => {
                 let uses = invite.uses + 1;
                 let unix_timestamp = OffsetDateTime::now_utc().unix_timestamp();
-                let now = unix_timestamp - FERRIS_EPOCH
+                let now = unix_timestamp - FERRIS_EPOCH;
                 if let Some(max_uses) = invite.max_uses {
                     if uses > max_uses.into() {
                         let delete_resp =
