@@ -3,8 +3,6 @@ use actix_web::{web::Query, HttpRequest, HttpResponse, Responder};
 use ferrischat_common::request_json::GetMessageHistoryParams;
 use ferrischat_common::types::{BadRequestJson, InternalServerErrorJson, Message, MessageHistory};
 
-use num_traits::ToPrimitive;
-
 /// GET /api/v0/channels/{channel_id}/messages
 pub async fn get_message_history(
     req: HttpRequest,
