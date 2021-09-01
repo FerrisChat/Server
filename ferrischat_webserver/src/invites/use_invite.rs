@@ -1,6 +1,6 @@
 use actix_web::{HttpRequest, HttpResponse, Responder};
 use ferrischat_common::types::InternalServerErrorJson;
-use sqlx::types::time::{OffsetDateTime, PrimitiveDateTime};
+use sqlx::types::time::OffsetDateTime;
 
 pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Responder {
     let invite_code = {
