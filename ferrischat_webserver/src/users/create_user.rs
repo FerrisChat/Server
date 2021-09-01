@@ -2,8 +2,8 @@ use actix_web::{web::Json, HttpResponse, Responder};
 use ferrischat_common::request_json::UserCreateJson;
 use ferrischat_common::types::{InternalServerErrorJson, ModelType, User};
 use ferrischat_snowflake_generator::generate_snowflake;
-use tokio::sync::oneshot::channel;
 use rand::Rng;
+use tokio::sync::oneshot::channel;
 
 /// POST /api/v0/users/
 pub async fn create_user(user_data: Json<UserCreateJson>) -> impl Responder {
