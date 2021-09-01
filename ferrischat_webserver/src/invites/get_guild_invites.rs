@@ -1,8 +1,6 @@
 use actix_web::{HttpRequest, HttpResponse, Responder};
 use ferrischat_common::types::{InternalServerErrorJson, Invite, NotFoundJson};
 
-use num_traits::ToPrimitive;
-
 /// GET api/v0/guilds/{guild_id}/invites
 pub async fn get_guild_invites(req: HttpRequest, auth: crate::Authorization) -> impl Responder {
     let db = get_db_or_fail!();
