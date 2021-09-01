@@ -2,7 +2,7 @@ use actix_web::web::Json;
 use actix_web::{HttpRequest, HttpResponse, Responder};
 use ferrischat_common::request_json::InviteCreateJson;
 use ferrischat_common::types::{InternalServerErrorJson, Invite};
-use sqlx::types::time::{OffsetDateTime, PrimitiveDateTime};
+use sqlx::types::time::OffsetDateTime;
 
 /// POST /api/v0/guilds/{guild_id}/invites
 pub async fn create_invite(
@@ -65,12 +65,12 @@ pub async fn create_invite(
     match resp {
         Ok(code) => HttpResponse::Created().json(Invite {
             code: code.code,
-            owner_id: owner_id,
-            guild_id: guild_id,
+            owner_id,
+            guild_id,
             created_at: now,
             uses: 0,
-            max_uses: max_uses,
-            max_age: max_age,
+            max_uses,
+            max_age,
         }),
         Err(e) => HttpResponse::InternalServerError().json(InternalServerErrorJson {
             reason: format!("DB returned an error: {}", e),
