@@ -3,6 +3,7 @@ use ferrischat_common::request_json::UserCreateJson;
 use ferrischat_common::types::{InternalServerErrorJson, ModelType, User};
 use ferrischat_snowflake_generator::generate_snowflake;
 use tokio::sync::oneshot::channel;
+use rand::Rng;
 
 /// POST /api/v0/users/
 pub async fn create_user(user_data: Json<UserCreateJson>) -> impl Responder {
@@ -13,6 +14,7 @@ pub async fn create_user(user_data: Json<UserCreateJson>) -> impl Responder {
         email,
         password,
     } = user_data.0;
+    let user_discrim: i16 = rand::thread_rng().gen_range(1..=9999);
 
     let hashed_password = {
         let hasher = match crate::GLOBAL_HASHER.get() {
@@ -46,12 +48,13 @@ pub async fn create_user(user_data: Json<UserCreateJson>) -> impl Responder {
 
     let bigint_user_id = u128_to_bigdecimal!(user_id);
     match sqlx::query!(
-        "INSERT INTO users VALUES ($1, $2, $3, $4, $5)",
+        "INSERT INTO users VALUES ($1, $2, $3, $4, $5, $6)",
         bigint_user_id,
         username,
         0,
         email,
         hashed_password,
+        user_discrim,
     )
     .execute(db)
     .await
@@ -62,6 +65,7 @@ pub async fn create_user(user_data: Json<UserCreateJson>) -> impl Responder {
             avatar: None,
             guilds: None,
             flags: 0,
+            discriminator: user_discrim,
         }),
         Err(e) => HttpResponse::InternalServerError().json(InternalServerErrorJson {
             reason: format!("DB returned a error: {}", e),

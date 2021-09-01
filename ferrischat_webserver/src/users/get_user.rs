@@ -66,6 +66,7 @@ pub async fn get_user(req: HttpRequest, auth: crate::Authorization) -> impl Resp
                     None
                 },
                 flags: user.flags,
+                discriminator: user.discriminator,
             }),
             None => HttpResponse::NotFound().json(NotFoundJson {
                 message: "User Not Found".to_string(),

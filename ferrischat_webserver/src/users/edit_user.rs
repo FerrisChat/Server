@@ -123,6 +123,7 @@ pub async fn edit_user(
                 avatar: None,
                 guilds: None,
                 flags: 0,
+                discriminator: user.discriminator,
             }),
             None => HttpResponse::NotFound().json(NotFoundJson {
                 message: "User not found".to_string(),

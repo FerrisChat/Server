@@ -40,6 +40,7 @@ ferrischat_common = { git = "https://github.com/FerrisChat/Common.git", version 
 ferrischat_macros = { path = "../ferrischat_macros", version = "0.1" }
 ferrischat_redis = { path = "../ferrischat_redis", version = "0.1"}
 ferrischat_snowflake_generator = "1"
+rand = "*"
 
 [dependencies.sqlx]
 version = "0.5"
