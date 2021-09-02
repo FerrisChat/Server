@@ -122,7 +122,7 @@ pub async fn edit_user(
                 name: user.name.clone(),
                 avatar: None,
                 guilds: None,
-                flags: 0,
+                flags: user.flags,
                 discriminator: user.discriminator,
             }),
             None => HttpResponse::NotFound().json(NotFoundJson {
