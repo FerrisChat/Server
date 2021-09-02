@@ -221,7 +221,7 @@ pub async fn handle_ws_connection(stream: TcpStream, addr: SocketAddr) -> Result
                                     avatar: None,
                                     guilds: None,
                                     flags: u.flags,
-                                    discriminator: 0,
+                                    discriminator: u.discriminator,
                                 },
                                 Err(_) => {
                                     // TODO: give reason for closure (internal DB error)
