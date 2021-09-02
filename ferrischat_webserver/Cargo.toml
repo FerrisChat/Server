@@ -25,8 +25,7 @@ num-bigint = "0.3"
 ring = "0.16"
 futures = "0.3"
 base64 = "0.13"
-tokio = { version = "1.9", features = ["full"] }
-argonautica = { version = "0.2", features = ["serde", "simd"]}
+tokio = { version = "1.11", features = ["full"] }
 futures-cpupool = "0.1"
 dotenv = "0.15"
 libc = "0.2"
@@ -34,11 +33,14 @@ nix = { git = "https://github.com/nix-rust/nix" }
 http = "0.2"
 serde_json = "1.0"
 bytes = "*"
+tokio-tungstenite = "0.15"
 
 ferrischat_db = { path = "../ferrischat_db", version = "0.1" }
 ferrischat_common = { git = "https://github.com/FerrisChat/Common.git", version = "0.1" }
 ferrischat_macros = { path = "../ferrischat_macros", version = "0.1" }
 ferrischat_redis = { path = "../ferrischat_redis", version = "0.1"}
+ferrischat_ws = { path = "../ferrischat_ws", version = "0.1" }
+ferrischat_auth = { path = "../ferrischat_auth", version = "0.1" }
 ferrischat_snowflake_generator = "1"
 
 [dependencies.sqlx]

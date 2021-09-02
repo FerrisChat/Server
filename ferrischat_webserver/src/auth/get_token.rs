@@ -69,7 +69,7 @@ pub async fn get_token(req: HttpRequest) -> impl Responder {
     {
         Ok(r) => {
             let matches = {
-                let rx = match crate::GLOBAL_VERIFIER.get() {
+                let rx = match ferrischat_auth::GLOBAL_VERIFIER.get() {
                     Some(v) => {
                         let (tx, rx) = channel();
                         // you either shut up about these clones or fix it all: deal?
@@ -118,7 +118,7 @@ pub async fn get_token(req: HttpRequest) -> impl Responder {
     };
 
     let hashed_token = {
-        let rx = match crate::GLOBAL_HASHER.get() {
+        let rx = match ferrischat_auth::GLOBAL_HASHER.get() {
             Some(h) => {
                 let (tx, rx) = channel();
                 if h.send((token.clone(), tx)).await.is_err() {

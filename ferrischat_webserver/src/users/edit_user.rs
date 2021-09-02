@@ -66,7 +66,7 @@ pub async fn edit_user(
 
     if let Some(password) = password {
         let hashed_password = {
-            let hasher = match crate::GLOBAL_HASHER.get() {
+            let hasher = match ferrischat_auth::GLOBAL_HASHER.get() {
                 Some(h) => h,
                 None => {
                     return HttpResponse::InternalServerError().json(InternalServerErrorJson {
@@ -123,6 +123,7 @@ pub async fn edit_user(
                 avatar: None,
                 guilds: None,
                 flags: 0,
+                discriminator: 0,
             }),
             None => HttpResponse::NotFound().json(NotFoundJson {
                 message: "User not found".to_string(),

@@ -15,7 +15,7 @@ pub async fn create_user(user_data: Json<UserCreateJson>) -> impl Responder {
     } = user_data.0;
 
     let hashed_password = {
-        let hasher = match crate::GLOBAL_HASHER.get() {
+        let hasher = match ferrischat_auth::GLOBAL_HASHER.get() {
             Some(h) => h,
             None => {
                 return HttpResponse::InternalServerError().json(InternalServerErrorJson {
@@ -62,6 +62,7 @@ pub async fn create_user(user_data: Json<UserCreateJson>) -> impl Responder {
             avatar: None,
             guilds: None,
             flags: 0,
+            discriminator: 0,
         }),
         Err(e) => HttpResponse::InternalServerError().json(InternalServerErrorJson {
             reason: format!("DB returned a error: {}", e),

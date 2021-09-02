@@ -1,6 +1,6 @@
 use actix_web::{HttpRequest, HttpResponse, Responder};
 use ferrischat_common::types::InternalServerErrorJson;
-use sqlx::types::time::{OffsetDateTime, PrimitiveDateTime};
+use sqlx::types::time::OffsetDateTime;
 
 const FERRIS_EPOCH: i64 = 1_577_836_800_000;
 

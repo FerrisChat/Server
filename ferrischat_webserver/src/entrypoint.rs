@@ -8,11 +8,12 @@ use crate::not_implemented::not_implemented;
 use crate::users::*;
 use crate::ws::*;
 use actix_web::{web, App, HttpResponse, HttpServer};
+use ferrischat_auth::init_auth;
 use ferrischat_db::load_db;
 use ferrischat_macros::expand_version;
 use ferrischat_redis::load_redis;
+use ferrischat_ws::init_ws_server;
 use ring::rand::{SecureRandom, SystemRandom};
-use tokio::sync::mpsc::channel;
 
 #[allow(clippy::expect_used)]
 pub async fn entrypoint() {
@@ -32,59 +33,10 @@ pub async fn entrypoint() {
             .expect("failed to generate RNG");
     }
 
-    {
-        let (tx, mut rx) = channel::<(
-            String,
-            tokio::sync::oneshot::Sender<Result<String, argonautica::Error>>,
-        )>(250);
-        let mut hasher = argonautica::Hasher::new();
-        hasher
-            .opt_out_of_secret_key(true) // we don't need secret keys atm
-            .configure_password_clearing(true) // clear passwords from memory after hashing
-            .configure_memory_size(8_192); // use 8MiB memory to hash
-
-        std::thread::spawn(move || {
-            while let Some(d) = rx.blocking_recv() {
-                let (password, sender) = d;
-
-                let r = hasher.with_password(password).hash();
-                let _ = sender.send(r);
-            }
-        });
-
-        crate::GLOBAL_HASHER
-            .set(tx)
-            .expect("couldn't set global hasher for some reason");
-    }
-    {
-        let (tx, mut rx) = channel::<(
-            (String, String),
-            tokio::sync::oneshot::Sender<Result<bool, argonautica::Error>>,
-        )>(250);
-        let mut verifier = argonautica::Verifier::new();
-        verifier
-            .configure_password_clearing(true)
-            .configure_secret_key_clearing(true);
-
-        std::thread::spawn(move || {
-            while let Some(d) = rx.blocking_recv() {
-                let (password, sender) = d;
-
-                let r = verifier
-                    .with_password(password.0)
-                    .with_hash(password.1)
-                    .verify();
-                let _ = sender.send(r);
-            }
-        });
-
-        crate::GLOBAL_VERIFIER
-            .set(tx)
-            .expect("failed to set password verifier");
-    }
-
+    init_auth().await;
     load_redis().await;
     load_db().await;
+    init_ws_server("0.0.0.0:8081").await;
 
     HttpServer::new(|| {
         App::new()
