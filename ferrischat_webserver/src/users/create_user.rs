@@ -17,7 +17,7 @@ pub async fn create_user(user_data: Json<UserCreateJson>) -> impl Responder {
     let user_discrim: i16 = rand::thread_rng().gen_range(1..=9999);
 
     let hashed_password = {
-        let hasher = match crate::GLOBAL_HASHER.get() {
+        let hasher = match ferrischat_auth::GLOBAL_HASHER.get() {
             Some(h) => h,
             None => {
                 return HttpResponse::InternalServerError().json(InternalServerErrorJson {

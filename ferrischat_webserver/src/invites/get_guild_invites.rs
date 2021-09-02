@@ -1,5 +1,5 @@
 use actix_web::{HttpRequest, HttpResponse, Responder};
-use ferrischat_common::types::{InternalServerErrorJson, Invite, NotFoundJson};
+use ferrischat_common::types::{InternalServerErrorJson, Invite};
 
 use num_traits::ToPrimitive;
 

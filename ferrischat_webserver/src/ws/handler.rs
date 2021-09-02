@@ -2,9 +2,7 @@ use actix::{Actor, StreamHandler};
 use actix_web::{web, Error, HttpRequest, HttpResponse};
 use actix_web_actors::ws::{self, CloseCode, CloseReason, Message, ProtocolError};
 use bytes::Bytes;
-use ferrischat_common::ws::WsEvent;
-use ferrischat_redis::{redis, REDIS_MANAGER};
-use serde_json::error::Category;
+use ferrischat_redis::REDIS_MANAGER;
 
 pub async fn ws_connect(req: HttpRequest, stream: web::Payload) -> Result<HttpResponse, Error> {
     ws::start(WsHandler, &req, stream)
@@ -130,7 +128,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsHandler {
         };
 
         /*
-        let r = match serde_json::from_str::<WsEvent>() {
+        let r = match serde_json::from_str::<WsInboundEvent>() {
             Ok(r) => r,
             Err(e) => {
                 ctx.close(Some(CloseReason::from((

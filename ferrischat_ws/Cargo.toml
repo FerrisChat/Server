@@ -1,0 +1,28 @@
+[package]
+name = "ferrischat_ws"
+version = "0.1.0"
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+futures = "0.3"
+futures-util = "0.3"
+tokio-tungstenite = "0.15"
+dashmap = "4.0"
+simd-json = { version = "0.4", features = ["128bit"] }
+num-bigint = "0.3"
+
+ferrischat_redis = { path = "../ferrischat_redis" }
+ferrischat_common = { git = "https://github.com/FerrisChat/Common" }
+ferrischat_auth = { path = "../ferrischat_auth" }
+ferrischat_macros = { path = "../ferrischat_macros" }
+ferrischat_db = { path = "../ferrischat_db" }
+
+[dependencies.tokio]
+version = "1.11"
+features = ["full"]
+
+[dependencies.sqlx]
+version = "0.5"
+features = ["postgres", "macros", "offline", "runtime-actix-rustls", "time"]
