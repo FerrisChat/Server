@@ -42,7 +42,7 @@ ferrischat_redis = { path = "../ferrischat_redis", version = "0.1"}
 ferrischat_ws = { path = "../ferrischat_ws", version = "0.1" }
 ferrischat_auth = { path = "../ferrischat_auth", version = "0.1" }
 ferrischat_snowflake_generator = "1"
-rand = "*"
+rand = "0.8.4"
 
 [dependencies.sqlx]
 version = "0.5"
