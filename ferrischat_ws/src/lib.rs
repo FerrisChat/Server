@@ -320,7 +320,9 @@ pub async fn init_ws_server<T: tokio::net::ToSocketAddrs>(addr: T) {
                 Ok((stream, addr)) => {
                     handle_ws_connection(stream, addr).await;
                 }
-                Err(_) => {}
+                Err(e) => {
+                    eprintln!("failed to accept WS conn: {}", e);
+                }
             }
         }
     });
