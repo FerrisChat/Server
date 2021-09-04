@@ -22,9 +22,10 @@ pub async fn get_member(req: HttpRequest) -> impl Responder {
     match resp {
         Ok(entry) => match entry {
             Some(member) => {
-                let user_resp = sqlx::query!("SELECT * FROM users WHERE id = $1", decimal_member_id)
-                    .fetch_optional(db)
-                    .await;
+                let user_resp =
+                    sqlx::query!("SELECT * FROM users WHERE id = $1", decimal_member_id)
+                        .fetch_optional(db)
+                        .await;
 
                 match user_resp {
                     Ok(u) => {
