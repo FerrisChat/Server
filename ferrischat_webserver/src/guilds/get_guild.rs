@@ -64,6 +64,13 @@ pub async fn get_guild(
     } else {
         None
     };
+    
+    let mut partial = Guild {
+        id: bigdecimal_to_u128!(guild.id),
+        owner_id: bigdecimal_to_u128!(guild.owner_id),
+        name: guild.name,
+        channels,
+    }
 
     let members = if params.members.unwrap_or(false) {
         let resp = sqlx::query!("SELECT * FROM members WHERE guild_id = $1", bigint_guild_id)
@@ -83,12 +90,7 @@ pub async fn get_guild(
                         ),
                         user: None,
                         guild_id: Some(guild_id),
-                        guild: Some(Guild {
-                            id: bigdecimal_to_u128!(guild.id),
-                            owner_id: bigdecimal_to_u128!(guild.owner_id),
-                            name: guild.name,
-                            channels,
-                        }),
+                        guild: Some(&partial),
                     })
                 })
                 .collect(),
@@ -103,10 +105,7 @@ pub async fn get_guild(
     };
 
     HttpResponse::Ok().json(Guild {
-        id: bigdecimal_to_u128!(guild.id),
-        owner_id: bigdecimal_to_u128!(guild.owner_id),
-        name: guild.name,
-        channels,
+        ..partial,
         members,
     })
 }
