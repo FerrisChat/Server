@@ -3,21 +3,18 @@ use ferrischat_common::types::{InternalServerErrorJson, Member, NotFoundJson, Us
 
 /// GET /api/v0/guilds/{guild_id}/members/{member_id}
 pub async fn get_member(req: HttpRequest) -> impl Responder {
-    let guild_id = {
-        let raw = get_item_id!(req, "guild_id");
-        u128_to_bigdecimal!(raw)
-    };
-    let member_id = {
-        let raw = get_item_id!(req, "member_id");
-        u128_to_bigdecimal!(raw)
-    };
+    let guild_id = get_item_id!(req, "guild_id");
+    let decimal_guild_id = u128_to_bigdecimal!(guild_id);
+
+    let member_id = get_item_id!(req, "member_id");
+    let decimal_member_id = u128_to_bigdecimal!(member_id);
 
     let db = get_db_or_fail!();
 
     let resp = sqlx::query!(
         "SELECT * FROM members WHERE user_id = $1 AND guild_id = $2",
-        member_id,
-        guild_id
+        decimal_member_id,
+        decimal_guild_id
     )
     .fetch_optional(db)
     .await;
@@ -38,13 +35,14 @@ pub async fn get_member(req: HttpRequest) -> impl Responder {
                                 avatar: None,
                                 discriminator: u.discriminator,
                                 flags: u.flags,
+                                guilds: None,
                             }),
                             None => None,
                         };
                         HttpResponse::Ok().json(Member {
-                            user_id: member_id,
+                            user_id: Some(member_id),
                             user: user,
-                            guild_id,
+                            guild_id: Some(guild_id),
                             guild: None,
                         })
                     }
