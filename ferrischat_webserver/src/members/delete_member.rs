@@ -11,12 +11,16 @@ pub async fn delete_member(req: HttpRequest, _: crate::Authorization) -> impl Re
         let raw = get_item_id!(req, "member_id");
         u128_to_bigdecimal!(raw)
     };
-    
+
     let db = get_db_or_fail!();
 
-    let resp = sqlx::query!("DELETE FROM members WHERE user_id = $1 AND guild_id = $2 RETURNING (id)", member_id, guild_id)
-        .fetch_optional(db)
-        .await;
+    let resp = sqlx::query!(
+        "DELETE FROM members WHERE user_id = $1 AND guild_id = $2 RETURNING (id)",
+        member_id,
+        guild_id
+    )
+    .fetch_optional(db)
+    .await;
 
     match resp {
         Ok(r) => match r {
@@ -26,7 +30,7 @@ pub async fn delete_member(req: HttpRequest, _: crate::Authorization) -> impl Re
             }),
         },
         Err(e) => HttpResponse::InternalServerError().json(InternalServerErrorJson {
-            reason: format!("Database responded with an error: {}", e)
+            reason: format!("Database responded with an error: {}", e),
         }),
     }
 }

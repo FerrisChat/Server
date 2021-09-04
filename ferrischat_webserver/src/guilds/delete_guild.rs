@@ -25,7 +25,7 @@ pub async fn delete_guild(req: HttpRequest, auth: crate::Authorization) -> impl 
                 } else {
                     HttpResponse::Forbidden().finish()
                 }
-            },
+            }
             None => HttpResponse::NotFound().json(NotFoundJson {
                 message: "guild not found".to_string(),
             }),
