@@ -102,15 +102,15 @@ pub async fn entrypoint() {
                 expand_version!("channels/{channel_id}/messages/{message_id}"),
                 web::delete().to(delete_message),
             )
-            // POST   guilds/{guild_id}/members
-            .route(
-                expand_version!("guilds/{guild_id}/members"),
-                web::post().to(not_implemented),
-            )
             // GET    guilds/{guild_id}/members/{member_id}
             .route(
                 expand_version!("guilds/{guild_id}/members/{member_id}"),
                 web::get().to(get_member),
+            )
+            // PATCH  guilds/{guild_id}/members/{member_id}
+            .route(
+                expand_version!("guilds/{guild_id}/members/{member_id}"),
+                web::patch().to(not_implemented),
             )
             // DELETE guilds/{guild_id}/members/{member_id}
             .route(
