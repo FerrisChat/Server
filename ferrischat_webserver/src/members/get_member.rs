@@ -14,7 +14,7 @@ pub async fn get_member(req: HttpRequest) -> impl Responder {
     
     let db = get_db_or_fail!();
 
-    let resp = sqlx::query!("SELECT * FROM members WHERE id = $1 AND guild_id = $2", member_id, guild_id)
+    let resp = sqlx::query!("SELECT * FROM members WHERE user_id = $1 AND guild_id = $2", member_id, guild_id)
         .fetch_optional(db)
         .await;
 

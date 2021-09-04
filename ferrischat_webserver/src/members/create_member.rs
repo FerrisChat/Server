@@ -17,7 +17,7 @@ pub async fn create_member(
     
     let db = get_db_or_fail!();
 
-    let resp = sqlx::query!("INSERT INTO members (id, guild_id) VALUES ($1, $2) RETURNING (id)", member_id, guild_id)
+    let resp = sqlx::query!("INSERT INTO members (user_id, guild_id) VALUES ($1, $2) RETURNING (user_id)", member_id, guild_id)
         .fetch_optional(db)
         .await;
 
