@@ -83,7 +83,12 @@ pub async fn get_guild(
                         ),
                         user: None,
                         guild_id: Some(guild_id),
-                        guild: None,
+                        guild: Some(Guild {
+                            id: bigdecimal_to_u128!(guild.id),
+                            owner_id: bigdecimal_to_u128!(guild.owner_id),
+                            name: guild.name,
+                            channels,
+                        }),
                     })
                 })
                 .collect(),
