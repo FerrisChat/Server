@@ -13,7 +13,7 @@ pub async fn create_member(
     let member_id = {
         let raw = auth.0;
         u128_to_bigdecimal!(raw)
-    }
+    };
     
     let db = get_db_or_fail!();
 
