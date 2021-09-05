@@ -56,7 +56,7 @@ pub async fn get_message_history(
                             .0
                             .to_u128()?,
                         edited_at: x.edited_at,
-                        embeds: None,
+                        embeds: vec![],
                     })
                 })
                 .collect(),
