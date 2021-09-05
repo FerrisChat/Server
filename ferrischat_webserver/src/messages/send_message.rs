@@ -49,6 +49,6 @@ pub async fn create_message(
         channel_id,
         author_id,
         edited_at: None,
-        embeds: None,
+        embeds: vec![],
     })
 }

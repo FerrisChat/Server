@@ -60,7 +60,7 @@ pub async fn edit_message(
                 author_id: bigdecimal_to_u128!(message.author_id),
                 content: message.content,
                 edited_at: message.edited_at,
-                embeds: None,
+                embeds: vec![],
             }),
             None => HttpResponse::NotFound().json(NotFoundJson {
                 message: "Message not found".to_string(),
