@@ -5,7 +5,6 @@ use ferrischat_common::types::{InternalServerErrorJson, Invite, NotFoundJson};
 pub async fn get_invite(req: HttpRequest, _: crate::Authorization) -> impl Responder {
     let db = get_db_or_fail!();
     let code = {
-        use actix_web::HttpResponse;
         match req.match_info().get("code") {
             Some(c) => c,
             None => {
