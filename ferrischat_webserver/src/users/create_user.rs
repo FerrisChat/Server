@@ -8,7 +8,8 @@ use tokio::sync::oneshot::channel;
 /// POST /api/v0/users/
 pub async fn create_user(user_data: Json<UserCreateJson>) -> impl Responder {
     let db = get_db_or_fail!();
-    let user_id = generate_snowflake::<0>(ModelType::User as u8, 0);
+    let node_id = get_node_id!();
+    let user_id = generate_snowflake::<0>(ModelType::User as u8, node_id);
     let UserCreateJson {
         username,
         email,

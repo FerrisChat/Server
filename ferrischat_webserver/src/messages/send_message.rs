@@ -21,7 +21,8 @@ pub async fn create_message(
     let channel_id = get_item_id!(req, "channel_id");
     let bigint_channel_id = u128_to_bigdecimal!(channel_id);
 
-    let message_id = generate_snowflake::<0>(ModelType::Message as u8, 0);
+    let node_id = get_node_id!();
+    let message_id = generate_snowflake::<0>(ModelType::Message as u8, node_id);
     let bigint_message_id = u128_to_bigdecimal!(message_id);
 
     let author_id = auth.0;
