@@ -15,7 +15,8 @@ pub async fn create_channel(
 
     let ChannelCreateJson { name } = channel_info.0;
 
-    let channel_id = generate_snowflake::<0>(ModelType::Channel as u8, 0);
+    let node_id = get_node_id!();
+    let channel_id = generate_snowflake::<0>(ModelType::Channel as u8, node_id);
     let bigint_channel_id = u128_to_bigdecimal!(channel_id);
 
     let guild_id = get_item_id!(req, "guild_id");

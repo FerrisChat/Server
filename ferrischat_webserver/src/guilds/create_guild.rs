@@ -10,7 +10,8 @@ pub async fn create_guild(
     guild_info: Json<GuildCreateJson>,
 ) -> impl Responder {
     let db = get_db_or_fail!();
-    let guild_id = generate_snowflake::<0>(ModelType::Guild as u8, 0);
+    let node_id = get_node_id!();
+    let guild_id = generate_snowflake::<0>(ModelType::Guild as u8, node_id);
     let bigint_guild_id = u128_to_bigdecimal!(guild_id);
     let bigint_user_id = u128_to_bigdecimal!(auth.0);
     let GuildCreateJson { name } = guild_info.0;

@@ -4,11 +4,13 @@ use dashmap::DashMap;
 use ferrischat_auth::{split_token, verify_token};
 use ferrischat_common::ws::{WsInboundEvent, WsOutboundEvent};
 use ferrischat_redis::{get_pubsub, redis, REDIS_MANAGER};
+use futures::channel::oneshot::Canceled;
 use futures_util::{SinkExt, StreamExt};
 use std::lazy::SyncOnceCell as OnceCell;
 use std::net::SocketAddr;
 use std::sync::atomic::{AtomicBool, Ordering};
 use tokio::net::TcpStream;
+use tokio::sync::oneshot::channel;
 use tokio_tungstenite::accept_async_with_config;
 use tokio_tungstenite::tungstenite::error::Error;
 use tokio_tungstenite::tungstenite::protocol::WebSocketConfig;
@@ -102,7 +104,7 @@ pub async fn handle_ws_connection(stream: TcpStream, addr: SocketAddr) -> Result
 
     let (mut tx, mut rx) = s.split();
 
-    let (inter_tx, mut inter_rx) = futures::channel::mpsc::channel(100);
+    let (inter_tx, mut inter_rx) = tokio::sync::mpsc::channel(100);
     let (closer_tx, mut closer_rx) = futures::channel::oneshot::channel::<Option<Error>>();
     let identify_received = AtomicBool::new(false);
 
@@ -257,44 +259,57 @@ pub async fn handle_ws_connection(stream: TcpStream, addr: SocketAddr) -> Result
     });
 
     let tx_future = tokio::spawn(async move {
-        return (
-            loop {
-                if let Ok(Some(i)) = closer_rx.try_recv() {
-                    break i;
-                }
+        enum TransmitType<T, E> {
+            InterComm(T),
+            Exit(E),
+        }
 
-                for _ in 0..100 {
-                    match inter_rx.try_next() {
-                        Ok(Some(val)) => {
-                            match val {
-                                TxRxComm::Ping => tx.feed(Message::Pong(
+        let ret = loop {
+            let x: TransmitType<Option<TxRxComm>, Result<Option<Error>, Canceled>> = tokio::select! {
+                item = &mut closer_rx => TransmitType::Exit(item),
+                item = inter_rx.recv() => TransmitType::InterComm(item),
+            };
+
+            match x {
+                TransmitType::InterComm(event) => match event {
+                    Some(val) => {
+                        match val {
+                            TxRxComm::Ping => {
+                                tx.feed(Message::Pong(
                                     "{\"c\": \"Pong\"}"
                                         .to_string()
                                         .as_bytes()
                                         .iter()
                                         .map(|x| *x)
                                         .collect(),
-                                )),
-                                TxRxComm::Pong => tx.feed(Message::Ping(
+                                ))
+                                .await
+                            }
+                            TxRxComm::Pong => {
+                                tx.feed(Message::Ping(
                                     "{\"c\": \"Ping\"}"
                                         .to_string()
                                         .as_bytes()
                                         .iter()
                                         .map(|x| *x)
                                         .collect(),
-                                )),
-                                TxRxComm::Text(d) => tx.feed(Message::Text(d)),
-                                TxRxComm::Binary(d) => tx.feed(Message::Binary(d)),
-                            };
-                        }
-                        Ok(None) => break,
-                        Err(_) => {}
+                                ))
+                                .await
+                            }
+                            TxRxComm::Text(d) => tx.feed(Message::Text(d)).await,
+                            TxRxComm::Binary(d) => tx.feed(Message::Binary(d)).await,
+                        };
                     }
-                }
-                tx.flush().await;
-            },
-            tx,
-        );
+                    None => break None,
+                },
+                TransmitType::Exit(reason) => break reason.ok().flatten(),
+            }
+            tx.flush().await;
+        };
+
+        tx.flush().await;
+
+        return (ret, tx);
     });
 
     tokio::spawn(async move {
@@ -314,15 +329,33 @@ pub async fn init_ws_server<T: tokio::net::ToSocketAddrs>(addr: T) {
         .await
         .expect("failed to bind to address");
 
+    let (end_tx, mut end_rx) = channel();
+
+    tokio::spawn(async move {
+        tokio::signal::ctrl_c().await;
+        end_tx.send(())
+    });
+
+    enum DieOrResult<T> {
+        Die,
+        Result(tokio::io::Result<T>),
+    }
+
     tokio::spawn(async move {
         loop {
-            match listener.accept().await {
-                Ok((stream, addr)) => {
-                    handle_ws_connection(stream, addr).await;
-                }
-                Err(e) => {
-                    eprintln!("failed to accept WS conn: {}", e);
-                }
+            let res = tokio::select! {
+                stream_addr = listener.accept() => {DieOrResult::Result(stream_addr)}
+                _ = &mut end_rx => {DieOrResult::Die}
+            };
+
+            match res {
+                DieOrResult::Die => break,
+                DieOrResult::Result(r) => match r {
+                    Ok((stream, addr)) => {
+                        tokio::spawn(handle_ws_connection(stream, addr));
+                    }
+                    Err(e) => eprintln!("failed to accept WS conn: {}", e),
+                },
             }
         }
     });
