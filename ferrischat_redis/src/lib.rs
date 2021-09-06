@@ -20,11 +20,13 @@ pub async fn load_redis() -> ConnectionManager {
         panic!("failed to set Redis global static: did you call load_redis() twice?")
     });
 
-    let res = redis::Cmd::hvals("node_ids")
-        .query_async::<_, Vec<u16>>(&mut manager)
+    let res = redis::Cmd::hkeys("node_ids")
+        .query_async::<_, Vec<String>>(&mut manager)
         .await
         .expect("failed to get all existing node IDs")
-        .into_iter();
+        .into_iter()
+        .filter_map(|x| x.parse::<u16>().ok())
+        .collect::<Vec<_>>();
 
     // compute the next available node ID
     let node_id = {
