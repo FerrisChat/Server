@@ -112,7 +112,7 @@ impl FromRequest for Authorization {
                     )));
                 }
             };
-            let verifier = match crate::GLOBAL_VERIFIER.get() {
+            let verifier = match ferrischat_auth::GLOBAL_VERIFIER.get() {
                 Some(v) => v,
                 None => {
                     return Err(ErrorInternalServerError(
