@@ -130,7 +130,9 @@ pub async fn load_redis() -> ConnectionManager {
     let mut m3 = manager.clone();
     let ns = node_secret.clone();
     tokio::spawn(async move {
-        tokio::signal::ctrl_c().await.expect("failed to listen for ctrl+c");
+        tokio::signal::ctrl_c()
+            .await
+            .expect("failed to listen for ctrl+c");
         if redis::Cmd::hget("node_ids", node_id)
             .query_async::<_, String>(&mut m3)
             .await
