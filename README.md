@@ -39,3 +39,10 @@ error[E0308]: mismatched types
 Read the function name. You're compiling for a CPU that doesn't support `sse4.2`, `avx2`, `pclmulqdq`, or (on ARM targets) `neon`.
 This is to prevent slowness that can be hard to debug.
 To fix it, add `allow-non-simd` to the `features` field for `simd-json` in `ferrischat_ws/Cargo.toml`.
+
+On non-ARM targets, to test your support, you can run the following commands. If there is no output, your CPU does not support the feature.
+```
+cat /proc/cpuinfo | grep pclmulqdq # This one is required for simd-json to compile
+cat /proc/cpuinfo | grep avx2      # Either this one or...
+cat /proc/cpuinfo | grep sse4_2    # this one are required as well as pclmulqdq
+```
