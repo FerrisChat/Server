@@ -18,3 +18,7 @@ include = [
 
 [dependencies]
 redis = { version = "0.21", features = ["aio", "tokio", "tokio-comp", "connection-manager"] }
+rand = "0.8"
+base64 = "0.13"
+tokio = { version = "1.11", features = ["full"] }
+sysinfo = "0.20"
