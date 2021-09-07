@@ -139,11 +139,11 @@ pub async fn handle_ws_connection(stream: TcpStream, addr: SocketAddr) -> Result
                     let reason = match e {
                         Error::ConnectionClosed => CloseFrame {
                             code: CloseCode::Normal,
-                            reason: "connection closed normally".to_string().into(),
+                            reason: "connection closed normally".into(),
                         },
                         Error::AlreadyClosed => CloseFrame {
                             code: CloseCode::Normal,
-                            reason: "connection already closed".to_string().into(),
+                            reason: "connection already closed".into(),
                         },
                         Error::Io(io) => CloseFrame {
                             code: CloseCode::from(1014),
@@ -164,7 +164,7 @@ pub async fn handle_ws_connection(stream: TcpStream, addr: SocketAddr) -> Result
                         },
                         Error::Utf8 => CloseFrame {
                             code: CloseCode::Invalid,
-                            reason: "UTF-8 encoding error".to_string().into(),
+                            reason: "UTF-8 encoding error".into(),
                         },
                         Error::Url(url) => CloseFrame {
                             code: CloseCode::from(1017),
