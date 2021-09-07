@@ -260,9 +260,11 @@ pub async fn handle_ws_connection(stream: TcpStream, addr: SocketAddr) -> Result
                                     flags: u.flags,
                                     discriminator: u.discriminator,
                                 },
-                                Err(_) => {
-                                    // TODO: give reason for closure (internal DB error)
-                                    closer_tx.send(None);
+                                Err(e) => {
+                                    closer_tx.send(Some(CloseFrame {
+                                        code: CloseCode::from(5000),
+                                        reason: format!("Internal database error: {}", e).into(),
+                                    }));
                                     break;
                                 }
                             };
@@ -273,8 +275,10 @@ pub async fn handle_ws_connection(stream: TcpStream, addr: SocketAddr) -> Result
                             ) {
                                 Ok(v) => v,
                                 Err(e) => {
-                                    // TODO: give reason for closure (failed to serialize JSON)
-                                    closer_tx.send(None);
+                                    closer_tx.send(Some(CloseFrame {
+                                        code: CloseCode::from(5001),
+                                        reason: format!("JSON serialization error: {}", e).into(),
+                                    }));
                                     break;
                                 }
                             };
