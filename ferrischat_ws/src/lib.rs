@@ -180,10 +180,7 @@ pub async fn handle_ws_connection(stream: TcpStream, addr: SocketAddr) -> Result
                         },
                         _ => unreachable!(),
                     };
-                    closer_tx.send(Some(CloseFrame {
-                        code: CloseCode::Error,
-                        reason: Default::default(),
-                    }));
+                    closer_tx.send(Some(reason));
                     break;
                 }
             };
