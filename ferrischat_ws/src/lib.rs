@@ -113,28 +113,28 @@ pub async fn handle_ws_connection(stream: TcpStream, addr: SocketAddr) -> Result
         let mut inter_tx = inter_tx;
         while let Some(item) = rx.next().await {
             let data: Result<ferrischat_common::ws::WsInboundEvent, _> = match item {
-                Ok(m) => {
-                    match m {
-                        Message::Text(t) => simd_json::serde::from_slice(&mut t.into_bytes()[..]),
-                        Message::Binary(_) => {
-                            // TODO: close WS conn with invalid type
-                            closer_tx.send(None);
-                            break;
-                        }
-                        Message::Ping(_) => {
-                            inter_tx.send(TxRxComm::Pong).await;
-                            continue;
-                        }
-                        Message::Pong(_) => {
-                            inter_tx.send(TxRxComm::Ping).await;
-                            continue;
-                        }
-                        Message::Close(_) => {
-                            closer_tx.send(None);
-                            break;
-                        }
+                Ok(m) => match m {
+                    Message::Text(t) => simd_json::serde::from_slice(&mut t.into_bytes()[..]),
+                    Message::Binary(_) => {
+                        closer_tx.send(Some(CloseFrame {
+                            code: CloseCode::Unsupported,
+                            reason: "Binary data sent: only text supported at the moment".into(),
+                        }));
+                        break;
                     }
-                }
+                    Message::Ping(_) => {
+                        inter_tx.send(TxRxComm::Pong).await;
+                        continue;
+                    }
+                    Message::Pong(_) => {
+                        inter_tx.send(TxRxComm::Ping).await;
+                        continue;
+                    }
+                    Message::Close(_) => {
+                        closer_tx.send(None);
+                        break;
+                    }
+                },
                 Err(e) => {
                     let reason = match e {
                         Error::ConnectionClosed => CloseFrame {
