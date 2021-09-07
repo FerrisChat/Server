@@ -13,7 +13,8 @@ use tokio::net::TcpStream;
 use tokio::sync::oneshot::channel;
 use tokio_tungstenite::accept_async_with_config;
 use tokio_tungstenite::tungstenite::error::Error;
-use tokio_tungstenite::tungstenite::protocol::WebSocketConfig;
+use tokio_tungstenite::tungstenite::protocol::frame::coding::CloseCode;
+use tokio_tungstenite::tungstenite::protocol::{CloseFrame, WebSocketConfig};
 use tokio_tungstenite::tungstenite::Message;
 
 #[macro_use]
@@ -105,7 +106,7 @@ pub async fn handle_ws_connection(stream: TcpStream, addr: SocketAddr) -> Result
     let (mut tx, mut rx) = s.split();
 
     let (inter_tx, mut inter_rx) = tokio::sync::mpsc::channel(100);
-    let (closer_tx, mut closer_rx) = futures::channel::oneshot::channel::<Option<Error>>();
+    let (closer_tx, mut closer_rx) = futures::channel::oneshot::channel::<Option<CloseFrame>>();
     let identify_received = AtomicBool::new(false);
 
     let rx_future = tokio::spawn(async move {
@@ -135,20 +136,54 @@ pub async fn handle_ws_connection(stream: TcpStream, addr: SocketAddr) -> Result
                     }
                 }
                 Err(e) => {
-                    match e {
-                        Error::ConnectionClosed => {}
-                        Error::AlreadyClosed => {}
-                        Error::Io(_) => {}
-                        Error::Tls(_) => {}
-                        Error::Capacity(_) => {}
-                        Error::Protocol(_) => {}
-                        Error::Utf8 => {}
-                        Error::Url(_) => {}
-                        Error::Http(_) => {}
-                        Error::HttpFormat(_) => {}
+                    let reason = match e {
+                        Error::ConnectionClosed => CloseFrame {
+                            code: CloseCode::Normal,
+                            reason: "connection closed normally".to_string().into(),
+                        },
+                        Error::AlreadyClosed => CloseFrame {
+                            code: CloseCode::Normal,
+                            reason: "connection already closed".to_string().into(),
+                        },
+                        Error::Io(io) => CloseFrame {
+                            code: CloseCode::from(1014),
+                            reason: format!("I/O error on underlying TCP connection: {}", io)
+                                .into(),
+                        },
+                        Error::Tls(tls) => CloseFrame {
+                            code: CloseCode::from(1015),
+                            reason: format!("TLS error: {:?}", tls).into(),
+                        },
+                        Error::Capacity(cap) => CloseFrame {
+                            code: CloseCode::from(1016),
+                            reason: format!("Capacity error: {:?}", cap).into(),
+                        },
+                        Error::Protocol(proto) => CloseFrame {
+                            code: CloseCode::Protocol,
+                            reason: format!("Protocol error: {:?}", proto).into(),
+                        },
+                        Error::Utf8 => CloseFrame {
+                            code: CloseCode::Invalid,
+                            reason: "UTF-8 encoding error".to_string().into(),
+                        },
+                        Error::Url(url) => CloseFrame {
+                            code: CloseCode::from(1017),
+                            reason: format!("Invalid URL: {:?}", url).into(),
+                        },
+                        Error::Http(http) => CloseFrame {
+                            code: CloseCode::from(1018),
+                            reason: format!("HTTP error: {:?}", http).into(),
+                        },
+                        Error::HttpFormat(fmt) => CloseFrame {
+                            code: CloseCode::from(1019),
+                            reason: format!("HTTP format error: {:?}", fmt).into(),
+                        },
                         _ => unreachable!(),
-                    }
-                    closer_tx.send(Some(e));
+                    };
+                    closer_tx.send(Some(CloseFrame {
+                        code: CloseCode::Error,
+                        reason: Default::default(),
+                    }));
                     break;
                 }
             };
@@ -265,7 +300,7 @@ pub async fn handle_ws_connection(stream: TcpStream, addr: SocketAddr) -> Result
         }
 
         let ret = loop {
-            let x: TransmitType<Option<TxRxComm>, Result<Option<Error>, Canceled>> = tokio::select! {
+            let x: TransmitType<Option<TxRxComm>, Result<Option<CloseFrame>, Canceled>> = tokio::select! {
                 item = &mut closer_rx => TransmitType::Exit(item),
                 item = inter_rx.recv() => TransmitType::InterComm(item),
             };
@@ -316,9 +351,13 @@ pub async fn handle_ws_connection(stream: TcpStream, addr: SocketAddr) -> Result
         let rx = rx_future.await.expect("background rx thread failed");
         let (reason, tx) = tx_future.await.expect("background tx thread failed");
 
-        let stream = rx.reunite(tx).expect("mismatched streams returned");
+        let mut stream = rx.reunite(tx).expect("mismatched streams returned");
 
-        // stream.close();
+        let f = reason.unwrap_or(CloseFrame {
+            code: CloseCode::Abnormal,
+            reason: Default::default(),
+        });
+        stream.close(Some(f)).await;
     });
 
     Ok(())
