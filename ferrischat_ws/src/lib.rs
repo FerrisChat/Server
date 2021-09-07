@@ -190,9 +190,11 @@ pub async fn handle_ws_connection(stream: TcpStream, addr: SocketAddr) -> Result
 
             let data = match data {
                 Ok(d) => d,
-                Err(_) => {
-                    // TODO: give reason for closure (ie location of invalid JSON)
-                    closer_tx.send(None);
+                Err(e) => {
+                    closer_tx.send(Some(CloseFrame {
+                        code: CloseCode::from(2001),
+                        reason: format!("invalid JSON found: {}", e).into(),
+                    }));
                     break;
                 }
             };
@@ -201,8 +203,10 @@ pub async fn handle_ws_connection(stream: TcpStream, addr: SocketAddr) -> Result
                 match data {
                     WsInboundEvent::Identify { .. } | WsInboundEvent::Resume { .. } => {}
                     _ => {
-                        // TODO: give reason for closure (sending data before opened connection)
-                        closer_tx.send(None);
+                        closer_tx.send(Some(CloseFrame {
+                            code: CloseCode::from(2004),
+                            reason: "data payload sent before identifying".into(),
+                        }));
                         break;
                     }
                 }
@@ -211,16 +215,20 @@ pub async fn handle_ws_connection(stream: TcpStream, addr: SocketAddr) -> Result
             let redis_conn = match REDIS_MANAGER.get() {
                 Some(r) => r.clone(), // safe to clone cheaply according to docs
                 None => {
-                    // TODO: give reason for closure (redis pool went poof)
-                    closer_tx.send(None);
+                    closer_tx.send(Some(CloseFrame {
+                        code: CloseCode::from(5002),
+                        reason: "Redis pool not found".into(),
+                    }));
                     break;
                 }
             };
             let db = match ferrischat_db::DATABASE_POOL.get() {
                 Some(db) => db,
                 None => {
-                    // TODO: give reason for closure (database pool went poof)
-                    closer_tx.send(None);
+                    closer_tx.send(Some(CloseFrame {
+                        code: CloseCode::from(5003),
+                        reason: "Database pool not found".into(),
+                    }));
                     break;
                 }
             };
@@ -228,16 +236,20 @@ pub async fn handle_ws_connection(stream: TcpStream, addr: SocketAddr) -> Result
             match data {
                 WsInboundEvent::Identify { token, intents } => {
                     if identify_received.swap(true, Ordering::Relaxed) {
-                        // TODO: give reason for closure (too many IDENTIFY payloads)
-                        closer_tx.send(None);
+                        closer_tx.send(Some(CloseFrame {
+                            code: CloseCode::from(2002),
+                            reason: "Too many IDENTIFY payloads sent".into(),
+                        }));
                         break;
                     }
 
                     let (id, secret) = match split_token(token) {
                         Ok((id, secret)) => (id, secret),
                         Err(_) => {
-                            // TODO: give reason for closure (invalid token)
-                            closer_tx.send(None);
+                            closer_tx.send(Some(CloseFrame {
+                                code: CloseCode::from(2003),
+                                reason: "Token invalid".into(),
+                            }));
                             break;
                         }
                     };
