@@ -108,6 +108,7 @@ pub async fn handle_ws_connection(stream: TcpStream, addr: SocketAddr) -> Result
     let (inter_tx, mut inter_rx) = tokio::sync::mpsc::channel(100);
     let (closer_tx, mut closer_rx) = futures::channel::oneshot::channel::<Option<CloseFrame>>();
     let identify_received = AtomicBool::new(false);
+    let (uid_tx, uid_rx) = tokio::sync::oneshot::channel::<u128>();
 
     let rx_future = tokio::spawn(async move {
         let mut inter_tx = inter_tx;
@@ -307,15 +308,31 @@ pub async fn handle_ws_connection(stream: TcpStream, addr: SocketAddr) -> Result
     });
 
     let tx_future = tokio::spawn(async move {
-        enum TransmitType<T, E> {
-            InterComm(T),
-            Exit(E),
+        enum TransmitType<'t> {
+            InterComm(Option<TxRxComm>),
+            Exit(Result<Option<CloseFrame<'t>>, Canceled>),
+            Uid(u128),
+            Redis(Option<ferrischat_redis::redis::Msg>),
         }
 
+        let mut redis_rx = None;
+        let mut uid = None;
+
         let ret = loop {
-            let x: TransmitType<Option<TxRxComm>, Result<Option<CloseFrame>, Canceled>> = tokio::select! {
+            let redis_fut = async {
+                match &redis_rx {
+                    Some(rx) => rx,
+                    None => None
+                }
+            }
+            let x = tokio::select! {
                 item = &mut closer_rx => TransmitType::Exit(item),
                 item = inter_rx.recv() => TransmitType::InterComm(item),
+                item = uid_tx => TransmitType::Uid(item),
+                item = match &redis_rx {
+                    Some(rx) => futures::future::Either::Left(async move {Some(rx.await)}),
+                    None => futures::future::Either::Right(async {None})
+                } => TransmitType::Redis(item),
             };
 
             match x {
@@ -351,6 +368,28 @@ pub async fn handle_ws_connection(stream: TcpStream, addr: SocketAddr) -> Result
                     None => break None,
                 },
                 TransmitType::Exit(reason) => break reason.ok().flatten(),
+                TransmitType::Uid(recv_uid) => {
+                    let redis_comm = tokio::sync::mpsc::channel(250);
+                    redis_rx = Some(redis_comm.1);
+                    uid = Some(recv_uid);
+                    match crate::SUB_TO_ME.get() {
+                        Some(s) => {
+                            let mut s = s.clone();
+                            s.start_send((format!("*{}*", recv_uid), redis_comm.0))
+                        }
+                        None => {
+                            // since we drop the sender that was moved in, the other thread will panic
+                            return (
+                                Some(CloseFrame {
+                                    code: CloseCode::from(5002),
+                                    reason: "Redis pool not found".into(),
+                                }),
+                                tx,
+                            );
+                        }
+                    };
+                }
+                TransmitType::Redis(msg) => {}
             }
             tx.flush().await;
         };
