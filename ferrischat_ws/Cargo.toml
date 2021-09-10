@@ -12,6 +12,7 @@ tokio-tungstenite = "0.15"
 dashmap = "4.0"
 simd-json = { version = "0.4", features = ["128bit"] }
 num-bigint = "0.3"
+uuid = { version = "0.8", default-features = false, features = ["v4"] }
 
 ferrischat_redis = { path = "../ferrischat_redis" }
 ferrischat_common = { git = "https://github.com/FerrisChat/Common" }

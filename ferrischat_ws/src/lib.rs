@@ -4,7 +4,6 @@ use dashmap::DashMap;
 use ferrischat_auth::{split_token, verify_token};
 use ferrischat_common::ws::{WsInboundEvent, WsOutboundEvent};
 use ferrischat_redis::{get_pubsub, redis, REDIS_MANAGER};
-use futures::channel::oneshot::Canceled;
 use futures_util::{SinkExt, StreamExt};
 use std::lazy::SyncOnceCell as OnceCell;
 use std::net::SocketAddr;
@@ -16,6 +15,7 @@ use tokio_tungstenite::tungstenite::error::Error;
 use tokio_tungstenite::tungstenite::protocol::frame::coding::CloseCode;
 use tokio_tungstenite::tungstenite::protocol::{CloseFrame, WebSocketConfig};
 use tokio_tungstenite::tungstenite::Message;
+use uuid::Uuid;
 
 #[macro_use]
 extern crate ferrischat_macros;
@@ -34,6 +34,8 @@ const WEBSOCKET_CONFIG: WebSocketConfig = WebSocketConfig {
     accept_unmasked_frames: false,
 };
 
+static USERID_CONNECTION_MAP: OnceCell<DashMap<Uuid, u128>> = OnceCell::new();
+
 enum TxRxComm {
     Ping,
     Pong,
@@ -47,6 +49,9 @@ static SUB_TO_ME: OnceCell<
 > = OnceCell::new();
 
 pub async fn preload_redis() {
+    // plop the DashMap into the UserId connection map first thing
+    USERID_CONNECTION_MAP.set(DashMap::new());
+
     // allow up to 250 new subscriptions to be processed
     let (tx, mut rx) = futures::channel::mpsc::channel(250);
 
@@ -108,10 +113,10 @@ pub async fn handle_ws_connection(stream: TcpStream, addr: SocketAddr) -> Result
     let (inter_tx, mut inter_rx) = tokio::sync::mpsc::channel(100);
     let (closer_tx, mut closer_rx) = futures::channel::oneshot::channel::<Option<CloseFrame>>();
     let identify_received = AtomicBool::new(false);
-    let (uid_tx, uid_rx) = tokio::sync::oneshot::channel::<u128>();
+    let conn_id = Uuid::new_v4();
 
     let rx_future = tokio::spawn(async move {
-        let mut inter_tx = inter_tx;
+        let inter_tx = inter_tx;
         while let Some(item) = rx.next().await {
             let data: Result<ferrischat_common::ws::WsInboundEvent, _> = match item {
                 Ok(m) => match m {
@@ -231,6 +236,17 @@ pub async fn handle_ws_connection(stream: TcpStream, addr: SocketAddr) -> Result
                 }
             };
 
+            let uid_conn_map = match USERID_CONNECTION_MAP.get() {
+                Some(m) => m,
+                None => {
+                    closer_tx.send(Some(CloseFrame {
+                        code: CloseCode::from(5004),
+                        reason: "Connection map not found".into(),
+                    }));
+                    break;
+                }
+            };
+
             match data {
                 WsInboundEvent::Identify { token, intents } => {
                     if identify_received.swap(true, Ordering::Relaxed) {
@@ -293,6 +309,8 @@ pub async fn handle_ws_connection(stream: TcpStream, addr: SocketAddr) -> Result
                                 }
                             };
                             inter_tx.send(TxRxComm::Text(payload)).await;
+
+                            uid_conn_map.insert(conn_id, id);
                         }
                         Err(_) => {}
                     }
@@ -310,29 +328,25 @@ pub async fn handle_ws_connection(stream: TcpStream, addr: SocketAddr) -> Result
     let tx_future = tokio::spawn(async move {
         enum TransmitType<'t> {
             InterComm(Option<TxRxComm>),
-            Exit(Result<Option<CloseFrame<'t>>, Canceled>),
-            Uid(u128),
-            Redis(Option<ferrischat_redis::redis::Msg>),
+            Exit(Option<CloseFrame<'t>>),
+            Redis(Option<Option<ferrischat_redis::redis::Msg>>),
         }
 
-        let mut redis_rx = None;
-        let mut uid = None;
+        let mut redis_rx: Option<
+            tokio::sync::mpsc::Receiver<Option<ferrischat_redis::redis::Msg>>,
+        > = None;
 
         let ret = loop {
-            let redis_fut = async {
-                match &redis_rx {
-                    Some(rx) => rx,
-                    None => None
-                }
-            }
-            let x = tokio::select! {
-                item = &mut closer_rx => TransmitType::Exit(item),
-                item = inter_rx.recv() => TransmitType::InterComm(item),
-                item = uid_tx => TransmitType::Uid(item),
-                item = match &redis_rx {
-                    Some(rx) => futures::future::Either::Left(async move {Some(rx.await)}),
-                    None => futures::future::Either::Right(async {None})
-                } => TransmitType::Redis(item),
+            let x = match &mut redis_rx {
+                Some(rx) => tokio::select! {
+                    item = &mut closer_rx => TransmitType::Exit(item.ok().flatten()),
+                    item = inter_rx.recv() => TransmitType::InterComm(item),
+                    item = rx.recv() => TransmitType::Redis(item),
+                },
+                None => tokio::select! {
+                    item = &mut closer_rx => TransmitType::Exit(item.ok().flatten()),
+                    item = inter_rx.recv() => TransmitType::InterComm(item),
+                },
             };
 
             match x {
@@ -362,20 +376,38 @@ pub async fn handle_ws_connection(stream: TcpStream, addr: SocketAddr) -> Result
                                 .await
                             }
                             TxRxComm::Text(d) => tx.feed(Message::Text(d)).await,
+                            // the implementation is here
+                            // is it used? no
                             TxRxComm::Binary(d) => tx.feed(Message::Binary(d)).await,
                         };
                     }
                     None => break None,
                 },
-                TransmitType::Exit(reason) => break reason.ok().flatten(),
-                TransmitType::Uid(recv_uid) => {
+                TransmitType::Exit(reason) => break reason,
+                TransmitType::Redis(msg) => {}
+            }
+            tx.flush().await;
+
+            if redis_rx.is_none() {
+                let uid_conn_map = match USERID_CONNECTION_MAP.get() {
+                    Some(m) => m,
+                    None => {
+                        return (
+                            Some(CloseFrame {
+                                code: CloseCode::from(5004),
+                                reason: "Connection map not found".into(),
+                            }),
+                            tx,
+                        );
+                    }
+                };
+                if let Some(map_val) = uid_conn_map.get(&conn_id) {
                     let redis_comm = tokio::sync::mpsc::channel(250);
                     redis_rx = Some(redis_comm.1);
-                    uid = Some(recv_uid);
                     match crate::SUB_TO_ME.get() {
                         Some(s) => {
                             let mut s = s.clone();
-                            s.start_send((format!("*{}*", recv_uid), redis_comm.0))
+                            s.start_send((format!("*{}*", *(map_val.value())), redis_comm.0))
                         }
                         None => {
                             // since we drop the sender that was moved in, the other thread will panic
@@ -388,10 +420,8 @@ pub async fn handle_ws_connection(stream: TcpStream, addr: SocketAddr) -> Result
                             );
                         }
                     };
-                }
-                TransmitType::Redis(msg) => {}
+                };
             }
-            tx.flush().await;
         };
 
         tx.flush().await;
@@ -402,6 +432,11 @@ pub async fn handle_ws_connection(stream: TcpStream, addr: SocketAddr) -> Result
     tokio::spawn(async move {
         let rx = rx_future.await.expect("background rx thread failed");
         let (reason, tx) = tx_future.await.expect("background tx thread failed");
+
+        let uid_conn_map = USERID_CONNECTION_MAP
+            .get()
+            .expect("user ID connection map not set");
+        uid_conn_map.remove(&conn_id);
 
         let mut stream = rx.reunite(tx).expect("mismatched streams returned");
 
