@@ -37,8 +37,6 @@ const WEBSOCKET_CONFIG: WebSocketConfig = WebSocketConfig {
 static USERID_CONNECTION_MAP: OnceCell<DashMap<Uuid, u128>> = OnceCell::new();
 
 enum TxRxComm {
-    Ping,
-    Pong,
     Text(String),
     Binary(Vec<u8>),
 }
@@ -128,14 +126,7 @@ pub async fn handle_ws_connection(stream: TcpStream, addr: SocketAddr) -> Result
                         }));
                         break;
                     }
-                    Message::Ping(_) => {
-                        inter_tx.send(TxRxComm::Pong).await;
-                        continue;
-                    }
-                    Message::Pong(_) => {
-                        inter_tx.send(TxRxComm::Ping).await;
-                        continue;
-                    }
+                    Message::Ping(_) | Message::Pong(_) => continue,
                     Message::Close(_) => {
                         closer_tx.send(None);
                         break;
@@ -353,28 +344,6 @@ pub async fn handle_ws_connection(stream: TcpStream, addr: SocketAddr) -> Result
                 TransmitType::InterComm(event) => match event {
                     Some(val) => {
                         match val {
-                            TxRxComm::Ping => {
-                                tx.feed(Message::Pong(
-                                    "{\"c\": \"Pong\"}"
-                                        .to_string()
-                                        .as_bytes()
-                                        .iter()
-                                        .map(|x| *x)
-                                        .collect(),
-                                ))
-                                .await
-                            }
-                            TxRxComm::Pong => {
-                                tx.feed(Message::Ping(
-                                    "{\"c\": \"Ping\"}"
-                                        .to_string()
-                                        .as_bytes()
-                                        .iter()
-                                        .map(|x| *x)
-                                        .collect(),
-                                ))
-                                .await
-                            }
                             TxRxComm::Text(d) => tx.feed(Message::Text(d)).await,
                             // the implementation is here
                             // is it used? no
