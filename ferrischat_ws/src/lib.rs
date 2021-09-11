@@ -3,7 +3,7 @@
 use dashmap::DashMap;
 use ferrischat_auth::{split_token, verify_token};
 use ferrischat_common::ws::{WsInboundEvent, WsOutboundEvent};
-use ferrischat_redis::{get_pubsub, redis, REDIS_MANAGER};
+use ferrischat_redis::{get_pubsub, redis::Msg, REDIS_MANAGER};
 use futures_util::{SinkExt, StreamExt};
 use std::lazy::SyncOnceCell as OnceCell;
 use std::net::SocketAddr;
@@ -43,7 +43,7 @@ enum TxRxComm {
 
 // ignore the name
 static SUB_TO_ME: OnceCell<
-    futures::channel::mpsc::Sender<(String, tokio::sync::mpsc::Sender<Option<redis::Msg>>)>,
+    futures::channel::mpsc::Sender<(String, tokio::sync::mpsc::Sender<Option<Msg>>)>,
 > = OnceCell::new();
 
 pub async fn preload_ws() {
@@ -61,7 +61,7 @@ pub async fn preload_ws() {
         .await
         .expect("failed to open pubsub connection");
 
-    let local_map: DashMap<String, tokio::sync::mpsc::Sender<Option<redis::Msg>>> = DashMap::new();
+    let local_map: DashMap<String, tokio::sync::mpsc::Sender<Option<Msg>>> = DashMap::new();
     tokio::spawn(async move {
         let mut to_unsub: Vec<String> = Vec::new();
         loop {
@@ -320,12 +320,10 @@ pub async fn handle_ws_connection(stream: TcpStream, addr: SocketAddr) -> Result
         enum TransmitType<'t> {
             InterComm(Option<TxRxComm>),
             Exit(Option<CloseFrame<'t>>),
-            Redis(Option<Option<ferrischat_redis::redis::Msg>>),
+            Redis(Option<Option<Msg>>),
         }
 
-        let mut redis_rx: Option<
-            tokio::sync::mpsc::Receiver<Option<ferrischat_redis::redis::Msg>>,
-        > = None;
+        let mut redis_rx: Option<tokio::sync::mpsc::Receiver<Option<Msg>>> = None;
 
         let ret = loop {
             let x = match &mut redis_rx {
