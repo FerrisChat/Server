@@ -12,7 +12,7 @@ use ferrischat_auth::init_auth;
 use ferrischat_db::load_db;
 use ferrischat_macros::expand_version;
 use ferrischat_redis::load_redis;
-use ferrischat_ws::init_ws_server;
+use ferrischat_ws::{init_ws_server, preload_ws};
 use ring::rand::{SecureRandom, SystemRandom};
 
 #[allow(clippy::expect_used)]
@@ -36,6 +36,7 @@ pub async fn entrypoint() {
     init_auth().await;
     load_redis().await;
     load_db().await;
+    preload_ws().await;
     init_ws_server("0.0.0.0:8081").await;
 
     HttpServer::new(|| {
