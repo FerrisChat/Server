@@ -48,7 +48,7 @@ static SUB_TO_ME: OnceCell<
     futures::channel::mpsc::Sender<(String, tokio::sync::mpsc::Sender<Option<redis::Msg>>)>,
 > = OnceCell::new();
 
-pub async fn preload_redis() {
+pub async fn preload_ws() {
     // plop the DashMap into the UserId connection map first thing
     USERID_CONNECTION_MAP.set(DashMap::new());
 
