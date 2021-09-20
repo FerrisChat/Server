@@ -338,6 +338,32 @@ pub async fn handle_ws_connection(stream: TcpStream, addr: SocketAddr) -> Result
                 },
             };
 
+            let db = match ferrischat_db::DATABASE_POOL.get() {
+                Some(db) => db,
+                None => {
+                    return (
+                        Some(CloseFrame {
+                            code: CloseCode::from(5003),
+                            reason: "Database pool not found".into(),
+                        }),
+                        tx,
+                    );
+                }
+            };
+
+            let uid_conn_map = match USERID_CONNECTION_MAP.get() {
+                Some(m) => m,
+                None => {
+                    return (
+                        Some(CloseFrame {
+                            code: CloseCode::from(5003),
+                            reason: "Database pool not found".into(),
+                        }),
+                        tx,
+                    );
+                }
+            };
+
             match x {
                 TransmitType::InterComm(event) => match event {
                     Some(val) => {
@@ -351,7 +377,87 @@ pub async fn handle_ws_connection(stream: TcpStream, addr: SocketAddr) -> Result
                     None => break None,
                 },
                 TransmitType::Exit(reason) => break reason,
-                TransmitType::Redis(msg) => {}
+                TransmitType::Redis(Some(msg)) => {
+                    let uid = if let Some(uid) = uid_conn_map.get(&conn_id) {
+                        *(uid.value())
+                    } else {
+                        continue;
+                    };
+                    let bigdecimal_uid = u128_to_bigdecimal!(uid);
+
+                    match msg {
+                        Some(msg) => {
+                            match msg.get_channel::<String>() {
+                                Ok(c) => {
+                                    let mut names = c.split('_');
+
+                                    // root event format: {type}_{event specific data}
+                                    match names.next() {
+                                        Some("channel") => {}
+                                        Some("message") => {
+                                            // message event format: message_{channel ID}_{guild ID}
+                                            if let (Some(Ok(channel_id)), Some(Ok(guild_id))) = (
+                                                names.next().map(|x| x.parse::<u128>()),
+                                                names.next().map(|x| x.parse::<u128>()),
+                                            ) {
+                                                // FIXME: once implemented, do a query to check the user has permissions to read messages in here
+                                                match sqlx::query!("SELECT guild_id FROM members WHERE user_id = $1", bigdecimal_uid).fetch_one(db).await {
+                                                    Ok(val) => {
+                                                        if val.guild_id != u128_to_bigdecimal!(guild_id) {
+                                                            continue;
+                                                        }
+
+                                                        // all checks completed, fire event
+                                                        let outbound_message = match rmp_serde::from_read::<_, WsOutboundEvent>(msg.get_payload_bytes()) {
+                                                            Ok(msg) => msg,
+                                                            Err(e) => {
+                                                                return (
+                                                                    Some(CloseFrame {
+                                                                        code: CloseCode::from(5005),
+                                                                        reason: format!("Internal msgpack representation decoding failed: {}", e).into(),
+                                                                    }),
+                                                                    tx,
+                                                                )
+                                                            }
+                                                        };
+                                                        let outbound_message = match simd_json::to_string(&outbound_message) {
+                                                            Ok(msg) => msg,
+                                                            Err(e) => {
+                                                                return (
+                                                                    Some(CloseFrame {
+                                                                        code: CloseCode::from(5001),
+                                                                        reason: format!("JSON serialization error: {}", e).into(),
+                                                                    }),
+                                                                    tx,
+                                                                )
+                                                            }
+                                                        };
+                                                        tx.feed(Message::Text(outbound_message)).await;
+                                                    }
+                                                    Err(e) => {
+                                                        return (
+                                                            Some(CloseFrame {
+                                                                code: CloseCode::from(5000),
+                                                                reason: format!("Internal database error: {}", e).into(),
+                                                            }),
+                                                            tx,
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        Some("guild") => {}
+                                        Some("invite") => {}
+                                        Some(_) | None => continue,
+                                    }
+                                }
+                                Err(_) => continue,
+                            };
+                        }
+                        None => {}
+                    }
+                }
+                TransmitType::Redis(None) => break None,
             }
             tx.flush().await;
 
