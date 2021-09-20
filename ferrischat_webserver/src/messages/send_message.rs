@@ -1,7 +1,9 @@
+use crate::ws::{fire_event, WsEventError};
 use actix_web::web::Json;
 use actix_web::{HttpRequest, HttpResponse, Responder};
 use ferrischat_common::request_json::MessageCreateJson;
 use ferrischat_common::types::{BadRequestJson, InternalServerErrorJson, Message, ModelType};
+use ferrischat_common::ws::WsOutboundEvent;
 use ferrischat_snowflake_generator::generate_snowflake;
 
 /// POST /api/v0/guilds/{guild_id}/channels/{channel_id}/messages
@@ -29,6 +31,25 @@ pub async fn create_message(
     let bigint_author_id = u128_to_bigdecimal!(author_id);
 
     let db = get_db_or_fail!();
+
+    let guild_id = {
+        let resp = sqlx::query!(
+            "SELECT guild_id FROM channels WHERE id = $1",
+            bigint_channel_id
+        )
+        .fetch_one(db)
+        .await;
+
+        match resp {
+            Ok(r) => bigdecimal_to_u128!(r.guild_id),
+            Err(e) => {
+                return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                    reason: format!("DB returned a error: {}", e),
+                })
+            }
+        }
+    };
+
     let resp = sqlx::query!(
         "INSERT INTO messages VALUES ($1, $2, $3, $4)",
         bigint_message_id,
@@ -44,12 +65,29 @@ pub async fn create_message(
         });
     }
 
-    HttpResponse::Created().json(Message {
+    let msg_obj = Message {
         id: message_id,
         content: Some(content),
         channel_id,
         author_id,
         edited_at: None,
         embeds: vec![],
-    })
+    };
+
+    let event = WsOutboundEvent::MessageCreate {
+        message: msg_obj.clone(),
+    };
+
+    if let Err(e) = fire_event(format!("message_{}_{}", channel_id, guild_id), &event).await {
+        let reason = match e {
+            WsEventError::MissingRedis => "Redis pool missing".to_string(),
+            WsEventError::RedisError(e) => format!("Redis returned an error: {}", e),
+            WsEventError::MsgPackError(e) => {
+                format!("Failed to serialize message to msgpack format: {}", e)
+            }
+        };
+        return HttpResponse::InternalServerError().json(InternalServerErrorJson { reason });
+    }
+
+    HttpResponse::Created().json(msg_obj)
 }
