@@ -31,7 +31,6 @@ dotenv = "0.15"
 libc = "0.2"
 nix = { git = "https://github.com/nix-rust/nix" }
 http = "0.2"
-serde_json = "1.0"
 bytes = "*"
 tokio-tungstenite = "0.15"
 simd-json = { version = "0.4", features = ["128bit"] }
