@@ -18,7 +18,7 @@ pub async fn fire_event(channel: String, event: &WsOutboundEvent) -> Result<(), 
         Some(mgr) => {
             match mgr
                 .clone()
-                .publish::<_, _, Option<String>>(
+                .publish::<_, _, Option<u32>>(
                     channel,
                     match simd_json::to_vec(event) {
                         Ok(msg) => msg,
