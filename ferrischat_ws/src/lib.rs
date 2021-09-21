@@ -196,7 +196,7 @@ pub async fn handle_ws_connection(stream: TcpStream, addr: SocketAddr) -> Result
 
             if !identify_received.load(Ordering::Relaxed) {
                 match data {
-                    WsInboundEvent::Identify { .. } | WsInboundEvent::Resume { .. } => {}
+                    WsInboundEvent::Identify { .. } => {}
                     _ => {
                         closer_tx.send(Some(CloseFrame {
                             code: CloseCode::from(2004),
@@ -307,11 +307,6 @@ pub async fn handle_ws_connection(stream: TcpStream, addr: SocketAddr) -> Result
                         Err(_) => {}
                     }
                 }
-                WsInboundEvent::Resume {
-                    token,
-                    session_id,
-                    sequence,
-                } => {}
             }
         }
         rx
