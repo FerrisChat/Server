@@ -10,7 +10,7 @@ pub use info::ws_info;
 pub enum WsEventError {
     MissingRedis,
     RedisError(RedisError),
-    MsgPackError(rmp_serde::encode::Error),
+    JsonError(simd_json::Error),
 }
 
 pub async fn fire_event(channel: String, event: &WsOutboundEvent) -> Result<(), WsEventError> {
@@ -20,9 +20,9 @@ pub async fn fire_event(channel: String, event: &WsOutboundEvent) -> Result<(), 
                 .clone()
                 .publish::<_, _, Option<String>>(
                     channel,
-                    match rmp_serde::to_vec(event) {
+                    match simd_json::to_vec(event) {
                         Ok(msg) => msg,
-                        Err(e) => return Err(WsEventError::MsgPackError(e)),
+                        Err(e) => return Err(WsEventError::JsonError(e)),
                     },
                 )
                 .await

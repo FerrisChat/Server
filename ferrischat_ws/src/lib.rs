@@ -404,13 +404,13 @@ pub async fn handle_ws_connection(stream: TcpStream, addr: SocketAddr) -> Result
                                                         }
 
                                                         // all checks completed, fire event
-                                                        let outbound_message = match rmp_serde::from_read::<_, WsOutboundEvent>(msg.get_payload_bytes()) {
+                                                        let outbound_message = match simd_json::serde::from_reader::<_, WsOutboundEvent>(msg.get_payload_bytes()) {
                                                             Ok(msg) => msg,
                                                             Err(e) => {
                                                                 return (
                                                                     Some(CloseFrame {
                                                                         code: CloseCode::from(5005),
-                                                                        reason: format!("Internal msgpack representation decoding failed: {}", e).into(),
+                                                                        reason: format!("Internal JSON representation decoding failed: {}", e).into(),
                                                                     }),
                                                                     tx,
                                                                 )

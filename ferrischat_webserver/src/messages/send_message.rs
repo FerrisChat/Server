@@ -82,8 +82,8 @@ pub async fn create_message(
         let reason = match e {
             WsEventError::MissingRedis => "Redis pool missing".to_string(),
             WsEventError::RedisError(e) => format!("Redis returned an error: {}", e),
-            WsEventError::MsgPackError(e) => {
-                format!("Failed to serialize message to msgpack format: {}", e)
+            WsEventError::JsonError(e) => {
+                format!("Failed to serialize message to JSON format: {}", e)
             }
         };
         return HttpResponse::InternalServerError().json(InternalServerErrorJson { reason });

@@ -34,7 +34,7 @@ http = "0.2"
 serde_json = "1.0"
 bytes = "*"
 tokio-tungstenite = "0.15"
-rmp-serde = "0.15.5"
+simd-json = { version = "0.4", features = ["128bit"] }
 
 ferrischat_db = { path = "../ferrischat_db", version = "0.1" }
 ferrischat_common = { git = "https://github.com/FerrisChat/Common.git", version = "0.1", branch = "staging" }

@@ -13,7 +13,6 @@ dashmap = "4.0"
 simd-json = { version = "0.4", features = ["128bit"] }
 num-bigint = "0.3"
 uuid = { version = "0.8", default-features = false, features = ["v4"] }
-rmp-serde = "0.15.5"
 num-traits = "0.2"
 
 ferrischat_redis = { path = "../ferrischat_redis" }
