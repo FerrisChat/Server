@@ -5,6 +5,7 @@ use ferrischat_auth::{split_token, verify_token};
 use ferrischat_common::ws::{WsInboundEvent, WsOutboundEvent};
 use ferrischat_redis::{get_pubsub, redis::Msg, REDIS_MANAGER};
 use futures_util::{SinkExt, StreamExt};
+use num_traits::cast::ToPrimitive;
 use std::lazy::SyncOnceCell as OnceCell;
 use std::net::SocketAddr;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -475,12 +476,42 @@ pub async fn handle_ws_connection(stream: TcpStream, addr: SocketAddr) -> Result
                     }
                 };
                 if let Some(map_val) = uid_conn_map.get(&conn_id) {
-                    let redis_comm = tokio::sync::mpsc::channel(250);
-                    redis_rx = Some(redis_comm.1);
+                    let (redis_tx, redis_rx_2) = tokio::sync::mpsc::channel(250);
+                    redis_rx = Some(redis_rx_2);
                     match crate::SUB_TO_ME.get() {
                         Some(s) => {
+                            let user_id = *(map_val.value());
                             let mut s = s.clone();
-                            s.start_send((format!("*{}*", *(map_val.value())), redis_comm.0))
+                            s.start_send((format!("*{}*", user_id), redis_tx.clone()));
+                            let resp = sqlx::query!(
+                                "SELECT guild_id FROM members WHERE user_id = $1",
+                                u128_to_bigdecimal!(user_id)
+                            )
+                            .fetch_all(db)
+                            .await;
+                            match resp {
+                                Ok(resp) => {
+                                    for guild in resp.iter().filter_map(|x| {
+                                        x.guild_id
+                                            .with_scale(0)
+                                            .into_bigint_and_exponent()
+                                            .0
+                                            .to_u128()
+                                    }) {
+                                        s.start_send((format!("*{}*", guild), redis_tx.clone()));
+                                    }
+                                }
+                                Err(e) => {
+                                    return (
+                                        Some(CloseFrame {
+                                            code: CloseCode::from(5000),
+                                            reason: format!("Internal database error: {}", e)
+                                                .into(),
+                                        }),
+                                        tx,
+                                    )
+                                }
+                            }
                         }
                         None => {
                             // since we drop the sender that was moved in, the other thread will panic
