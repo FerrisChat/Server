@@ -94,7 +94,10 @@ pub async fn load_redis() -> ConnectionManager {
                 return false;
             }
 
-            true
+            tokio::time::sleep(std::time::Duration::from_secs(10)).await;
+            // blocked on IO: forget about destructors at this point, this might be bad WS UX
+            // but it can *probably* be handled by a load balancer (TODO: check that out)
+            std::process::abort()
         }
 
         let mut error_counter = 0;
