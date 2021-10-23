@@ -68,7 +68,7 @@ fi
 
 
 echo "Adding systemctl service..."
-if [[ -z "${FC_NO_SYSTEMCTL_SETUP}" ]]; then
+if [[ -n "${FC_NO_SYSTEMCTL_SETUP}" ]]; then
   echo "Skipping because FC_NO_SYSTEMCTL_SETUP is set..."
 else
   mv node_setup/ferrischat_server.service /etc/systemd/system/ferrischat_server.service
@@ -84,7 +84,7 @@ fi
 
 
 echo "Cleaning up after setup..."
-if [[ -z $FC_NO_SYSTEMCTL_SETUP ]]; then
+if [[ -n $FC_NO_SYSTEMCTL_SETUP ]]; then
   rm -rf node_setup/ || :
 fi
 if [[ -z $FC_TEMP_BUILD_DIR ]]; then
