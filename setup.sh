@@ -28,7 +28,7 @@ git clone --branch develop https://github.com/FerrisChat/Server || (cd Server; g
 
 cd Server
 echo "Building server binary with optimizations..."
-RUSTFLAGS="-Ctarget-cpu=native --emit=asm" cargo build --release
+SQLX_OFFLINE="true" RUSTFLAGS="-Ctarget-cpu=native --emit=asm" cargo build --release
 echo "Copying server binary to /usr/bin..."
 mv target/release/ferrischat_server /usr/bin
 
