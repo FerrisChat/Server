@@ -41,7 +41,7 @@ pub async fn get_token(req: HttpRequest) -> impl Responder {
             Ok(p) => p,
             Err(e) => {
                 return HttpResponse::BadRequest().json(BadRequestJson {
-                    reason: "`Email` header contained invalid UTF-8".to_string(),
+                    reason: "`Password` header contained invalid UTF-8".to_string(),
                     location: Some(BadRequestJsonLocation {
                         line: 0,
                         character: (e.utf8_error().valid_up_to() + 1) as u32,
