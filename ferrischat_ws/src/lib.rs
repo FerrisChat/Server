@@ -9,6 +9,7 @@ use num_traits::cast::ToPrimitive;
 use std::lazy::SyncOnceCell as OnceCell;
 use std::net::SocketAddr;
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::time::Duration;
 use tokio::net::TcpStream;
 use tokio::sync::oneshot::channel;
 use tokio_tungstenite::accept_async_with_config;
@@ -69,7 +70,9 @@ pub async fn preload_ws() {
             {
                 let mut s = pubsub_conn.on_message();
                 for _ in 0..150 {
-                    if let Some(x) = s.next().await {
+                    const ONE_HUNDRED_MICROSECONDS: Duration = Duration::from_micros(100);
+                    if let Some(x) = tokio::time::timeout(ONE_HUNDRED_MICROSECONDS, s.next()).await
+                    {
                         if let Ok(Some(pat)) = x.get_pattern::<Option<String>>() {
                             if let Some(item) = local_map.get(&pat) {
                                 let sender: &tokio::sync::mpsc::Sender<_> = item.value();
