@@ -14,7 +14,7 @@ adduser --system fc
 
 
 echo "Cloning server repo..."
-git clone https://github.com/FerrisChat/Server || (cd Server; git pull; cd ..)
+git clone --branch develop https://github.com/FerrisChat/Server || (cd Server; git checkout develop; git pull; cd ..)
 
 
 cd Server
