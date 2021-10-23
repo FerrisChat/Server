@@ -39,36 +39,43 @@ pub async fn edit_message(
         }
     };
 
-    {
-        let resp = sqlx::query!(
-            "SELECT author_id FROM messages WHERE channel_id = $1 AND id = $2",
-            bigint_channel_id,
-            bigint_message_id
-        )
-        .fetch_optional(db)
-        .await;
+    let old_message = sqlx::query!(
+        "SELECT * FROM messages WHERE channel_id = $1 AND id = $2",
+        bigint_channel_id,
+        bigint_message_id
+    )
+    .fetch_optional(db)
+    .await;
 
-        match resp {
-            Ok(resp) => match resp {
-                Some(resp) => {
-                    let author_id = bigdecimal_to_u128!(resp.author_id);
-                    if author_id != auth.0 {
-                        return HttpResponse::Forbidden().finish();
-                    }
+    let old_message_obj = match resp {
+        Ok(resp) => match resp {
+            Some(resp) => {
+                let author_id = bigdecimal_to_u128!(resp.author_id);
+                if author_id != auth.0 {
+                    return HttpResponse::Forbidden().finish();
                 }
-                None => {
-                    return HttpResponse::NotFound().json(NotFoundJson {
-                        message: "Message not found".to_string(),
-                    })
+
+                Message {
+                    id: message_id,
+                    channel_id: channel_id,
+                    author_id: bigdecimal_to_u128!(old_message.author_id),
+                    content: old_message.content,
+                    edited_at: old_message.edited_at,
+                    embeds: vec![],
                 }
-            },
-            Err(err) => {
-                return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                    reason: format!("DB returned an error: {}", err),
+            }
+            None => {
+                return HttpResponse::NotFound().json(NotFoundJson {
+                    message: "Message not found".to_string(),
                 })
             }
+        },
+        Err(err) => {
+            return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                reason: format!("DB returned an error: {}", err),
+            })
         }
-    }
+    };
 
     let MessageUpdateJson { content } = message_info.0;
     let resp = sqlx::query!("UPDATE messages SET content = $1, edited_at = now()::timestamp without time zone WHERE channel_id = $2 AND id = $3 RETURNING *", content, bigint_channel_id, bigint_message_id)
@@ -91,7 +98,7 @@ pub async fn edit_message(
         }
     };
 
-    let msg_obj = Message {
+    let new_msg_obj = Message {
         id: message_id,
         channel_id: channel_id,
         author_id: bigdecimal_to_u128!(message.author_id),
@@ -101,7 +108,8 @@ pub async fn edit_message(
     };
 
     let event = WsOutboundEvent::MessageUpdate {
-        message: msg_obj.clone(),
+        old: old_message_obj,
+        new: new_msg_obj.clone(),
     };
 
     if let Err(e) = fire_event(format!("message_{}_{}", channel_id, guild_id), &event).await {
@@ -115,5 +123,5 @@ pub async fn edit_message(
         return HttpResponse::InternalServerError().json(InternalServerErrorJson { reason });
     }
 
-    HttpResponse::Ok().json(msg_obj)
+    HttpResponse::Ok().json(new_msg_obj)
 }
