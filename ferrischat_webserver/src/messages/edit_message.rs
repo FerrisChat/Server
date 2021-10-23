@@ -75,19 +75,21 @@ pub async fn edit_message(
         .fetch_optional(db)
         .await;
 
-    match resp {
+    let message = match resp {
         Ok(resp) => match resp {
-            Some(message) => (),
+            Some(message) => message,
             None => {
                 return HttpResponse::NotFound().json(NotFoundJson {
                     message: "Message not found".to_string(),
                 })
             }
         },
-        Err(e) => HttpResponse::InternalServerError().json(InternalServerErrorJson {
-            reason: format!("DB returned an error: {}", e),
-        }),
-    }
+        Err(e) => {
+            return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                reason: format!("DB returned an error: {}", e),
+            })
+        }
+    };
 
     let msg_obj = Message {
         id: message_id,
