@@ -1,20 +1,11 @@
 use crate::auth::token_gen::generate_random_bits;
 use actix_web::{HttpRequest, HttpResponse, Responder};
 use ferrischat_common::types::{
-    AuthResponse, BadRequestJson, BadRequestJsonLocation, InternalServerErrorJson,
+    AuthResponse, BadRequestJson, BadRequestJsonLocation, InternalServerErrorJson, NotFoundJson,
 };
 use tokio::sync::oneshot::channel;
 
 pub async fn get_token(req: HttpRequest) -> impl Responder {
-    let token = match generate_random_bits() {
-        Some(b) => base64::encode_config(b, base64::URL_SAFE),
-        None => {
-            return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                reason: "failed to generate random bits for token generation".to_string(),
-            })
-        }
-    };
-    let user_id = get_item_id!(req, "user_id");
     let headers = req.headers();
     let user_email = match headers.get("Email") {
         Some(e) => match String::from_utf8(Vec::from(e.as_bytes())) {
@@ -59,15 +50,14 @@ pub async fn get_token(req: HttpRequest) -> impl Responder {
 
     let db = get_db_or_fail!();
 
-    let bigint_user_id = u128_to_bigdecimal!(user_id);
-    match sqlx::query!(
-        "SELECT email, password FROM users WHERE id = $1",
-        bigint_user_id
+    let bigint_user_id = match sqlx::query!(
+        "SELECT email, password, id FROM users WHERE email = $1",
+        user_email
     )
-    .fetch_one(db)
+    .fetch_optional(db)
     .await
     {
-        Ok(r) => {
+        Ok(Some(r)) => {
             let matches = {
                 let rx = match ferrischat_auth::GLOBAL_VERIFIER.get() {
                     Some(v) => {
@@ -109,10 +99,25 @@ pub async fn get_token(req: HttpRequest) -> impl Responder {
             if !(matches && (user_email == r.email)) {
                 return HttpResponse::Unauthorized().finish();
             }
+            r.id
+        }
+        Ok(None) => {
+            return HttpResponse::NotFound().json(NotFoundJson {
+                message: "no user with this email found".to_string(),
+            })
         }
         Err(e) => {
             return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                 reason: format!("DB returned a error: {}", e),
+            })
+        }
+    };
+
+    let token = match generate_random_bits() {
+        Some(b) => base64::encode_config(b, base64::URL_SAFE),
+        None => {
+            return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                reason: "failed to generate random bits for token generation".to_string(),
             })
         }
     };
@@ -156,6 +161,7 @@ pub async fn get_token(req: HttpRequest) -> impl Responder {
         })
     };
 
+    let user_id = bigdecimal_to_u128!(bigint_user_id);
     return HttpResponse::Ok().json(AuthResponse {
         token: format!(
             "{}.{}",
