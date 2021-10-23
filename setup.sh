@@ -1,7 +1,7 @@
 #!/bin/bash
 
 set -euo pipefail
-if [[ -n "$FC_TEMP_BUILD_DIR" ]]; then
+if [[ -n $FC_TEMP_BUILD_DIR ]]; then
   mkdir /tmp/fc_setup
   cd /tmp/fc_setup
 fi
@@ -73,10 +73,10 @@ fi
 
 
 echo "Cleaning up after setup..."
-if [[ -n "$FC_NO_SYSTEMCTL_SETUP" ]]; then
+if [[ -z $FC_NO_SYSTEMCTL_SETUP ]]; then
   rm -rf node_setup/ || false
 fi
-if [[ -n "$FC_TEMP_BUILD_DIR" ]]; then
+if [[ -n $FC_TEMP_BUILD_DIR ]]; then
   cd /tmp/
   rm -rf fc_setup/ || false
 fi
