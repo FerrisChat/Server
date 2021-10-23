@@ -78,9 +78,11 @@ pub async fn edit_message(
     match resp {
         Ok(resp) => match resp {
             Some(message) => (),
-            None => return HttpResponse::NotFound().json(NotFoundJson {
-                message: "Message not found".to_string(),
-            }),
+            None => {
+                return HttpResponse::NotFound().json(NotFoundJson {
+                    message: "Message not found".to_string(),
+                })
+            }
         },
         Err(e) => HttpResponse::InternalServerError().json(InternalServerErrorJson {
             reason: format!("DB returned an error: {}", e),
