@@ -30,16 +30,18 @@ pub async fn load_redis() -> ConnectionManager {
 
     // compute the next available node ID
     let node_id = {
+        // start at 0
         let mut should_be = 0;
-        let mut node_id = 0_u16;
         for x in res {
+            // if there's a gap in the sequence fill it
             if x != should_be {
                 break;
             }
-            node_id += 1;
+            // no gap? bump it
             should_be = x + 1;
         }
-        node_id
+        // if there's a gap this gets hit earlier, and if there's no gap this is just one beyond the end of the list
+        should_be
     };
 
     let node_secret = {
