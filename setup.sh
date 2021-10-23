@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -euo pipefail
+set -eo pipefail
 if [[ -z $FC_TEMP_BUILD_DIR ]]; then
   false
 else
