@@ -2,7 +2,7 @@
 
 set -eo pipefail
 if [[ -z $FC_TEMP_BUILD_DIR ]]; then
-  false
+  :
 else
   mkdir /tmp/fc_setup
   cd /tmp/fc_setup
@@ -76,13 +76,13 @@ fi
 
 echo "Cleaning up after setup..."
 if [[ -z $FC_NO_SYSTEMCTL_SETUP ]]; then
-  rm -rf node_setup/ || false
+  rm -rf node_setup/ || :
 fi
 if [[ -z $FC_TEMP_BUILD_DIR ]]; then
-  false
+  :
 else
   cd /tmp/
-  rm -rf fc_setup/ || false
+  rm -rf fc_setup/ || :
 fi
 
 
