@@ -21,6 +21,8 @@ use uuid::Uuid;
 
 #[macro_use]
 extern crate ferrischat_macros;
+#[macro_use]
+extern crate tracing;
 
 /// Maximum number of messages to buffer in the WebSocket send queue.
 const MAX_SEND_QUEUE: usize = 32_768;

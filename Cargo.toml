@@ -21,6 +21,7 @@ ferrischat_webserver = { path = "ferrischat_webserver", version = "0.1.0" }
 actix-web = { git = "https://github.com/actix/actix-web/" }
 env_logger = "0.9"
 time = "*"
+tracing = "0.1"
 
 [patch.crates-io]
 actix = { git = "https://github.com/actix/actix" }
