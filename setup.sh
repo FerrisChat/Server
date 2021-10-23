@@ -75,7 +75,7 @@ else
   echo "Enabling systemctl service..."
   systemctl enable ferrischat_server.service
   echo "Starting systemctl service..."
-  if [[ -z ${FC_NO_STARTUP} ]]; then
+  if [[ -n ${FC_NO_STARTUP} ]]; then
     echo "Skipping because FC_NO_STARTUP is set..."
   else
     systemctl start ferrischat_server.service
