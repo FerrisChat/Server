@@ -29,30 +29,30 @@ mkdir /etc/ferrischat
 # see https://unix.stackexchange.com/questions/219268/ddg#219274
 printf "[database]\n" >> /etc/ferrischat/config.toml
 if [[ -z "${FC_DATABASE_HOST}" ]]; then
-  printf "host=%s\n" "${FC_DATABASE_HOST}" >> /etc/ferrischat/config.toml
+  printf "host=\"%s\"\n" "${FC_DATABASE_HOST}" >> /etc/ferrischat/config.toml
 fi
 if [[ -z "${FC_DATABASE_PORT}" ]]; then
   printf "port=%s\n" "${FC_DATABASE_PORT}" >> /etc/ferrischat/config.toml
 fi
 if [[ -z "${FC_DATABASE_USERNAME}" ]]; then
-  printf "user=%s\n" "${FC_DATABASE_USERNAME}" >> /etc/ferrischat/config.toml
+  printf "user=\"%s\"\n" "${FC_DATABASE_USERNAME}" >> /etc/ferrischat/config.toml
 fi
 if [[ -z "${FC_DATABASE_PASSWORD}" ]]; then
-  printf "password=%s\n" "${FC_DATABASE_PASSWORD}" >> /etc/ferrischat/config.toml
+  printf "password=\"%s\"\n" "${FC_DATABASE_PASSWORD}" >> /etc/ferrischat/config.toml
 fi
 
 printf "\n[redis]\n" >> /etc/ferrischat/config.toml
 if [[ -z "${FC_REDIS_HOST}" ]]; then
-  printf "host=%s\n" "${FC_REDIS_HOST}" >> /etc/ferrischat/config.toml
+  printf "host=\"%s\"\n" "${FC_REDIS_HOST}" >> /etc/ferrischat/config.toml
 fi
 if [[ -z "${FC_REDIS_PORT}" ]]; then
   printf "port=%s\n" "${FC_REDIS_PORT}" >> /etc/ferrischat/config.toml
 fi
 if [[ -z "${FC_REDIS_USERNAME}" ]]; then
-  printf "user=%s\n" "${FC_REDIS_USERNAME}" >> /etc/ferrischat/config.toml
+  printf "user=\"%s\"\n" "${FC_REDIS_USERNAME}" >> /etc/ferrischat/config.toml
 fi
 if [[ -z "${FC_REDIS_PASSWORD}" ]]; then
-  printf "password=%s\n" "${FC_REDIS_PASSWORD}" >> /etc/ferrischat/config.toml
+  printf "password=\"%s\\n" "${FC_REDIS_PASSWORD}" >> /etc/ferrischat/config.toml
 fi
 
 
