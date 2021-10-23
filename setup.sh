@@ -45,6 +45,9 @@ printf "\n[redis]\n" >> /etc/ferrischat/config.toml
 if [[ -z "${FC_REDIS_HOST}" ]]; then
   printf "host=%s\n" "${FC_REDIS_HOST}" >> /etc/ferrischat/config.toml
 fi
+if [[ -z "${FC_REDIS_PORT}" ]]; then
+  printf "port=%s\n" "${FC_REDIS_PORT}" >> /etc/ferrischat/config.toml
+fi
 if [[ -z "${FC_REDIS_USERNAME}" ]]; then
   printf "user=%s\n" "${FC_REDIS_USERNAME}" >> /etc/ferrischat/config.toml
 fi
