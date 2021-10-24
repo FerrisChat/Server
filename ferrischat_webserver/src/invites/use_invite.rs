@@ -57,7 +57,7 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
     };
 
     let member_obj = match resp {
-        Ok(resp) => match resp {
+        Ok(ref resp) => match resp {
             Some(invite) => {
                 let uses = invite.uses + 1;
                 let unix_timestamp = OffsetDateTime::now_utc().unix_timestamp();
@@ -190,7 +190,7 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
                             reason: format!("DB returned an error: {}", e),
                         })
                     }
-                }
+                };
 
                 let uses_resp = sqlx::query!(
                     "UPDATE invites SET uses = $1 WHERE code = $2",
