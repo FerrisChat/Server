@@ -454,17 +454,19 @@ pub async fn handle_ws_connection(stream: TcpStream, addr: SocketAddr) -> Result
                                                 let outbound_message =
                                                     match simd_json::to_string(&outbound_message) {
                                                         Ok(msg) => msg,
-                                                        Err(e) => return (
-                                                            Some(CloseFrame {
-                                                                code: CloseCode::from(5001),
-                                                                reason: format!(
+                                                        Err(e) => {
+                                                            return (
+                                                                Some(CloseFrame {
+                                                                    code: CloseCode::from(5001),
+                                                                    reason: format!(
                                                                     "JSON serialization error: {}",
                                                                     e
                                                                 )
-                                                                .into(),
-                                                            }),
-                                                            tx,
-                                                        ),
+                                                                    .into(),
+                                                                }),
+                                                                tx,
+                                                            )
+                                                        }
                                                     };
                                                 tx.feed(Message::Text(outbound_message)).await;
                                             }
@@ -566,17 +568,19 @@ pub async fn handle_ws_connection(stream: TcpStream, addr: SocketAddr) -> Result
                                                 let outbound_message =
                                                     match simd_json::to_string(&outbound_message) {
                                                         Ok(msg) => msg,
-                                                        Err(e) => return (
-                                                            Some(CloseFrame {
-                                                                code: CloseCode::from(5001),
-                                                                reason: format!(
+                                                        Err(e) => {
+                                                            return (
+                                                                Some(CloseFrame {
+                                                                    code: CloseCode::from(5001),
+                                                                    reason: format!(
                                                                     "JSON serialization error: {}",
                                                                     e
                                                                 )
-                                                                .into(),
-                                                            }),
-                                                            tx,
-                                                        ),
+                                                                    .into(),
+                                                                }),
+                                                                tx,
+                                                            )
+                                                        }
                                                     };
 
                                                 tx.feed(Message::Text(outbound_message)).await;

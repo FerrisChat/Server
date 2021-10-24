@@ -48,7 +48,9 @@ pub async fn create_channel(
         }
     };
 
-    let event = WsOutboundEvent::ChannelCreate(channel_obj.clone());
+    let event = WsOutboundEvent::ChannelCreate {
+        channel: channel_obj.clone(),
+    };
 
     if let Err(e) = fire_event(format!("channel_{}_{}", guild_id, channel_id), &event).await {
         let reason = match e {

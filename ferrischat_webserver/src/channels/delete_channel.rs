@@ -42,7 +42,9 @@ pub async fn delete_channel(req: HttpRequest, _: crate::Authorization) -> impl R
         },
     };
 
-    let event = WsOutboundEvent::ChannelDelete(channel_obj.clone());
+    let event = WsOutboundEvent::ChannelDelete {
+        channel: channel_obj.clone(),
+    };
 
     if let Err(e) = fire_event(format!("channel_{}_{}", channel_id, guild_id), &event).await {
         let reason = match e {
