@@ -421,7 +421,7 @@ pub async fn handle_ws_connection(stream: TcpStream, addr: SocketAddr) -> Result
                                                 };
 
                                                 match outbound_message {
-                                                    WsOutboundEvent::ChannelDelete => (),
+                                                    WsOutboundEvent::ChannelDelete { .. } => (),
                                                     _ => {
                                                         match sqlx::query!(
                                                             "SELECT guild_id FROM channels WHERE id = $1",
@@ -550,7 +550,7 @@ pub async fn handle_ws_connection(stream: TcpStream, addr: SocketAddr) -> Result
                                                 };
 
                                                 match outbound_message {
-                                                    WsOutboundEvent::GuildDelete => (),
+                                                    WsOutboundEvent::GuildDelete { .. } => (),
                                                     _ => {
                                                         match sqlx::query!("SELECT user_id FROM members WHERE user_id = $1 AND guild_id = $2", bigdecimal_uid, u128_to_bigdecimal!(guild_id)).fetch_optional(db).await {
                                                             Ok(val) => {
@@ -614,7 +614,7 @@ pub async fn handle_ws_connection(stream: TcpStream, addr: SocketAddr) -> Result
                                                 };
 
                                                 match outbound_message {
-                                                    WsOutboundEvent::MemberDelete => (),
+                                                    WsOutboundEvent::MemberDelete { .. } => (),
                                                     _ => {
                                                         match sqlx::query!("SELECT user_id FROM members WHERE user_id = $1 AND guild_id = $2", bigdecimal_uid, u128_to_bigdecimal!(guild_id)).fetch_optional(db).await {
                                                             Ok(val) => {
@@ -678,7 +678,7 @@ pub async fn handle_ws_connection(stream: TcpStream, addr: SocketAddr) -> Result
                                                 };
 
                                                 match outbound_message {
-                                                    WsOutboundEvent::MemberDelete => (),
+                                                    WsOutboundEvent::MemberDelete { .. } => (),
                                                     _ => {
                                                         match sqlx::query!("SELECT user_id FROM members WHERE user_id = $1 AND guild_id = $2", bigdecimal_uid, u128_to_bigdecimal!(guild_id)).fetch_optional(db).await {
                                                             Ok(val) => {
