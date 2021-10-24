@@ -178,7 +178,7 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
                 .execute(db)
                 .await;
 
-                match member_resp {
+                let member_obj = match member_resp {
                     Ok(_) => Member {
                         user_id: Some(user_id),
                         user: None,
@@ -208,6 +208,8 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
                         })
                     }
                 }
+
+                member_obj
             }
             None => return HttpResponse::NotFound().finish(),
         },
