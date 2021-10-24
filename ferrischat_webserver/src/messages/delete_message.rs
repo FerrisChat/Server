@@ -44,13 +44,17 @@ pub async fn delete_message(req: HttpRequest, _: crate::Authorization) -> impl R
     let message = match resp {
         Ok(r) => match r {
             Some(message) => message,
-            None => HttpResponse::NotFound().json(NotFoundJson {
-                message: "message not found".to_string(),
-            }),
+            None => {
+                return HttpResponse::NotFound().json(NotFoundJson {
+                    message: "message not found".to_string(),
+                })
+            }
         },
-        Err(e) => HttpResponse::InternalServerError().json(InternalServerErrorJson {
-            reason: format!("DB returned a error: {}", e),
-        }),
+        Err(e) => {
+            return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                reason: format!("DB returned a error: {}", e),
+            })
+        }
     };
 
     let msg_obj = Message {
@@ -62,7 +66,7 @@ pub async fn delete_message(req: HttpRequest, _: crate::Authorization) -> impl R
         embeds: vec![],
     };
 
-    let event = WsOutboundEvent::MessageUpdate {
+    let event = WsOutboundEvent::MessageDelete {
         message: msg_obj.clone(),
     };
 

@@ -63,5 +63,5 @@ pub async fn create_channel(
         return HttpResponse::InternalServerError().json(InternalServerErrorJson { reason });
     }
 
-    HttpRespone::Created().json(channel_obj)
+    HttpResponse::Created().json(channel_obj)
 }

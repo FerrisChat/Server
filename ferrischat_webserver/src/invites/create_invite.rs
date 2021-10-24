@@ -74,9 +74,11 @@ pub async fn create_invite(
             max_uses: max_uses,
             max_age: max_age,
         },
-        Err(e) => HttpResponse::InternalServerError().json(InternalServerErrorJson {
-            reason: format!("DB returned an error: {}", e),
-        }),
+        Err(e) => {
+            return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                reason: format!("DB returned an error: {}", e),
+            })
+        }
     };
 
     let event = WsOutboundEvent::InviteCreate {

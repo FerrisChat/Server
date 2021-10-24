@@ -5,7 +5,7 @@ use actix_web::web::Json;
 
 use actix_web::{HttpRequest, HttpResponse, Responder};
 use ferrischat_common::request_json::GuildUpdateJson;
-use ferrischat_common::types::{Guild, InternalServerErrorJson, NotFoundJson};
+use ferrischat_common::types::{Guild, GuildFlags, InternalServerErrorJson, NotFoundJson};
 
 pub async fn edit_guild(
     req: HttpRequest,
@@ -19,7 +19,7 @@ pub async fn edit_guild(
 
     let db = get_db_or_fail!();
 
-    let old_channel_obj = {
+    let old_guild_obj = {
         let resp = sqlx::query!("SELECT * FROM guilds WHERE id = $1", bigint_guild_id)
             .fetch_optional(db)
             .await;
@@ -62,6 +62,7 @@ pub async fn edit_guild(
                 owner_id: bigdecimal_to_u128!(guild.owner_id),
                 name: guild.name.clone(),
                 channels: None,
+                flags: GuildFlags::none(),
                 members: None,
             },
             None => {

@@ -2,7 +2,7 @@ use crate::ws::{fire_event, WsEventError};
 use ferrischat_common::ws::WsOutboundEvent;
 
 use actix_web::{HttpRequest, HttpResponse, Responder};
-use ferrischat_common::types::{Guild, InternalServerErrorJson, Member, NotFoundJson};
+use ferrischat_common::types::{Guild, GuildFlags, InternalServerErrorJson, Member, NotFoundJson};
 
 /// DELETE /api/v0/guilds/{guild_id}
 pub async fn delete_guild(req: HttpRequest, auth: crate::Authorization) -> impl Responder {
@@ -33,6 +33,7 @@ pub async fn delete_guild(req: HttpRequest, auth: crate::Authorization) -> impl 
                         owner_id: auth.0,
                         name: r.name,
                         channels: None,
+                        flags: GuildFlags::none(),
                         members: Some(vec![Member {
                             guild_id: Some(guild_id),
                             user_id: Some(auth.0),

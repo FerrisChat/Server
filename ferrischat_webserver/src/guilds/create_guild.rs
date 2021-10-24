@@ -4,7 +4,7 @@ use ferrischat_common::ws::WsOutboundEvent;
 use actix_web::web::Json;
 use actix_web::{HttpResponse, Responder};
 use ferrischat_common::request_json::GuildCreateJson;
-use ferrischat_common::types::{Guild, InternalServerErrorJson, Member, ModelType};
+use ferrischat_common::types::{Guild, GuildFlags, InternalServerErrorJson, Member, ModelType};
 use ferrischat_snowflake_generator::generate_snowflake;
 
 /// POST /api/v0/guilds/
@@ -50,6 +50,7 @@ pub async fn create_guild(
         owner_id: auth.0,
         name,
         channels: None,
+        flags: GuildFlags::none(),
         members: Some(vec![Member {
             guild_id: Some(guild_id),
             user_id: Some(auth.0),

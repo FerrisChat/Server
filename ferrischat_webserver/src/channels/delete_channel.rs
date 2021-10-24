@@ -19,7 +19,7 @@ pub async fn delete_channel(req: HttpRequest, _: crate::Authorization) -> impl R
         bigint_channel_id,
         bigint_guild_id
     )
-    .execute(db)
+    .fetch_one(db)
     .await;
 
     let channel_obj = match resp {
@@ -29,14 +29,14 @@ pub async fn delete_channel(req: HttpRequest, _: crate::Authorization) -> impl R
             name: channel.name,
         },
         Err(e) => match e {
-            Error::NotFound => {
+            Error::RowNotFound => {
                 return HttpResponse::NotFound().json(NotFoundJson {
                     message: "Channel not found".to_string(),
                 });
             }
             _ => {
                 return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                    message: "Failed to delete channel".to_string(),
+                    reason: "Failed to delete channel".to_string(),
                 });
             }
         },

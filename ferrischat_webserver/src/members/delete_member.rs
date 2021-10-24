@@ -28,9 +28,9 @@ pub async fn delete_member(req: HttpRequest, _: crate::Authorization) -> impl Re
     let member_obj = match resp {
         Ok(r) => match r {
             Some(_) => Member {
-                user_id: Some(member_id),
+                user_id: Some(bigdecimal_to_u128!(member_id)),
                 user: None,
-                guild_id: Some(guild_id),
+                guild_id: Some(bigdecimal_to_u128!(guild_id)),
                 guild: None,
             },
             None => {

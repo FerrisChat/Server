@@ -47,7 +47,7 @@ pub async fn edit_message(
     .fetch_optional(db)
     .await;
 
-    let old_message_obj = match resp {
+    let old_message_obj = match old_message {
         Ok(resp) => match resp {
             Some(resp) => {
                 let author_id = bigdecimal_to_u128!(resp.author_id);
@@ -58,9 +58,9 @@ pub async fn edit_message(
                 Message {
                     id: message_id,
                     channel_id: channel_id,
-                    author_id: bigdecimal_to_u128!(old_message.author_id),
-                    content: old_message.content,
-                    edited_at: old_message.edited_at,
+                    author_id: bigdecimal_to_u128!(resp.author_id),
+                    content: resp.content,
+                    edited_at: resp.edited_at,
                     embeds: vec![],
                 }
             }

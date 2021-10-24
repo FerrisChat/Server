@@ -2,7 +2,7 @@ use crate::ws::{fire_event, WsEventError};
 use ferrischat_common::ws::WsOutboundEvent;
 
 use actix_web::{HttpRequest, HttpResponse, Responder};
-use ferrischat_common::types::{InternalServerErrorJson, Invite, Member};
+use ferrischat_common::types::{InternalServerErrorJson, Invite, Member, NotFoundJson};
 use sqlx::types::time::OffsetDateTime;
 
 const FERRIS_EPOCH: i64 = 1_577_836_800_000;
@@ -15,7 +15,7 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
                 Err(_) => {
                     return HttpResponse::BadRequest().json(InternalServerErrorJson {
                         reason: "Failed to parse invite code as String".to_string(),
-                    });
+                    })
                 }
             },
             None => {
@@ -38,6 +38,24 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
         .fetch_optional(db)
         .await;
 
+    let guild_id = {
+        match resp {
+            Ok(resp) => match resp {
+                Some(invite) => bigdecimal_to_u128!(invite.guild_id),
+                None => {
+                    return HttpResponse::NotFound().json(NotFoundJson {
+                        message: "Invite not found.",
+                    })
+                }
+            },
+            Err(e) => {
+                return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                    message: format!("DB returned an error: ", e),
+                })
+            }
+        }
+    };
+
     let member_obj = match resp {
         Ok(resp) => match resp {
             Some(invite) => {
@@ -53,8 +71,6 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
 
                         match delete_resp {
                             Ok(_) => {
-                                let guild_id = bigdecimal_to_u128!(invite.guild_id);
-
                                 let invite_obj = Invite {
                                     code: invite.code,
                                     owner_id: bigdecimal_to_u128!(invite.owner_id),
@@ -109,8 +125,6 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
 
                         match delete_resp {
                             Ok(_) => {
-                                let guild_id = bigdecimal_to_u128!(invite.guild_id);
-
                                 let invite_obj = Invite {
                                     code: invite.code,
                                     owner_id: bigdecimal_to_u128!(invite.owner_id),
@@ -118,7 +132,7 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
                                     created_at: invite.created_at,
                                     uses: invite.uses,
                                     max_uses: invite.max_uses,
-                                    max_age: max_age,
+                                    max_age: Some(max_age),
                                 };
 
                                 let event = WsOutboundEvent::InviteDelete { invite: invite_obj };
@@ -168,7 +182,7 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
                     Ok(_) => Member {
                         user_id: user_id,
                         user: None,
-                        guild_id: invite.guild_id,
+                        guild_id: Some(guild_id),
                         guild: None,
                     },
                     Err(e) => {
@@ -195,14 +209,12 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
                     }
                 }
             }
-            None => {
-                return HttpResponse::NotFound().finish();
-            }
+            None => return HttpResponse::NotFound().finish(),
         },
         Err(e) => {
             return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                 reason: format!("DB returned an error: {}", e),
-            });
+            })
         }
     };
 
