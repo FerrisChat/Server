@@ -40,7 +40,12 @@ pub async fn get_member(req: HttpRequest) -> impl Responder {
                             }),
                             None => None,
                         };
-                        HttpResponse::Ok().json(Member { vvvxxzz })
+                        HttpResponse::Ok().json(Member {
+                            user_id: Some(member_id),
+                            user: user,
+                            guild_id: Some(guild_id),
+                            guild: None,
+                        })
                     }
                     Err(e) => {
                         return HttpResponse::InternalServerError().json(InternalServerErrorJson {
