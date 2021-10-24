@@ -480,8 +480,10 @@ pub async fn handle_ws_connection(stream: TcpStream, addr: SocketAddr) -> Result
                                                 // FIXME: once implemented, do a query to check the user has permissions to read messages in here
                                                 match sqlx::query!("SELECT guild_id FROM members WHERE user_id = $1 AND guild_id = $2", bigdecimal_uid, u128_to_bigdecimal!(guild_id)).fetch_optional(db).await {
                                                     Ok(val) => {
-                                                        Some(_) => (),
-                                                        None => continue,
+                                                        match val {
+                                                            Some(_) => (),
+                                                            None => continue,
+                                                        }
                                                     }
                                                     Err(e) => {
                                                         return (
@@ -507,18 +509,21 @@ pub async fn handle_ws_connection(stream: TcpStream, addr: SocketAddr) -> Result
                                                         )
                                                     }
                                                 };
-                                                let outbound_message = match simd_json::to_string(&outbound_message) {
-                                                    Ok(msg) => msg,
-                                                    Err(e) => {
-                                                        return (
+                                                let outbound_message =
+                                                    match simd_json::to_string(&outbound_message) {
+                                                        Ok(msg) => msg,
+                                                        Err(e) => return (
                                                             Some(CloseFrame {
                                                                 code: CloseCode::from(5001),
-                                                                reason: format!("JSON serialization error: {}", e).into(),
+                                                                reason: format!(
+                                                                    "JSON serialization error: {}",
+                                                                    e
+                                                                )
+                                                                .into(),
                                                             }),
                                                             tx,
-                                                        )
-                                                    }
-                                                };
+                                                        ),
+                                                    };
                                                 tx.feed(Message::Text(outbound_message)).await;
                                             }
                                         }
