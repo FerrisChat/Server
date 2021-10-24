@@ -40,7 +40,7 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
 
     let guild_id = {
         match resp {
-            Ok(resp) => match resp {
+            Ok(ref resp) => match resp {
                 Some(invite) => bigdecimal_to_u128!(invite.guild_id),
                 None => {
                     return HttpResponse::NotFound().json(NotFoundJson {
@@ -57,7 +57,7 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
     };
 
     let member_obj = match resp {
-        Ok(ref resp) => match resp {
+        Ok(resp) => match resp {
             Some(invite) => {
                 let uses = invite.uses + 1;
                 let unix_timestamp = OffsetDateTime::now_utc().unix_timestamp();
