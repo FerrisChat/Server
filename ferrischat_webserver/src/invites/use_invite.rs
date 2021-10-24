@@ -72,7 +72,7 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
                         match delete_resp {
                             Ok(_) => {
                                 let invite_obj = Invite {
-                                    code: invite.code,
+                                    code: invite.code.clone(),
                                     owner_id: bigdecimal_to_u128!(invite.owner_id),
                                     guild_id: guild_id,
                                     created_at: invite.created_at,
@@ -126,7 +126,7 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
                         match delete_resp {
                             Ok(_) => {
                                 let invite_obj = Invite {
-                                    code: invite.code,
+                                    code: invite.code.clone(),
                                     owner_id: bigdecimal_to_u128!(invite.owner_id),
                                     guild_id: guild_id,
                                     created_at: invite.created_at,
