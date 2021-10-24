@@ -1,6 +1,8 @@
 use actix_web::{web::Query, HttpRequest, HttpResponse, Responder};
 use ferrischat_common::request_json::GetGuildUrlParams;
-use ferrischat_common::types::{Channel, Guild, GuildFlags, InternalServerErrorJson, Member, NotFoundJson};
+use ferrischat_common::types::{
+    Channel, Guild, GuildFlags, InternalServerErrorJson, Member, NotFoundJson,
+};
 use num_traits::ToPrimitive;
 
 /// GET /api/v0/guilds/{guild_id}
