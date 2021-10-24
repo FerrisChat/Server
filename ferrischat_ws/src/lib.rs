@@ -405,9 +405,17 @@ pub async fn handle_ws_connection(stream: TcpStream, addr: SocketAddr) -> Result
                                                 names.next().map(|x| x.parse::<u128>()),
                                             ) {
                                                 // FIXME: once implemented, do a query to check the user has permissions to view channel in here
-                                                match sqlx::query!("SELECT guild_id FROM channels WHERE id = $1", u128_to_bigdecimal!(channel_id)).fetch_one(db).await {
+                                                match sqlx::query!(
+                                                    "SELECT guild_id FROM channels WHERE id = $1",
+                                                    u128_to_bigdecimal!(channel_id)
+                                                )
+                                                .fetch_one(db)
+                                                .await
+                                                {
                                                     Ok(val) => {
-                                                        if val.guild_id != u128_to_bigdecimal!(guild_id) {
+                                                        if val.guild_id
+                                                            != u128_to_bigdecimal!(guild_id)
+                                                        {
                                                             continue;
                                                         }
 
@@ -436,13 +444,18 @@ pub async fn handle_ws_connection(stream: TcpStream, addr: SocketAddr) -> Result
                                                                 )
                                                             }
                                                         };
-                                                        tx.feed(Message::Text(outbound_message)).await;
+                                                        tx.feed(Message::Text(outbound_message))
+                                                            .await;
                                                     }
                                                     Err(e) => {
                                                         return (
                                                             Some(CloseFrame {
                                                                 code: CloseCode::from(5000),
-                                                                reason: format!("Internal database error: {}", e).into(),
+                                                                reason: format!(
+                                                                    "Internal database error: {}",
+                                                                    e
+                                                                )
+                                                                .into(),
                                                             }),
                                                             tx,
                                                         )
