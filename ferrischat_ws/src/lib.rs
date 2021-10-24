@@ -399,7 +399,57 @@ pub async fn handle_ws_connection(stream: TcpStream, addr: SocketAddr) -> Result
 
                                     // root event format: {type}_{event specific data}
                                     match names.next() {
-                                        Some("channel") => {}
+                                        Some("channel") => {
+                                            if let (Some(Ok(channel_id)), Some(Ok(guild_id))) = (
+                                                names.next().map(|x| x.parse::<u128>()),
+                                                names.next().map(|x| x.parse::<u128>()),
+                                            ) {
+                                                // FIXME: once implemented, do a query to check the user has permissions to view channel in here
+                                                match sqlx::query!("SELECT guild_id FROM channels WHERE id = $1", u128_to_bigdecimal!(channel_id)).fetch_one(db).await {
+                                                    Ok(val) => {
+                                                        if val.guild_id != u128_to_bigdecimal!(guild_id) {
+                                                            continue;
+                                                        }
+
+                                                        // all checks completed, fire event
+                                                        let outbound_message = match simd_json::serde::from_reader::<_, WsOutboundEvent>(msg.get_payload_bytes()) {
+                                                            Ok(msg) => msg,
+                                                            Err(e) => {
+                                                                return (
+                                                                    Some(CloseFrame {
+                                                                        code: CloseCode::from(5005),
+                                                                        reason: format!("Internal JSON representation decoding failed: {}", e).into(),
+                                                                    }),
+                                                                    tx,
+                                                                )
+                                                            }
+                                                        };
+                                                        let outbound_message = match simd_json::to_string(&outbound_message) {
+                                                            Ok(msg) => msg,
+                                                            Err(e) => {
+                                                                return (
+                                                                    Some(CloseFrame {
+                                                                        code: CloseCode::from(5001),
+                                                                        reason: format!("JSON serialization error: {}", e).into(),
+                                                                    }),
+                                                                    tx,
+                                                                )
+                                                            }
+                                                        };
+                                                        tx.feed(Message::Text(outbound_message)).await;
+                                                    }
+                                                    Err(e) => {
+                                                        return (
+                                                            Some(CloseFrame {
+                                                                code: CloseCode::from(5000),
+                                                                reason: format!("Internal database error: {}", e).into(),
+                                                            }),
+                                                            tx,
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                        }
                                         Some("message") => {
                                             // message event format: message_{channel ID}_{guild ID}
                                             if let (Some(Ok(channel_id)), Some(Ok(guild_id))) = (
