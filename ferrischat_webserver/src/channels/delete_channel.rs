@@ -24,8 +24,8 @@ pub async fn delete_channel(req: HttpRequest, _: crate::Authorization) -> impl R
 
     let channel_obj = match resp {
         Ok(channel) => Channel {
-            id: channel.id,
-            guild_id: channel.guild_id,
+            id: bigdecimal_to_u128!(channel.id),
+            guild_id: bigdecimal_to_u128!(channel.guild_id),
             name: channel.name,
         },
         Err(e) => match e {

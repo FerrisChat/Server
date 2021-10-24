@@ -44,13 +44,13 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
                 Some(invite) => bigdecimal_to_u128!(invite.guild_id),
                 None => {
                     return HttpResponse::NotFound().json(NotFoundJson {
-                        message: "Invite not found.",
+                        message: "Invite not found.".to_string(),
                     })
                 }
             },
             Err(e) => {
                 return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                    message: format!("DB returned an error: ", e),
+                    reason: format!("DB returned an error: {}", e),
                 })
             }
         }
@@ -180,7 +180,7 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
 
                 match member_resp {
                     Ok(_) => Member {
-                        user_id: user_id,
+                        user_id: Some(user_id),
                         user: None,
                         guild_id: Some(guild_id),
                         guild: None,

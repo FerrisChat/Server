@@ -30,6 +30,7 @@ pub async fn edit_guild(
                     id: bigdecimal_to_u128!(guild.id),
                     owner_id: bigdecimal_to_u128!(guild.owner_id),
                     name: guild.name.clone(),
+                    flags: GuildFlags::none(),
                     channels: None,
                     members: None,
                 },
