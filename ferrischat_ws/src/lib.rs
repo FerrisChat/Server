@@ -552,7 +552,7 @@ pub async fn handle_ws_connection(stream: TcpStream, addr: SocketAddr) -> Result
                                                 match outbound_message {
                                                     WsOutboundEvent::GuildDelete => (),
                                                     _ => {
-                                                        match sqlx::query!("SELECT user_id FROM emmbers WHERE user_id = $1 AND guild_id = $2", bigdecimal_uid, u128_to_bigdecimal!(guild_id)).fetch_optional(db).await {
+                                                        match sqlx::query!("SELECT user_id FROM members WHERE user_id = $1 AND guild_id = $2", bigdecimal_uid, u128_to_bigdecimal!(guild_id)).fetch_optional(db).await {
                                                             Ok(val) => {
                                                                 match val {
                                                                     Some(_) => (),
