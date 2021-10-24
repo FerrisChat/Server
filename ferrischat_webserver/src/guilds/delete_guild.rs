@@ -33,7 +33,7 @@ pub async fn delete_guild(req: HttpRequest, auth: crate::Authorization) -> impl 
                         owner_id: auth.0,
                         name: r.name,
                         channels: None,
-                        flags: GuildFlags::none(),
+                        flags: GuildFlags::empty(),
                         members: Some(vec![Member {
                             guild_id: Some(guild_id),
                             user_id: Some(auth.0),

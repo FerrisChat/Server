@@ -49,7 +49,7 @@ pub async fn get_user(req: HttpRequest, auth: crate::Authorization) -> impl Resp
                                             .to_u128()?,
                                         name: x.name.clone(),
                                         channels: None,
-                                        flags: GuildFlags::none(),
+                                        flags: GuildFlags::empty(),
                                         members: None,
                                     })
                                 })

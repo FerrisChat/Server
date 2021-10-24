@@ -50,7 +50,7 @@ pub async fn create_guild(
         owner_id: auth.0,
         name,
         channels: None,
-        flags: GuildFlags::none(),
+        flags: GuildFlags::empty(),
         members: Some(vec![Member {
             guild_id: Some(guild_id),
             user_id: Some(auth.0),

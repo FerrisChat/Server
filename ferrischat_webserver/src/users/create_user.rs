@@ -65,7 +65,7 @@ pub async fn create_user(user_data: Json<UserCreateJson>) -> impl Responder {
             name: username,
             avatar: None,
             guilds: None,
-            flags: GuildFlags::none(),
+            flags: GuildFlags::empty(),
             discriminator: user_discrim,
         }),
         Err(e) => HttpResponse::InternalServerError().json(InternalServerErrorJson {
