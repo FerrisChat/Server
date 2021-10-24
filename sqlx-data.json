@@ -1,5 +1,30 @@
 {
   "db": "PostgreSQL",
+  "05a07f6b6ff0eee8f0639dfbbea2c52c67012755203424700355a733b9040a15": {
+    "query": "UPDATE users SET name = $1 WHERE id = $2",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Varchar",
+          "Numeric"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "0ab41e15cb53d5b92c5c32f871188e500679b9301249f5cdebff0b11b40c84f1": {
+    "query": "DELETE FROM invites WHERE code = $1",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      },
+      "nullable": []
+    }
+  },
   "176e9bb27f777e766d00cd3156970576b57d692490048c314fccedb470a77018": {
     "query": "SELECT * FROM guilds WHERE id = $1",
     "describe": {
@@ -28,6 +53,27 @@
       "nullable": [
         false,
         false,
+        false
+      ]
+    }
+  },
+  "1b4166a10f086ec5f39817d0182c91ed13a6d9edca320be82280d3d124f33a6f": {
+    "query": "SELECT author_id FROM messages WHERE channel_id = $1 AND id = $2",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "author_id",
+          "type_info": "Numeric"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Numeric",
+          "Numeric"
+        ]
+      },
+      "nullable": [
         false
       ]
     }
@@ -69,6 +115,26 @@
         {
           "ordinal": 0,
           "name": "id",
+          "type_info": "Numeric"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Numeric"
+        ]
+      },
+      "nullable": [
+        false
+      ]
+    }
+  },
+  "32ad9e9e952d9541314bd8285416db2086678dc65783a165e492ee2bba2babc5": {
+    "query": "SELECT guild_id FROM channels WHERE id = $1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "guild_id",
           "type_info": "Numeric"
         }
       ],
@@ -126,6 +192,11 @@
           "ordinal": 3,
           "name": "author_id",
           "type_info": "Numeric"
+        },
+        {
+          "ordinal": 4,
+          "name": "edited_at",
+          "type_info": "Timestamp"
         }
       ],
       "parameters": {
@@ -138,7 +209,8 @@
         false,
         true,
         false,
-        false
+        false,
+        true
       ]
     }
   },
@@ -155,6 +227,161 @@
       "parameters": {
         "Left": [
           "Numeric",
+          "Numeric"
+        ]
+      },
+      "nullable": [
+        false
+      ]
+    }
+  },
+  "4538bd79898e9339c427a0029acee11e29dd99141c2ace54adf41437436ca49d": {
+    "query": "SELECT email, password, id FROM users WHERE email = $1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "email",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 1,
+          "name": "password",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 2,
+          "name": "id",
+          "type_info": "Numeric"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false
+      ]
+    }
+  },
+  "4e3170cbcb6da9b1b4e4a57436334974dbc454333b32d11bd319a45e33f8fb92": {
+    "query": "SELECT * FROM invites WHERE code = $1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "code",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 1,
+          "name": "owner_id",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 2,
+          "name": "guild_id",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 3,
+          "name": "created_at",
+          "type_info": "Int8"
+        },
+        {
+          "ordinal": 4,
+          "name": "uses",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 5,
+          "name": "max_uses",
+          "type_info": "Int2"
+        },
+        {
+          "ordinal": 6,
+          "name": "max_age",
+          "type_info": "Int8"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        true,
+        true
+      ]
+    }
+  },
+  "685b72a878b692b32b239290055c454760d780222b5c1c19ab47b5afd0b45e98": {
+    "query": "UPDATE invites SET uses = $1 WHERE code = $2",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int4",
+          "Text"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "7332fbdcce19ebfd457d73302777c7a22f9fbe480a07ebe55c2fca689725d4da": {
+    "query": "UPDATE users SET password = $1 WHERE id = $2",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Numeric"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "73782a7e0b4c1fd738b0ed8823c8512c335032e9c7352401182e60520389bbe6": {
+    "query": "DELETE FROM members WHERE user_id = $1 AND guild_id = $2 RETURNING (user_id)",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "user_id",
+          "type_info": "Numeric"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Numeric",
+          "Numeric"
+        ]
+      },
+      "nullable": [
+        false
+      ]
+    }
+  },
+  "79a40009b7e09a7b443779142a8022f65c38ab7d75a362c5c1a1ab1052840234": {
+    "query": "SELECT guild_id FROM members WHERE user_id = $1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "guild_id",
+          "type_info": "Numeric"
+        }
+      ],
+      "parameters": {
+        "Left": [
           "Numeric"
         ]
       },
@@ -217,6 +444,11 @@
           "ordinal": 4,
           "name": "password",
           "type_info": "Text"
+        },
+        {
+          "ordinal": 5,
+          "name": "discriminator",
+          "type_info": "Int2"
         }
       ],
       "parameters": {
@@ -225,6 +457,7 @@
         ]
       },
       "nullable": [
+        false,
         false,
         false,
         false,
@@ -280,6 +513,79 @@
       "nullable": []
     }
   },
+  "8a3d652e7517cad54579e2831b9cefb4618c4c9a00cbc32f9aa76e0254561c32": {
+    "query": "UPDATE messages SET content = $1, edited_at = now()::timestamp without time zone WHERE channel_id = $2 AND id = $3 RETURNING *",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 1,
+          "name": "content",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 2,
+          "name": "channel_id",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 3,
+          "name": "author_id",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 4,
+          "name": "edited_at",
+          "type_info": "Timestamp"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Numeric",
+          "Numeric"
+        ]
+      },
+      "nullable": [
+        false,
+        true,
+        false,
+        false,
+        true
+      ]
+    }
+  },
+  "8e40920032f5c84153113b35f969cdc917ebf3e12b51dbaa231338e25abbb3eb": {
+    "query": "SELECT * FROM members WHERE user_id = $1 AND guild_id = $2",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "user_id",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 1,
+          "name": "guild_id",
+          "type_info": "Numeric"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Numeric",
+          "Numeric"
+        ]
+      },
+      "nullable": [
+        false,
+        false
+      ]
+    }
+  },
   "8e8e06ebe38aac297f6e4f4420f65c6d230847a6647e4f8d86fb2fff6e9a1494": {
     "query": "SELECT * FROM channels WHERE guild_id = $1",
     "describe": {
@@ -312,20 +618,91 @@
       ]
     }
   },
-  "989d01c7f20d9e0159c563670d300b6b0066c3dadc42135af176d88a873e2461": {
-    "query": "INSERT INTO users VALUES ($1, $2, $3, $4, $5)",
+  "a51ecb54b754b910bff9d27cde8beac1491444172a8b3a2ae3de4a2c288f6624": {
+    "query": "UPDATE channels SET name = $1 WHERE id = $2 RETURNING *",
     "describe": {
-      "columns": [],
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 1,
+          "name": "name",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 2,
+          "name": "guild_id",
+          "type_info": "Numeric"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Varchar",
+          "Numeric"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false
+      ]
+    }
+  },
+  "b5f01ce2faee492d995bbac4e6a5ed069849ffe972a3e8da7b492fcdb9b06e3a": {
+    "query": "SELECT user_id FROM members WHERE user_id = $1 AND guild_id = $2",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "user_id",
+          "type_info": "Numeric"
+        }
+      ],
       "parameters": {
         "Left": [
           "Numeric",
-          "Varchar",
-          "Int8",
-          "Varchar",
-          "Text"
+          "Numeric"
         ]
       },
-      "nullable": []
+      "nullable": [
+        false
+      ]
+    }
+  },
+  "b86ac5c8fe86bb81b45d6053d19bae177f671fd95e80c4e4bfc4459d91a85b1b": {
+    "query": "UPDATE guilds SET name = $1 WHERE id = $2 RETURNING *",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 1,
+          "name": "owner_id",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 2,
+          "name": "name",
+          "type_info": "Varchar"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Varchar",
+          "Numeric"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false
+      ]
     }
   },
   "bdf561d927b33e70bfdf334fe29ba4e04e8c65b1f8098444a54faebcd8ce4639": {
@@ -338,6 +715,23 @@
           "Text",
           "Numeric",
           "Numeric"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "bf5a1df6d87f55e2727c1249d07e3225f62f96da4546e477dc96a9f3fc12b47f": {
+    "query": "INSERT INTO users VALUES ($1, $2, $3, $4, $5, $6)",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Numeric",
+          "Varchar",
+          "Int8",
+          "Varchar",
+          "Text",
+          "Int2"
         ]
       },
       "nullable": []
@@ -366,6 +760,89 @@
       "nullable": [
         false,
         false
+      ]
+    }
+  },
+  "d7f7e8f0dd853ec1a64c950bab77d695d30cbd7a664ef2dc81f94ed6c26cb8db": {
+    "query": "UPDATE users SET email = $1 WHERE id = $2",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Varchar",
+          "Numeric"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "dd888e41e80c48e6c390970edff204cfe2159437c49543b7c3db4123553b63af": {
+    "query": "INSERT INTO invites VALUES ((SELECT array_to_string( ARRAY(SELECT substr( 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789', ((random()*(36-1)+1)::integer),1) FROM generate_series(1,10)),'') ), $1, $2, $3, $4, $5, $6) RETURNING code",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "code",
+          "type_info": "Text"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Numeric",
+          "Numeric",
+          "Int8",
+          "Int4",
+          "Int2",
+          "Int8"
+        ]
+      },
+      "nullable": [
+        false
+      ]
+    }
+  },
+  "e2dcdf96725dea03ae0f6db1ae2c06d073f6fcf83f335942f2f55f8eff7109fc": {
+    "query": "SELECT * FROM messages WHERE channel_id = $1 LIMIT $2",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 1,
+          "name": "content",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 2,
+          "name": "channel_id",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 3,
+          "name": "author_id",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 4,
+          "name": "edited_at",
+          "type_info": "Timestamp"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Numeric",
+          "Int8"
+        ]
+      },
+      "nullable": [
+        false,
+        true,
+        false,
+        false,
+        true
       ]
     }
   },
@@ -415,19 +892,44 @@
       "nullable": []
     }
   },
-  "f8e9111013066d6adef8023ddaf33091c9f346b098c7ff91b7a98feabdad42b8": {
-    "query": "SELECT email, password FROM users WHERE id = $1",
+  "fa62dd8bf63a953f84864dcd447f305ad452ca13d068cefe8aea4695c862ba60": {
+    "query": "SELECT * FROM invites WHERE guild_id = $1",
     "describe": {
       "columns": [
         {
           "ordinal": 0,
-          "name": "email",
-          "type_info": "Varchar"
+          "name": "code",
+          "type_info": "Text"
         },
         {
           "ordinal": 1,
-          "name": "password",
-          "type_info": "Text"
+          "name": "owner_id",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 2,
+          "name": "guild_id",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 3,
+          "name": "created_at",
+          "type_info": "Int8"
+        },
+        {
+          "ordinal": 4,
+          "name": "uses",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 5,
+          "name": "max_uses",
+          "type_info": "Int2"
+        },
+        {
+          "ordinal": 6,
+          "name": "max_age",
+          "type_info": "Int8"
         }
       ],
       "parameters": {
@@ -437,7 +939,12 @@
       },
       "nullable": [
         false,
-        false
+        false,
+        false,
+        false,
+        false,
+        true,
+        true
       ]
     }
   }
