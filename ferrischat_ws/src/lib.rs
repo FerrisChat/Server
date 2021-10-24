@@ -512,17 +512,19 @@ pub async fn handle_ws_connection(stream: TcpStream, addr: SocketAddr) -> Result
                                                 let outbound_message =
                                                     match simd_json::to_string(&outbound_message) {
                                                         Ok(msg) => msg,
-                                                        Err(e) => return (
-                                                            Some(CloseFrame {
-                                                                code: CloseCode::from(5001),
-                                                                reason: format!(
+                                                        Err(e) => {
+                                                            return (
+                                                                Some(CloseFrame {
+                                                                    code: CloseCode::from(5001),
+                                                                    reason: format!(
                                                                     "JSON serialization error: {}",
                                                                     e
                                                                 )
-                                                                .into(),
-                                                            }),
-                                                            tx,
-                                                        ),
+                                                                    .into(),
+                                                                }),
+                                                                tx,
+                                                            )
+                                                        }
                                                     };
                                                 tx.feed(Message::Text(outbound_message)).await;
                                             }
@@ -614,7 +616,7 @@ pub async fn handle_ws_connection(stream: TcpStream, addr: SocketAddr) -> Result
                                                 match outbound_message {
                                                     WsOutboundEvent::MemberDelete => (),
                                                     _ => {
-                                                        match sqlx::query!("SELECT user_id FROM members WHERE id = $1 AND guild_id = $2", bigdecimal_uid, u128_to_bigdecimal!(guild_id)).fetch_optional(db).await {
+                                                        match sqlx::query!("SELECT user_id FROM members WHERE user_id = $1 AND guild_id = $2", bigdecimal_uid, u128_to_bigdecimal!(guild_id)).fetch_optional(db).await {
                                                             Ok(val) => {
                                                                 match val {
                                                                     Some(_) => (),
@@ -655,7 +657,70 @@ pub async fn handle_ws_connection(stream: TcpStream, addr: SocketAddr) -> Result
                                                 tx.feed(Message::Text(outbound_message)).await;
                                             }
                                         }
-                                        Some("invite") => {}
+                                        Some("invite") => {
+                                            if let Some(Ok(guild_id)) =
+                                                names.next().map(|x| x.parse::<u128>())
+                                            {
+                                                // FIXME: once implemented, do a query to check the user has permissions to read messages in here
+
+                                                // all checks completed, fire event
+                                                let outbound_message = match simd_json::serde::from_reader::<_, WsOutboundEvent>(msg.get_payload_bytes()) {
+                                                    Ok(msg) => msg,
+                                                    Err(e) => {
+                                                        return (
+                                                            Some(CloseFrame {
+                                                                code: CloseCode::from(5005),
+                                                                reason: format!("Internal JSON representation decoding failed: {}", e).into(),
+                                                            }),
+                                                            tx,
+                                                        )
+                                                    }
+                                                };
+
+                                                match outbound_message {
+                                                    WsOutboundEvent::MemberDelete => (),
+                                                    _ => {
+                                                        match sqlx::query!("SELECT user_id FROM members WHERE user_id = $1 AND guild_id = $2", bigdecimal_uid, u128_to_bigdecimal!(guild_id)).fetch_optional(db).await {
+                                                            Ok(val) => {
+                                                                match val {
+                                                                    Some(_) => (),
+                                                                    None => continue,
+                                                                }
+                                                            },
+                                                            Err(e) => {
+                                                                return (
+                                                                    Some(CloseFrame {
+                                                                        code: CloseCode::from(5000),
+                                                                        reason: format!("Internal database error: {}", e).into(),
+                                                                    }),
+                                                                    tx,
+                                                                )
+                                                            }
+                                                        }
+                                                    }
+                                                }
+
+                                                let outbound_message =
+                                                    match simd_json::to_string(&outbound_message) {
+                                                        Ok(msg) => msg,
+                                                        Err(e) => {
+                                                            return (
+                                                                Some(CloseFrame {
+                                                                    code: CloseCode::from(5001),
+                                                                    reason: format!(
+                                                                    "JSON serialization error: {}",
+                                                                    e
+                                                                )
+                                                                    .into(),
+                                                                }),
+                                                                tx,
+                                                            )
+                                                        }
+                                                    };
+
+                                                tx.feed(Message::Text(outbound_message)).await;
+                                            }
+                                        }
                                         Some(_) | None => continue,
                                     }
                                 }

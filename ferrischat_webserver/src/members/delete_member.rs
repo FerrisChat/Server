@@ -1,5 +1,8 @@
+use crate::ws::{fire_event, WsEventError};
+use ferrischat_common::ws::WsOutboundEvent;
+
 use actix_web::{HttpRequest, HttpResponse, Responder};
-use ferrischat_common::types::{InternalServerErrorJson, NotFoundJson};
+use ferrischat_common::types::{InternalServerErrorJson, Member, NotFoundJson};
 
 /// DELETE /api/v0/guilds/{guild_id}/members/{member_id}
 pub async fn delete_member(req: HttpRequest, _: crate::Authorization) -> impl Responder {
@@ -15,22 +18,48 @@ pub async fn delete_member(req: HttpRequest, _: crate::Authorization) -> impl Re
     let db = get_db_or_fail!();
 
     let resp = sqlx::query!(
-        "DELETE FROM members WHERE user_id = $1 AND guild_id = $2 RETURNING (user_id)",
+        "DELETE FROM members WHERE user_id = $1 AND guild_id = $2 RETURNING *",
         member_id,
         guild_id
     )
     .fetch_optional(db)
     .await;
 
-    match resp {
+    let member_obj = match resp {
         Ok(r) => match r {
-            Some(_) => HttpResponse::NoContent().finish(),
-            None => HttpResponse::NotFound().json(NotFoundJson {
-                message: "Member not found".to_string(),
-            }),
+            Some(_) => Member {
+                user_id: Some(member_id),
+                user: None,
+                guild_id: Some(guild_id),
+                guild: None,
+            },
+            None => {
+                return HttpResponse::NotFound().json(NotFoundJson {
+                    message: "Member not found".to_string(),
+                })
+            }
         },
-        Err(e) => HttpResponse::InternalServerError().json(InternalServerErrorJson {
-            reason: format!("Database responded with an error: {}", e),
-        }),
+        Err(e) => {
+            return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                reason: format!("Database responded with an error: {}", e),
+            })
+        }
+    };
+
+    let event = WsOutboundEvent::MemberDelete {
+        member: member_obj.clone(),
+    };
+
+    if let Err(e) = fire_event(format!("member_{}", guild_id), &event).await {
+        let reason = match e {
+            WsEventError::MissingRedis => "Redis pool missing".to_string(),
+            WsEventError::RedisError(e) => format!("Redis returned an error: {}", e),
+            WsEventError::JsonError(e) => {
+                format!("Failed to serialize message to JSON format: {}", e)
+            }
+        };
+        return HttpResponse::InternalServerError().json(InternalServerErrorJson { reason });
     }
+
+    HttpResponse::NoContent().finish()
 }
