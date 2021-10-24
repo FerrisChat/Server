@@ -77,8 +77,8 @@ pub async fn edit_channel(
     let guild_id = new_channel_obj.guild_id.clone();
 
     let event = WsOutboundEvent::ChannelUpdate {
-        old_channel: old_channel_obj,
-        new_channel: new_channel_obj.clone(),
+        old: old_channel_obj,
+        new: new_channel_obj.clone(),
     };
 
     if let Err(e) = fire_event(format!("channel_{}_{}", channel_id, guild_id), &event).await {
