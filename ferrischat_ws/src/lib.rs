@@ -285,7 +285,9 @@ pub async fn handle_ws_connection(stream: TcpStream, addr: SocketAddr) -> Result
                                     name: u.name,
                                     avatar: None,
                                     guilds: None,
-                                    flags: u.flags,
+                                    flags: ferrischat_common::types::UserFlags::from_bits_truncate(
+                                        u.flags,
+                                    ),
                                     discriminator: u.discriminator,
                                 },
                                 Err(e) => {

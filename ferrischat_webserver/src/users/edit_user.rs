@@ -2,7 +2,7 @@ use actix_web::web::Json;
 
 use actix_web::{HttpRequest, HttpResponse, Responder};
 use ferrischat_common::request_json::UserUpdateJson;
-use ferrischat_common::types::{InternalServerErrorJson, NotFoundJson, User};
+use ferrischat_common::types::{InternalServerErrorJson, NotFoundJson, User, UserFlags};
 
 use tokio::sync::oneshot::channel;
 
@@ -122,7 +122,7 @@ pub async fn edit_user(
                 name: user.name.clone(),
                 avatar: None,
                 guilds: None,
-                flags: user.flags,
+                flags: UserFlags::from_bits_truncate(user.flags),
                 discriminator: user.discriminator,
             }),
             None => HttpResponse::NotFound().json(NotFoundJson {
