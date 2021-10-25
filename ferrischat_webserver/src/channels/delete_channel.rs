@@ -23,23 +23,23 @@ pub async fn delete_channel(req: HttpRequest, _: crate::Authorization) -> impl R
     .await;
 
     let channel_obj = match resp {
-        Ok(channel) => Channel {
-            id: bigdecimal_to_u128!(channel.id),
-            guild_id: bigdecimal_to_u128!(channel.guild_id),
-            name: channel.name,
-        },
-        Err(e) => match e {
-            Error::RowNotFound => {
+        Ok(channel) => match channel {
+            Some(channel) => Channel {
+                id: bigdecimal_to_u128!(channel.id),
+                guild_id: bigdecimal_to_u128!(channel.guild_id),
+                name: channel.name,
+            },
+            None => {
                 return HttpResponse::NotFound().json(NotFoundJson {
                     message: "Channel not found".to_string(),
-                });
-            }
-            _ => {
-                return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                    reason: "Failed to delete channel".to_string(),
-                });
+                })
             }
         },
+        Err(e) => {
+            return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                reason: format!("DB returned an error: {}", e).to_string(),
+            })
+        }
     };
 
     let event = WsOutboundEvent::ChannelDelete {
