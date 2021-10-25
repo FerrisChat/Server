@@ -40,9 +40,9 @@ pub async fn delete_guild(req: HttpRequest, auth: crate::Authorization) -> impl 
                             user: None,
                             guild: None,
                         }]),
-                    };
+                    }
                 } else {
-                    return HttpResponse::Forbidden().finish();
+                    return HttpResponse::Forbidden().finish()
                 }
             }
             None => {
