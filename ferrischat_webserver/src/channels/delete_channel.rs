@@ -19,7 +19,7 @@ pub async fn delete_channel(req: HttpRequest, _: crate::Authorization) -> impl R
         bigint_channel_id,
         bigint_guild_id
     )
-    .fetch_one(db)
+    .fetch_optional(db)
     .await;
 
     let channel_obj = match resp {
