@@ -14,6 +14,7 @@ members = [
   "ferrischat_redis",
   "ferrischat_ws",
   "ferrischat_auth",
+  "ferrischat_config",
 ]
 
 [dependencies]
