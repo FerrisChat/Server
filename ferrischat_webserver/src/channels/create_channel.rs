@@ -1,3 +1,7 @@
+use crate::ws::{fire_event, WsEventError};
+
+use ferrischat_common::ws::WsOutboundEvent;
+
 use actix_web::web::Json;
 use actix_web::{HttpRequest, HttpResponse, Responder};
 use ferrischat_common::request_json::ChannelCreateJson;
@@ -22,22 +26,42 @@ pub async fn create_channel(
     let guild_id = get_item_id!(req, "guild_id");
     let bigint_guild_id = u128_to_bigdecimal!(guild_id);
 
-    match sqlx::query!(
+    let resp = sqlx::query!(
         "INSERT INTO channels VALUES ($1, $2, $3)",
         bigint_channel_id,
         name,
         bigint_guild_id
     )
     .execute(db)
-    .await
-    {
-        Ok(_) => HttpResponse::Created().json(Channel {
+    .await;
+
+    let channel_obj = match resp {
+        Ok(_) => Channel {
             id: channel_id,
             name,
             guild_id,
-        }),
-        Err(e) => HttpResponse::InternalServerError().json(InternalServerErrorJson {
-            reason: format!("DB returned a error: {}", e),
-        }),
+        },
+        Err(e) => {
+            return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                reason: format!("DB returned a error: {}", e),
+            })
+        }
+    };
+
+    let event = WsOutboundEvent::ChannelCreate {
+        channel: channel_obj.clone(),
+    };
+
+    if let Err(e) = fire_event(format!("channel_{}_{}", guild_id, channel_id), &event).await {
+        let reason = match e {
+            WsEventError::MissingRedis => "Redis pool missing".to_string(),
+            WsEventError::RedisError(e) => format!("Redis returned an error: {}", e),
+            WsEventError::JsonError(e) => {
+                format!("Failed to serialize message to JSON format: {}", e)
+            }
+        };
+        return HttpResponse::InternalServerError().json(InternalServerErrorJson { reason });
     }
+
+    HttpResponse::Created().json(channel_obj)
 }

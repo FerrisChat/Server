@@ -1,7 +1,10 @@
+use crate::ws::{fire_event, WsEventError};
+use ferrischat_common::ws::WsOutboundEvent;
+
 use actix_web::web::Json;
 use actix_web::{HttpResponse, Responder};
 use ferrischat_common::request_json::GuildCreateJson;
-use ferrischat_common::types::{Guild, InternalServerErrorJson, Member, ModelType};
+use ferrischat_common::types::{Guild, GuildFlags, InternalServerErrorJson, Member, ModelType};
 use ferrischat_snowflake_generator::generate_snowflake;
 
 /// POST /api/v0/guilds/
@@ -42,16 +45,34 @@ pub async fn create_guild(
         });
     }
 
-    HttpResponse::Created().json(Guild {
+    let guild_obj = Guild {
         id: guild_id,
         owner_id: auth.0,
         name,
         channels: None,
+        flags: GuildFlags::empty(),
         members: Some(vec![Member {
             guild_id: Some(guild_id),
             user_id: Some(auth.0),
             user: None,
             guild: None,
         }]),
-    })
+    };
+
+    let event = WsOutboundEvent::GuildCreate {
+        guild: guild_obj.clone(),
+    };
+
+    if let Err(e) = fire_event(format!("guild_{}", guild_id), &event).await {
+        let reason = match e {
+            WsEventError::MissingRedis => "Redis pool missing".to_string(),
+            WsEventError::RedisError(e) => format!("Redis returned an error: {}", e),
+            WsEventError::JsonError(e) => {
+                format!("Failed to serialize message to JSON format: {}", e)
+            }
+        };
+        return HttpResponse::InternalServerError().json(InternalServerErrorJson { reason });
+    }
+
+    HttpResponse::Created().json(guild_obj)
 }

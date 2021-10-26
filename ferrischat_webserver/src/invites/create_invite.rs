@@ -1,3 +1,6 @@
+use crate::ws::{fire_event, WsEventError};
+use ferrischat_common::ws::WsOutboundEvent;
+
 use actix_web::web::Json;
 use actix_web::{HttpRequest, HttpResponse, Responder};
 use ferrischat_common::request_json::InviteCreateJson;
@@ -61,8 +64,8 @@ pub async fn create_invite(
     .fetch_one(db)
     .await;
 
-    match resp {
-        Ok(code) => HttpResponse::Created().json(Invite {
+    let invite_obj = match resp {
+        Ok(code) => Invite {
             code: code.code,
             owner_id: owner_id,
             guild_id: guild_id,
@@ -70,9 +73,28 @@ pub async fn create_invite(
             uses: 0,
             max_uses: max_uses,
             max_age: max_age,
-        }),
-        Err(e) => HttpResponse::InternalServerError().json(InternalServerErrorJson {
-            reason: format!("DB returned an error: {}", e),
-        }),
+        },
+        Err(e) => {
+            return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                reason: format!("DB returned an error: {}", e),
+            })
+        }
+    };
+
+    let event = WsOutboundEvent::InviteCreate {
+        invite: invite_obj.clone(),
+    };
+
+    if let Err(e) = fire_event(format!("invite_{}", guild_id), &event).await {
+        let reason = match e {
+            WsEventError::MissingRedis => "Redis pool missing".to_string(),
+            WsEventError::RedisError(e) => format!("Redis returned an error: {}", e),
+            WsEventError::JsonError(e) => {
+                format!("Failed to serialize message to JSON format: {}", e)
+            }
+        };
+        return HttpResponse::InternalServerError().json(InternalServerErrorJson { reason });
     }
+
+    HttpResponse::Created().json(invite_obj)
 }

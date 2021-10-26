@@ -1,5 +1,50 @@
 {
   "db": "PostgreSQL",
+  "020df59d211e2e83232af4da346c77eae53497d3e61584adc72aa71d4781a628": {
+    "query": "DELETE FROM messages WHERE id = $1 AND channel_id = $2 RETURNING *",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 1,
+          "name": "content",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 2,
+          "name": "channel_id",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 3,
+          "name": "author_id",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 4,
+          "name": "edited_at",
+          "type_info": "Timestamp"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Numeric",
+          "Numeric"
+        ]
+      },
+      "nullable": [
+        false,
+        true,
+        false,
+        false,
+        true
+      ]
+    }
+  },
   "05a07f6b6ff0eee8f0639dfbbea2c52c67012755203424700355a733b9040a15": {
     "query": "UPDATE users SET name = $1 WHERE id = $2",
     "describe": {
@@ -53,27 +98,6 @@
       "nullable": [
         false,
         false,
-        false
-      ]
-    }
-  },
-  "1b4166a10f086ec5f39817d0182c91ed13a6d9edca320be82280d3d124f33a6f": {
-    "query": "SELECT author_id FROM messages WHERE channel_id = $1 AND id = $2",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "author_id",
-          "type_info": "Numeric"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Numeric",
-          "Numeric"
-        ]
-      },
-      "nullable": [
         false
       ]
     }
@@ -148,14 +172,34 @@
       ]
     }
   },
-  "3bfcb3e3ce3650f18cf0f61625744547910820f9d15c1cc61e371fcfce71bb3f": {
-    "query": "DELETE FROM messages WHERE id = $1 AND channel_id = $2 RETURNING (id)",
+  "38c6fe73fe078fe1853fe8ce9fbdbb66e7bf639d56985faf52193c3e953da14a": {
+    "query": "SELECT * FROM messages WHERE channel_id = $1 AND id = $2",
     "describe": {
       "columns": [
         {
           "ordinal": 0,
           "name": "id",
           "type_info": "Numeric"
+        },
+        {
+          "ordinal": 1,
+          "name": "content",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 2,
+          "name": "channel_id",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 3,
+          "name": "author_id",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 4,
+          "name": "edited_at",
+          "type_info": "Timestamp"
         }
       ],
       "parameters": {
@@ -165,7 +209,11 @@
         ]
       },
       "nullable": [
-        false
+        false,
+        true,
+        false,
+        false,
+        true
       ]
     }
   },
@@ -211,27 +259,6 @@
         false,
         false,
         true
-      ]
-    }
-  },
-  "44ee42be8640ceebc18f7708f2762c2a9828acbe1c32a03f40ed4c115f93f6f3": {
-    "query": "DELETE FROM guilds WHERE id = $1 AND owner_id = $2 RETURNING owner_id",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "owner_id",
-          "type_info": "Numeric"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Numeric",
-          "Numeric"
-        ]
-      },
-      "nullable": [
-        false
       ]
     }
   },
@@ -323,6 +350,39 @@
       ]
     }
   },
+  "674fb3c0d30264324785483db21d4f7fe2d57d876a8e58279f9d1ae585ef0ac2": {
+    "query": "DELETE FROM channels WHERE id = $1 AND guild_id = $2 RETURNING *",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 1,
+          "name": "name",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 2,
+          "name": "guild_id",
+          "type_info": "Numeric"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Numeric",
+          "Numeric"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false
+      ]
+    }
+  },
   "685b72a878b692b32b239290055c454760d780222b5c1c19ab47b5afd0b45e98": {
     "query": "UPDATE invites SET uses = $1 WHERE code = $2",
     "describe": {
@@ -347,47 +407,6 @@
         ]
       },
       "nullable": []
-    }
-  },
-  "73782a7e0b4c1fd738b0ed8823c8512c335032e9c7352401182e60520389bbe6": {
-    "query": "DELETE FROM members WHERE user_id = $1 AND guild_id = $2 RETURNING (user_id)",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "user_id",
-          "type_info": "Numeric"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Numeric",
-          "Numeric"
-        ]
-      },
-      "nullable": [
-        false
-      ]
-    }
-  },
-  "79a40009b7e09a7b443779142a8022f65c38ab7d75a362c5c1a1ab1052840234": {
-    "query": "SELECT guild_id FROM members WHERE user_id = $1",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "guild_id",
-          "type_info": "Numeric"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Numeric"
-        ]
-      },
-      "nullable": [
-        false
-      ]
     }
   },
   "7ebd0aa1d91d1a8e8aa325c7e8903ad041bb364aa95f726700a32e80cda3ed45": {
@@ -464,19 +483,6 @@
         false,
         false
       ]
-    }
-  },
-  "86234148a3053132a3bc190577cacddb256bc53022513e45e479df6808b5cee0": {
-    "query": "DELETE FROM channels WHERE id = $1 AND guild_id = $2",
-    "describe": {
-      "columns": [],
-      "parameters": {
-        "Left": [
-          "Numeric",
-          "Numeric"
-        ]
-      },
-      "nullable": []
     }
   },
   "878a86670eec24ecd8a7e1864d6edd105c177cfbab10a652a947c5491bc6c0ff": {
@@ -651,6 +657,33 @@
       ]
     }
   },
+  "ab1f6ca047080ebebc3107b8219a5048ebe635cff38b2b83c5776e4d6270cf14": {
+    "query": "DELETE FROM members WHERE user_id = $1 AND guild_id = $2 RETURNING *",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "user_id",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 1,
+          "name": "guild_id",
+          "type_info": "Numeric"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Numeric",
+          "Numeric"
+        ]
+      },
+      "nullable": [
+        false,
+        false
+      ]
+    }
+  },
   "b5f01ce2faee492d995bbac4e6a5ed069849ffe972a3e8da7b492fcdb9b06e3a": {
     "query": "SELECT user_id FROM members WHERE user_id = $1 AND guild_id = $2",
     "describe": {
@@ -695,6 +728,39 @@
       "parameters": {
         "Left": [
           "Varchar",
+          "Numeric"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false
+      ]
+    }
+  },
+  "ba3a72f721fa62128d882c31de4dd5e38a8fe29a255c39e34538a966a03141ef": {
+    "query": "DELETE FROM guilds WHERE id = $1 AND owner_id = $2 RETURNING *",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 1,
+          "name": "owner_id",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 2,
+          "name": "name",
+          "type_info": "Varchar"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Numeric",
           "Numeric"
         ]
       },

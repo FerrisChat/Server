@@ -1,5 +1,5 @@
 use actix_web::{HttpRequest, HttpResponse, Responder};
-use ferrischat_common::types::{InternalServerErrorJson, Member, NotFoundJson, User};
+use ferrischat_common::types::{InternalServerErrorJson, Member, NotFoundJson, User, UserFlags};
 
 /// GET /api/v0/guilds/{guild_id}/members/{member_id}
 pub async fn get_member(req: HttpRequest) -> impl Responder {
@@ -35,7 +35,7 @@ pub async fn get_member(req: HttpRequest) -> impl Responder {
                                 name: u.name,
                                 avatar: None,
                                 discriminator: u.discriminator,
-                                flags: u.flags,
+                                flags: UserFlags::from_bits_truncate(u.flags),
                                 guilds: None,
                             }),
                             None => None,

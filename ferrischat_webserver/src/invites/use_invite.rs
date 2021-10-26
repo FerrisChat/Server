@@ -1,5 +1,8 @@
+use crate::ws::{fire_event, WsEventError};
+use ferrischat_common::ws::WsOutboundEvent;
+
 use actix_web::{HttpRequest, HttpResponse, Responder};
-use ferrischat_common::types::InternalServerErrorJson;
+use ferrischat_common::types::{InternalServerErrorJson, Invite, Member, NotFoundJson};
 use sqlx::types::time::OffsetDateTime;
 
 const FERRIS_EPOCH: i64 = 1_577_836_800_000;
@@ -12,7 +15,7 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
                 Err(_) => {
                     return HttpResponse::BadRequest().json(InternalServerErrorJson {
                         reason: "Failed to parse invite code as String".to_string(),
-                    });
+                    })
                 }
             },
             None => {
@@ -35,7 +38,25 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
         .fetch_optional(db)
         .await;
 
-    match resp {
+    let guild_id = {
+        match resp {
+            Ok(ref resp) => match resp {
+                Some(invite) => bigdecimal_to_u128!(invite.guild_id),
+                None => {
+                    return HttpResponse::NotFound().json(NotFoundJson {
+                        message: "Invite not found.".to_string(),
+                    })
+                }
+            },
+            Err(e) => {
+                return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                    reason: format!("DB returned an error: {}", e),
+                })
+            }
+        }
+    };
+
+    let member_obj = match resp {
         Ok(resp) => match resp {
             Some(invite) => {
                 let uses = invite.uses + 1;
@@ -49,7 +70,41 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
                                 .await;
 
                         match delete_resp {
-                            Ok(_) => return HttpResponse::Gone().finish(),
+                            Ok(_) => {
+                                let invite_obj = Invite {
+                                    code: invite.code.clone(),
+                                    owner_id: bigdecimal_to_u128!(invite.owner_id),
+                                    guild_id: guild_id,
+                                    created_at: invite.created_at,
+                                    uses: uses,
+                                    max_uses: invite.max_uses,
+                                    max_age: invite.max_age,
+                                };
+
+                                let event = WsOutboundEvent::InviteDelete { invite: invite_obj };
+
+                                if let Err(e) =
+                                    fire_event(format!("invite_{}", guild_id), &event).await
+                                {
+                                    let reason = match e {
+                                        WsEventError::MissingRedis => {
+                                            "Redis pool missing".to_string()
+                                        }
+                                        WsEventError::RedisError(e) => {
+                                            format!("Redis returned an error: {}", e)
+                                        }
+                                        WsEventError::JsonError(e) => {
+                                            format!(
+                                                "Failed to serialize message to JSON format: {}",
+                                                e
+                                            )
+                                        }
+                                    };
+                                    return HttpResponse::InternalServerError()
+                                        .json(InternalServerErrorJson { reason });
+                                }
+                                return HttpResponse::Gone().finish();
+                            }
                             Err(e) => {
                                 return HttpResponse::InternalServerError().json(
                                     InternalServerErrorJson {
@@ -69,7 +124,41 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
                                 .await;
 
                         match delete_resp {
-                            Ok(_) => return HttpResponse::Gone().finish(),
+                            Ok(_) => {
+                                let invite_obj = Invite {
+                                    code: invite.code.clone(),
+                                    owner_id: bigdecimal_to_u128!(invite.owner_id),
+                                    guild_id: guild_id,
+                                    created_at: invite.created_at,
+                                    uses: invite.uses,
+                                    max_uses: invite.max_uses,
+                                    max_age: Some(max_age),
+                                };
+
+                                let event = WsOutboundEvent::InviteDelete { invite: invite_obj };
+
+                                if let Err(e) =
+                                    fire_event(format!("invite_{}", guild_id), &event).await
+                                {
+                                    let reason = match e {
+                                        WsEventError::MissingRedis => {
+                                            "Redis pool missing".to_string()
+                                        }
+                                        WsEventError::RedisError(e) => {
+                                            format!("Redis returned an error: {}", e)
+                                        }
+                                        WsEventError::JsonError(e) => {
+                                            format!(
+                                                "Failed to serialize message to JSON format: {}",
+                                                e
+                                            )
+                                        }
+                                    };
+                                    return HttpResponse::InternalServerError()
+                                        .json(InternalServerErrorJson { reason });
+                                }
+                                return HttpResponse::Gone().finish();
+                            }
                             Err(e) => {
                                 return HttpResponse::InternalServerError().json(
                                     InternalServerErrorJson {
@@ -89,14 +178,19 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
                 .execute(db)
                 .await;
 
-                match member_resp {
-                    Ok(_) => (),
+                let member_obj = match member_resp {
+                    Ok(_) => Member {
+                        user_id: Some(user_id),
+                        user: None,
+                        guild_id: Some(guild_id),
+                        guild: None,
+                    },
                     Err(e) => {
                         return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                             reason: format!("DB returned an error: {}", e),
                         })
                     }
-                }
+                };
 
                 let uses_resp = sqlx::query!(
                     "UPDATE invites SET uses = $1 WHERE code = $2",
@@ -114,17 +208,30 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
                         })
                     }
                 }
+
+                member_obj
             }
-            None => {
-                return HttpResponse::NotFound().finish();
-            }
+            None => return HttpResponse::NotFound().finish(),
         },
         Err(e) => {
             return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                 reason: format!("DB returned an error: {}", e),
-            });
+            })
         }
+    };
+
+    let event = WsOutboundEvent::MemberCreate { member: member_obj };
+
+    if let Err(e) = fire_event(format!("member_{}", guild_id), &event).await {
+        let reason = match e {
+            WsEventError::MissingRedis => "Redis pool missing".to_string(),
+            WsEventError::RedisError(e) => format!("Redis returned an error: {}", e),
+            WsEventError::JsonError(e) => {
+                format!("Failed to serialize message to JSON format: {}", e)
+            }
+        };
+        return HttpResponse::InternalServerError().json(InternalServerErrorJson { reason });
     }
 
-    return HttpResponse::Created().finish();
+    HttpResponse::Created().finish()
 }

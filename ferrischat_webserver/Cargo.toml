@@ -36,7 +36,7 @@ tokio-tungstenite = "0.15"
 simd-json = { version = "0.4", features = ["128bit"] }
 
 ferrischat_db = { path = "../ferrischat_db", version = "0.1" }
-ferrischat_common = { git = "https://github.com/FerrisChat/Common.git", version = "0.1", branch = "staging" }
+ferrischat_common = { git = "https://github.com/FerrisChat/Common.git", version = "0.1", branch = "master" }
 ferrischat_macros = { path = "../ferrischat_macros", version = "0.1" }
 ferrischat_redis = { path = "../ferrischat_redis", version = "0.1"}
 ferrischat_ws = { path = "../ferrischat_ws", version = "0.1" }

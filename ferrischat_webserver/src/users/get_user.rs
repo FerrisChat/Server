@@ -1,5 +1,7 @@
 use actix_web::{HttpRequest, HttpResponse, Responder};
-use ferrischat_common::types::{Guild, InternalServerErrorJson, NotFoundJson, User};
+use ferrischat_common::types::{
+    Guild, GuildFlags, InternalServerErrorJson, NotFoundJson, User, UserFlags,
+};
 use num_traits::cast::ToPrimitive;
 use sqlx::Error;
 
@@ -49,6 +51,7 @@ pub async fn get_user(req: HttpRequest, auth: crate::Authorization) -> impl Resp
                                             .to_u128()?,
                                         name: x.name.clone(),
                                         channels: None,
+                                        flags: GuildFlags::empty(),
                                         members: None,
                                     })
                                 })
@@ -66,7 +69,7 @@ pub async fn get_user(req: HttpRequest, auth: crate::Authorization) -> impl Resp
                     None
                 },
                 discriminator: user.discriminator,
-                flags: user.flags,
+                flags: UserFlags::from_bits_truncate(user.flags),
             }),
             None => HttpResponse::NotFound().json(NotFoundJson {
                 message: "User Not Found".to_string(),
