@@ -422,37 +422,37 @@ pub async fn handle_ws_connection(stream: TcpStream, addr: SocketAddr) -> Result
                                                     }
                                                 };
 
-                                                match outbound_message {
-                                                    WsOutboundEvent::ChannelDelete { .. } => (),
-                                                    _ => {
-                                                        match sqlx::query!(
-                                                            "SELECT guild_id FROM channels WHERE id = $1",
-                                                            u128_to_bigdecimal!(channel_id)
-                                                        )
-                                                        .fetch_one(db)
-                                                        .await
-                                                        {
-                                                            Ok(val) => {
-                                                                if val.guild_id != u128_to_bigdecimal!(guild_id) {
-                                                                    continue;
-                                                                }
-                                                            },
-                                                            Err(e) => {
-                                                                return (
-                                                                    Some(CloseFrame {
-                                                                        code: CloseCode::from(5000),
-                                                                        reason: format!(
-                                                                            "Internal database error: {}",
-                                                                            e
-                                                                        )
-                                                                        .into(),
-                                                                    }),
-                                                                    tx,
-                                                                )
-                                                            }
-                                                        }
-                                                    }
-                                                }
+                                                // match outbound_message {
+                                                //     WsOutboundEvent::ChannelDelete { .. } => (),
+                                                //     _ => {
+                                                //         match sqlx::query!(
+                                                //             "SELECT guild_id FROM channels WHERE id = $1",
+                                                //             u128_to_bigdecimal!(channel_id)
+                                                //         )
+                                                //         .fetch_one(db)
+                                                //         .await
+                                                //         {
+                                                //             Ok(val) => {
+                                                //                 if val.guild_id != u128_to_bigdecimal!(guild_id) {
+                                                //                     continue;
+                                                //                 }
+                                                //             },
+                                                //             Err(e) => {
+                                                //                 return (
+                                                //                     Some(CloseFrame {
+                                                //                         code: CloseCode::from(5000),
+                                                //                         reason: format!(
+                                                //                             "Internal database error: {}",
+                                                //                             e
+                                                //                         )
+                                                //                         .into(),
+                                                //                     }),
+                                                //                     tx,
+                                                //                 )
+                                                //             }
+                                                //         }
+                                                //     }
+                                                // }
                                                 let outbound_message =
                                                     match simd_json::to_string(&outbound_message) {
                                                         Ok(msg) => msg,
