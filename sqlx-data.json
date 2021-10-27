@@ -409,6 +409,26 @@
       "nullable": []
     }
   },
+  "79a40009b7e09a7b443779142a8022f65c38ab7d75a362c5c1a1ab1052840234": {
+    "query": "SELECT guild_id FROM members WHERE user_id = $1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "guild_id",
+          "type_info": "Numeric"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Numeric"
+        ]
+      },
+      "nullable": [
+        false
+      ]
+    }
+  },
   "7ebd0aa1d91d1a8e8aa325c7e8903ad041bb364aa95f726700a32e80cda3ed45": {
     "query": "INSERT INTO members VALUES ($1, $2)",
     "describe": {
@@ -620,6 +640,27 @@
       "nullable": [
         false,
         false,
+        false
+      ]
+    }
+  },
+  "a05f422e19e53ad66232fde951226f3c50a0c1d251996bda3e1fabe37032cfe3": {
+    "query": "SELECT guild_id FROM members WHERE user_id = $1 AND guild_id = $2",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "guild_id",
+          "type_info": "Numeric"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Numeric",
+          "Numeric"
+        ]
+      },
+      "nullable": [
         false
       ]
     }
