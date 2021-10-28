@@ -350,6 +350,19 @@
       ]
     }
   },
+  "5c421e342a8ea24dbeb049498ac50339762bc8a5dccda00f92069bacfab5f8ff": {
+    "query": "UPDATE guilds SET name = $1 WHERE id = $2",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Varchar",
+          "Numeric"
+        ]
+      },
+      "nullable": []
+    }
+  },
   "674fb3c0d30264324785483db21d4f7fe2d57d876a8e58279f9d1ae585ef0ac2": {
     "query": "DELETE FROM channels WHERE id = $1 AND guild_id = $2 RETURNING *",
     "describe": {
@@ -742,39 +755,6 @@
         ]
       },
       "nullable": [
-        false
-      ]
-    }
-  },
-  "b86ac5c8fe86bb81b45d6053d19bae177f671fd95e80c4e4bfc4459d91a85b1b": {
-    "query": "UPDATE guilds SET name = $1 WHERE id = $2 RETURNING *",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "id",
-          "type_info": "Numeric"
-        },
-        {
-          "ordinal": 1,
-          "name": "owner_id",
-          "type_info": "Numeric"
-        },
-        {
-          "ordinal": 2,
-          "name": "name",
-          "type_info": "Varchar"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Varchar",
-          "Numeric"
-        ]
-      },
-      "nullable": [
-        false,
-        false,
         false
       ]
     }

@@ -48,36 +48,51 @@ pub async fn edit_guild(
         }
     };
 
-    let resp = sqlx::query!(
-        "UPDATE guilds SET name = $1 WHERE id = $2 RETURNING *",
-        name,
-        bigint_guild_id
-    )
-    .fetch_optional(db)
-    .await;
-
-    let new_guild_obj = match resp {
-        Ok(resp) => match resp {
-            Some(guild) => Guild {
-                id: bigdecimal_to_u128!(guild.id),
-                owner_id: bigdecimal_to_u128!(guild.owner_id),
-                name: guild.name.clone(),
-                channels: None,
-                flags: GuildFlags::empty(),
-                members: None,
-            },
-            None => {
-                return HttpResponse::NotFound().json(NotFoundJson {
-                    message: "Guild not found".to_string(),
-                })
-            }
-        },
-        Err(e) => {
+    if let Some(name) = name {
+        if let Err(e) = sqlx::query!(
+            "UPDATE guilds SET name = $1 WHERE id = $2",
+            name,
+            bigint_guild_id
+        )
+        .execute(db)
+        .await
+        {
             return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                 reason: format!("DB returned an error: {}", e),
-            })
+            });
+        }
+    }
+
+    let new_guild_obj = {
+        let resp = sqlx::query!("SELECT * FROM guilds WHERE id = $1", bigint_guild_id)
+            .fetch_optional(db)
+            .await;
+        match resp {
+            Ok(resp) => match resp {
+                Some(guild) => Guild {
+                    id: bigdecimal_to_u128!(guild.id),
+                    owner_id: bigdecimal_to_u128!(guild.owner_id),
+                    name: guild.name.clone(),
+                    channels: None,
+                    flags: GuildFlags::empty(),
+                    members: None,
+                },
+                None => {
+                    return HttpResponse::NotFound().json(NotFoundJson {
+                        message: "Guild not found".to_string(),
+                    });
+                }
+            },
+            Err(e) => {
+                return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                    reason: format!("DB returned an error: {}", e),
+                });
+            }
         }
     };
+
+    // TODO: impl Eq for all types
+    // if old_guild_obj == new_guild_obj {}
 
     let event = WsOutboundEvent::GuildUpdate {
         old: old_guild_obj,
