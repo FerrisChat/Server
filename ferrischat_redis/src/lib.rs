@@ -1,5 +1,6 @@
 #![feature(once_cell)]
 
+use ferrischat_config::GLOBAL_CONFIG;
 pub use redis;
 use redis::aio::{ConnectionManager, PubSub};
 use redis::{Client, RedisResult};
@@ -7,12 +8,22 @@ use std::lazy::SyncOnceCell as OnceCell;
 use sysinfo::{ProcessExt, RefreshKind, Signal, System, SystemExt};
 
 pub static REDIS_MANAGER: OnceCell<ConnectionManager> = OnceCell::new();
-pub const REDIS_LOCATION: &str = "redis://127.0.0.1:6379/";
+pub static REDIS_LOCATION: OnceCell<String> = OnceCell::new();
 pub static NODE_ID: OnceCell<u16> = OnceCell::new();
 static NODE_SECRET: OnceCell<String> = OnceCell::new();
 
 pub async fn load_redis() -> ConnectionManager {
-    let client = Client::open(REDIS_LOCATION).expect("initial redis connection failed");
+    let cfg = GLOBAL_CONFIG
+        .get()
+        .expect("config not loaded: this is a bug");
+    REDIS_LOCATION
+        .set(format!("{}", &cfg.redis))
+        .unwrap_or_else(|| {
+            panic!("failed to set Redis database location: did you call load_redis() twice?")
+        });
+
+    let client = Client::open(REDIS_LOCATION.get().unwrap_or_else(|| unreachable!()))
+        .expect("initial redis connection failed");
     let mut manager = ConnectionManager::new(client)
         .await
         .expect("failed to open connection to Redis");
@@ -156,8 +167,12 @@ pub async fn load_redis() -> ConnectionManager {
 }
 
 pub async fn get_pubsub() -> RedisResult<PubSub> {
-    Ok(Client::open(REDIS_LOCATION)?
-        .get_tokio_connection()
-        .await?
-        .into_pubsub())
+    Ok(Client::open(
+        REDIS_LOCATION
+            .get()
+            .expect("failed to get redis location: was load_redis called before getting pubsub?"),
+    )?
+    .get_tokio_connection()
+    .await?
+    .into_pubsub())
 }
