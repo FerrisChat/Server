@@ -1,6 +1,7 @@
 #![feature(once_cell)]
 
 use serde::{Deserialize, Serialize};
+use std::fmt::{Display, Formatter};
 use std::lazy::SyncOnceCell as OnceCell;
 
 pub static GLOBAL_CONFIG: OnceCell<AppConfig> = OnceCell::new();
@@ -25,6 +26,24 @@ pub struct RedisConfig {
     pub port: u16,
     pub user: Option<String>,
     pub password: Option<String>,
+}
+
+impl Display for RedisConfig {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_str("redis://")?;
+        if let Some(ref user) = self.user {
+            f.write_str(user)?;
+        }
+        if let Some(ref password) = self.password {
+            f.write_str(":")?;
+            f.write_str(password)?;
+            f.write_str("@")?;
+        }
+        f.write_str(&*self.host)?;
+        f.write_str(":")?;
+        f.write_str(&*self.port.to_string());
+        Ok(())
+    }
 }
 
 pub fn load_config(path: std::path::PathBuf) {
