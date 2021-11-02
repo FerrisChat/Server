@@ -9,9 +9,9 @@ pub static DATABASE_POOL: OnceCell<Pool<Postgres>> = OnceCell::new();
 
 pub async fn load_db() -> Pool<Postgres> {
     let db = PgPoolOptions::new()
-        .max_connections(8_192)
-        .min_connections(32)
-        .max_lifetime(Some(Duration::from_secs(3600)))
+        .max_connections(512)
+        .min_connections(2)
+        .max_lifetime(Some(Duration::from_secs(30 * 60)))
         .connect_with(
             PgConnectOptions::new()
                 .database("ferris_chat")
