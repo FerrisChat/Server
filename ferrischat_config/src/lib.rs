@@ -3,7 +3,7 @@
 use serde::{Deserialize, Serialize};
 use std::lazy::SyncOnceCell as OnceCell;
 
-static GLOBAL_CONFIG: OnceCell<AppConfig> = OnceCell::new();
+pub static GLOBAL_CONFIG: OnceCell<AppConfig> = OnceCell::new();
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct AppConfig {
