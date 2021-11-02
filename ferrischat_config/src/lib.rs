@@ -7,24 +7,24 @@ pub static GLOBAL_CONFIG: OnceCell<AppConfig> = OnceCell::new();
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct AppConfig {
-    database: DatabaseConfig,
-    redis: RedisConfig,
+    pub database: DatabaseConfig,
+    pub redis: RedisConfig,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct DatabaseConfig {
-    host: String,
-    port: u16,
-    user: String,
-    password: String,
+    pub host: String,
+    pub port: u16,
+    pub user: String,
+    pub password: String,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct RedisConfig {
-    host: String,
-    port: u16,
-    user: Option<String>,
-    password: Option<String>,
+    pub host: String,
+    pub port: u16,
+    pub user: Option<String>,
+    pub password: Option<String>,
 }
 
 pub fn load_config(path: std::path::PathBuf) {
