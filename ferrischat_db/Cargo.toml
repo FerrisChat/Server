@@ -17,6 +17,7 @@ include = [
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+ferrischat_config = { path = "../ferrischat_config", version = "0.1.0" }
 
 [dependencies.tokio]
 version = "1.11"
