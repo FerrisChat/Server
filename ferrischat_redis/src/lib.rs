@@ -18,12 +18,17 @@ pub async fn load_redis() -> ConnectionManager {
         .expect("config not loaded: this is a bug");
     REDIS_LOCATION
         .set(format!("{}", &cfg.redis))
-        .unwrap_or_else(|| {
+        .unwrap_or_else(|_| {
             panic!("failed to set Redis database location: did you call load_redis() twice?")
         });
 
-    let client = Client::open(REDIS_LOCATION.get().unwrap_or_else(|| unreachable!()))
-        .expect("initial redis connection failed");
+    let client = Client::open(
+        REDIS_LOCATION
+            .get()
+            .unwrap_or_else(|| unreachable!())
+            .to_string(),
+    )
+    .expect("initial redis connection failed");
     let mut manager = ConnectionManager::new(client)
         .await
         .expect("failed to open connection to Redis");
@@ -170,7 +175,8 @@ pub async fn get_pubsub() -> RedisResult<PubSub> {
     Ok(Client::open(
         REDIS_LOCATION
             .get()
-            .expect("failed to get redis location: was load_redis called before getting pubsub?"),
+            .expect("failed to get redis location: was load_redis called before getting pubsub?")
+            .to_string(),
     )?
     .get_tokio_connection()
     .await?
