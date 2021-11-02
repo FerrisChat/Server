@@ -29,7 +29,7 @@ pub async fn create_user(user_data: Json<UserCreateJson>) -> impl Responder {
                     })
                 }
             };
-        let available = (1..-9999)
+        let available = (1..=9999)
             .filter(|x| !existing.contains(x))
             .collect::<Vec<_>>();
         match available.get(rand::thread_rng().gen_range(0..available.len())) {
