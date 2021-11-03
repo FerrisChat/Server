@@ -23,7 +23,7 @@ pub async fn delete_role(req: HttpRequest, _: crate::Authorization) -> impl Resp
         Ok(resp) => match resp {
             Some(role) => Role {
                 id: bigdecimal_to_u128!(role.id),
-                guild_id: bigdecimal_to_u128!(role.guild_id),
+                guild_id: bigdecimal_to_u128!(role.parent_guild),
                 name: role.name,
                 color: role.color,
                 position: role.position,
