@@ -155,8 +155,31 @@ pub async fn entrypoint() {
             .route(expand_version!("ws/info"), web::get().to(ws_info))
             // GET     /ws/connect
             .route(expand_version!("ws/connect"), web::get().to(ws_connect))
+            .route(
+                expand_version!("guilds/{guild_id}/roles"),
+                web::post().to(roles::create_role),
+            )
+            .route(
+                expand_version!("guilds/{guild_id}/roles/{role_id}"),
+                web::delete().to(roles::delete_role),
+            )
+            .route(
+                expand_version!("guilds/{guild_id}/roles/{role_id}"),
+                web::patch().to(roles::edit_role),
+            )
+            .route(
+                expand_version!("guilds/{guild_id}/roles/{role_id}"),
+                web::get().to(roles::get_role),
+            )
+            .route(
+                expand_version!("guilds/{guild_id}/members/{user_id}/role/{role_id}"),
+                web::post().to(roles::add_member_role),
+            )
+            .route(
+                expand_version!("guilds/{guild_id}/members/{user_id}/role/{role_id}"),
+                web::delete().to(roles::remove_member_role),
+            )
             .default_service(web::route().to(HttpResponse::NotFound))
-        // TODO: member and message endpoints
     })
     .bind("0.0.0.0:8080")
     .expect("failed to bind to 0.0.0.0:8080")
