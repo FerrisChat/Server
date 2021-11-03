@@ -45,6 +45,20 @@
       ]
     }
   },
+  "027e7c30c91ee3b95167286e599d4002e38388ce4b634ddf7bfe2635a18e179e": {
+    "query": "DELETE FROM role_data WHERE guild_id = $1 AND user_id = $2 AND role_id = $3",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Numeric",
+          "Numeric",
+          "Numeric"
+        ]
+      },
+      "nullable": []
+    }
+  },
   "05a07f6b6ff0eee8f0639dfbbea2c52c67012755203424700355a733b9040a15": {
     "query": "UPDATE users SET name = $1 WHERE id = $2",
     "describe": {
@@ -65,6 +79,69 @@
       "parameters": {
         "Left": [
           "Text"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "124854aa2b1f6a82e097d86d1d1e5791e53ac2d4a54e75d7125cc4b1ca4ac9cb": {
+    "query": "SELECT * FROM roles WHERE id = $1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 1,
+          "name": "name",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 2,
+          "name": "color",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 3,
+          "name": "position",
+          "type_info": "Int2"
+        },
+        {
+          "ordinal": 4,
+          "name": "permissions",
+          "type_info": "Int8"
+        },
+        {
+          "ordinal": 5,
+          "name": "parent_guild",
+          "type_info": "Numeric"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Numeric"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        true,
+        false,
+        false,
+        false
+      ]
+    }
+  },
+  "15c392265da9b768a21889aa58c8069881373a66850c498abb7227288edaa606": {
+    "query": "UPDATE roles SET position = $1 WHERE id = $2",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int2",
+          "Numeric"
         ]
       },
       "nullable": []
@@ -130,6 +207,19 @@
         true,
         true
       ]
+    }
+  },
+  "2e8ad39e8eb4fe5778326411975ba6591eab874885e8fc5dbf046af31750b47a": {
+    "query": "UPDATE roles SET permissions = $1 WHERE id = $2",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Numeric"
+        ]
+      },
+      "nullable": []
     }
   },
   "3092dad19fcff1bd8d71b87b7df9217243c9729425cf35caa2935d95e16b58be": {
@@ -294,6 +384,19 @@
       ]
     }
   },
+  "4944696bc40fdc37bc9b11ad953baf6adcea79f472342cac5b0577c7215ce24c": {
+    "query": "UPDATE roles SET color = $1 WHERE id = $2",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int4",
+          "Numeric"
+        ]
+      },
+      "nullable": []
+    }
+  },
   "4e3170cbcb6da9b1b4e4a57436334974dbc454333b32d11bd319a45e33f8fb92": {
     "query": "SELECT * FROM invites WHERE code = $1",
     "describe": {
@@ -348,6 +451,21 @@
         true,
         true
       ]
+    }
+  },
+  "5a0e77f2cb5fc2aaccc30f0a5559a4ba74d7c9a97ddc5017385880dc95dc3879": {
+    "query": "INSERT INTO role_data VALUES ($1, $2, $3, $4)",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Numeric",
+          "Numeric",
+          "Numeric",
+          "Numeric"
+        ]
+      },
+      "nullable": []
     }
   },
   "5c421e342a8ea24dbeb049498ac50339762bc8a5dccda00f92069bacfab5f8ff": {
@@ -711,6 +829,23 @@
       ]
     }
   },
+  "aa7721837cba04a42641827de9135fef077feee58cf6ebf792591992f3562a5c": {
+    "query": "INSERT INTO roles VALUES ($1, $2, $3, $4, $5, $6)",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Numeric",
+          "Varchar",
+          "Int4",
+          "Int2",
+          "Int8",
+          "Numeric"
+        ]
+      },
+      "nullable": []
+    }
+  },
   "ab1f6ca047080ebebc3107b8219a5048ebe635cff38b2b83c5776e4d6270cf14": {
     "query": "DELETE FROM members WHERE user_id = $1 AND guild_id = $2 RETURNING *",
     "describe": {
@@ -736,6 +871,19 @@
         false,
         false
       ]
+    }
+  },
+  "b49df69102c893022fe6fdc97ffb0c46c6e05ea98d587aa24ffc4bb1908bed86": {
+    "query": "UPDATE roles SET name = $1 WHERE id = $2",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Varchar",
+          "Numeric"
+        ]
+      },
+      "nullable": []
     }
   },
   "b5f01ce2faee492d995bbac4e6a5ed069849ffe972a3e8da7b492fcdb9b06e3a": {
@@ -822,6 +970,77 @@
         ]
       },
       "nullable": []
+    }
+  },
+  "c45efb245942a91f2b84cc1123d67b161814d917f4d7305e26c5a89dadc882d3": {
+    "query": "SELECT discriminator FROM users WHERE name = $1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "discriminator",
+          "type_info": "Int2"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      },
+      "nullable": [
+        false
+      ]
+    }
+  },
+  "c9ee25ec975541b2e10042d596f5b7a1776504f89eb96b65ee044b4e4cf28651": {
+    "query": "DELETE FROM roles WHERE id = $1 AND parent_guild = $2 RETURNING *",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 1,
+          "name": "name",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 2,
+          "name": "color",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 3,
+          "name": "position",
+          "type_info": "Int2"
+        },
+        {
+          "ordinal": 4,
+          "name": "permissions",
+          "type_info": "Int8"
+        },
+        {
+          "ordinal": 5,
+          "name": "parent_guild",
+          "type_info": "Numeric"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Numeric",
+          "Numeric"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        true,
+        false,
+        false,
+        false
+      ]
     }
   },
   "cd7d52edaef4025a8c2024b737574293832bd3694e650b4750bf6c6466dca96a": {
