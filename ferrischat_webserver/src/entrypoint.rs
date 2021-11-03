@@ -181,6 +181,7 @@ pub async fn entrypoint() {
             )
             .default_service(web::route().to(HttpResponse::NotFound))
     })
+    .max_connection_rate(8192)
     .bind("0.0.0.0:8080")
     .expect("failed to bind to 0.0.0.0:8080")
     .run()
