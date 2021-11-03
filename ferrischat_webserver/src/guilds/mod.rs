@@ -2,6 +2,7 @@ mod create_guild;
 mod delete_guild;
 mod edit_guild;
 mod get_guild;
+pub mod roles;
 
 pub use create_guild::*;
 pub use delete_guild::*;
