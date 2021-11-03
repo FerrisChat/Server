@@ -5,6 +5,7 @@ use ferrischat_common::ws::WsOutboundEvent;
 use actix_web::web::Json;
 
 use actix_web::{HttpRequest, HttpResponse, Responder};
+use ferrischat_common::perms::Permissions;
 use ferrischat_common::request_json::RoleUpdateJson;
 use ferrischat_common::types::{InternalServerErrorJson, NotFoundJson, Role};
 
@@ -38,7 +39,7 @@ pub async fn edit_role(
                     color: role.color,
                     position: role.position,
                     guild_id: bigdecimal_to_u128!(role.parent_guild),
-                    permissions: role.permissions,
+                    permissions: Permissions::from_bits_truncate(role.permissions),
                 },
                 None => {
                     return HttpResponse::NotFound().json(NotFoundJson {
@@ -102,7 +103,7 @@ pub async fn edit_role(
     if let Some(permissions) = permissions {
         if let Err(e) = sqlx::query!(
             "UPDATE roles SET permissions = $1 WHERE id = $2",
-            permissions,
+            permissions.bits(),
             bigint_role_id
         )
         .execute(db)
@@ -127,7 +128,7 @@ pub async fn edit_role(
                     color: role.color,
                     position: role.position,
                     guild_id: bigdecimal_to_u128!(role.parent_guild),
-                    permissions: role.permissions,
+                    permissions: Permissions::from_bits_truncate(role.permissions),
                 },
                 None => {
                     return HttpResponse::NotFound().json(NotFoundJson {

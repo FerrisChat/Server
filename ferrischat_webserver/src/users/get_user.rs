@@ -53,6 +53,7 @@ pub async fn get_user(req: HttpRequest, auth: crate::Authorization) -> impl Resp
                                         channels: None,
                                         flags: GuildFlags::empty(),
                                         members: None,
+                                        roles: None
                                     })
                                 })
                                 .collect(),

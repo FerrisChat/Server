@@ -1,5 +1,6 @@
 use crate::ws::{fire_event, WsEventError};
 use actix_web::{HttpRequest, HttpResponse, Responder};
+use ferrischat_common::perms::Permissions;
 use ferrischat_common::types::{InternalServerErrorJson, NotFoundJson, Role};
 use ferrischat_common::ws::WsOutboundEvent;
 
@@ -27,7 +28,7 @@ pub async fn delete_role(req: HttpRequest, _: crate::Authorization) -> impl Resp
                 name: role.name,
                 color: role.color,
                 position: role.position,
-                permissions: role.permissions,
+                permissions: Permissions::from_bits_truncate(role.permissions),
             },
             None => {
                 return HttpResponse::NotFound().json(NotFoundJson {

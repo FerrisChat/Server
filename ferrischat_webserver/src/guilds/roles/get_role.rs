@@ -1,4 +1,5 @@
 use actix_web::{HttpRequest, HttpResponse, Responder};
+use ferrischat_common::perms::Permissions;
 use ferrischat_common::types::{InternalServerErrorJson, NotFoundJson, Role};
 
 /// GET /api/v0/guilds/{guild_id/roles/{role_id}
@@ -17,7 +18,7 @@ pub async fn get_role(req: HttpRequest, _: crate::Authorization) -> impl Respond
                 color: role.color,
                 position: role.position,
                 guild_id: bigdecimal_to_u128!(role.parent_guild),
-                permissions: role.permissions,
+                permissions: Permissions::from_bits_truncate(role.permissions),
             }),
             None => HttpResponse::NotFound().json(NotFoundJson {
                 message: "Role Not Found".to_string(),
