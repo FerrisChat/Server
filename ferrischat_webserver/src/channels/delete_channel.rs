@@ -4,7 +4,6 @@ use ferrischat_common::ws::WsOutboundEvent;
 
 use actix_web::{HttpRequest, HttpResponse, Responder};
 use ferrischat_common::types::{Channel, InternalServerErrorJson, NotFoundJson};
-use sqlx::Error;
 
 /// DELETE /api/v0/guilds/{guild_id/channels/{channel_id}
 pub async fn delete_channel(req: HttpRequest, _: crate::Authorization) -> impl Responder {

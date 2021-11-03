@@ -8,7 +8,10 @@ pub async fn add_member_role(req: HttpRequest, _: crate::Authorization) -> impl 
     let role_id = u128_to_bigdecimal!(get_item_id!(req, "role_id"));
     let guild_id = u128_to_bigdecimal!(get_item_id!(req, "guild_id"));
     let user_id = u128_to_bigdecimal!(get_item_id!(req, "user_id"));
-    let internal_id = generate_snowflake::<0>(ModelType::InternalUse as u8, get_node_id!());
+    let internal_id = u128_to_bigdecimal!(generate_snowflake::<0>(
+        ModelType::InternalUse as u8,
+        get_node_id!()
+    ));
 
     match sqlx::query!(
         "INSERT INTO role_data VALUES ($1, $2, $3, $4)",

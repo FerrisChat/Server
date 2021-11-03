@@ -1,6 +1,6 @@
 use actix_web::{web::Json, HttpResponse, Responder};
 use ferrischat_common::request_json::UserCreateJson;
-use ferrischat_common::types::{GuildFlags, InternalServerErrorJson, ModelType, User, UserFlags};
+use ferrischat_common::types::{InternalServerErrorJson, ModelType, User, UserFlags};
 use ferrischat_snowflake_generator::generate_snowflake;
 use rand::Rng;
 use tokio::sync::oneshot::channel;

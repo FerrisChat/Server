@@ -16,7 +16,7 @@ pub async fn get_role(req: HttpRequest, _: crate::Authorization) -> impl Respond
                 name: role.name,
                 color: role.color,
                 position: role.position,
-                guild_id: bigdecimal_to_u128!(role.guild_id),
+                guild_id: bigdecimal_to_u128!(role.parent_guild),
                 permissions: role.permissions,
             }),
             None => HttpResponse::NotFound().json(NotFoundJson {

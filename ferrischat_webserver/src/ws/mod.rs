@@ -2,7 +2,6 @@ mod handler;
 mod info;
 
 use ferrischat_common::ws::WsOutboundEvent;
-use ferrischat_redis::redis::aio::ConnectionManager;
 use ferrischat_redis::redis::{AsyncCommands, RedisError};
 pub use handler::*;
 pub use info::ws_info;

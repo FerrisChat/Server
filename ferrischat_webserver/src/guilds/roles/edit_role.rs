@@ -37,7 +37,7 @@ pub async fn edit_role(
                     name: role.name.clone(),
                     color: role.color,
                     position: role.position,
-                    guild_id: bigdecimal_to_u128!(role.guild_id),
+                    guild_id: bigdecimal_to_u128!(role.parent_guild),
                     permissions: role.permissions,
                 },
                 None => {
@@ -114,7 +114,7 @@ pub async fn edit_role(
         };
     }
 
-    let old_role_obj = {
+    let new_role_obj = {
         let resp = sqlx::query!("SELECT * FROM roles WHERE id = $1", bigint_role_id)
             .fetch_optional(db)
             .await;
@@ -126,7 +126,7 @@ pub async fn edit_role(
                     name: role.name.clone(),
                     color: role.color,
                     position: role.position,
-                    guild_id: bigdecimal_to_u128!(role.guild_id),
+                    guild_id: bigdecimal_to_u128!(role.parent_guild),
                     permissions: role.permissions,
                 },
                 None => {

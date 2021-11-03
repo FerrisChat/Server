@@ -10,6 +10,6 @@ CREATE TABLE IF NOT EXISTS roles (
 CREATE TABLE IF NOT EXISTS role_data (
     internal_id numeric(39) PRIMARY KEY NOT NULL,
     guild_id numeric(39) REFERENCES guilds ON DELETE CASCADE NOT NULL,
-    user_id numeric(39) REFERENCES members ON DELETE CASCADE NOT NULL,
+    user_id numeric(39) REFERENCES users ON DELETE CASCADE NOT NULL,
     role_id numeric(39) REFERENCES roles ON DELETE CASCADE NOT NULL
 );

@@ -48,7 +48,7 @@ pub async fn create_role(
 
     let role_obj = match resp {
         Ok(_) => Role {
-            id: role,
+            id: role_id,
             name,
             color,
             position,

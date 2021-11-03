@@ -12,7 +12,7 @@ pub async fn delete_role(req: HttpRequest, _: crate::Authorization) -> impl Resp
     let bigint_guild_id = u128_to_bigdecimal!(guild_id);
 
     let resp = sqlx::query!(
-        "DELETE FROM roles WHERE id = $1 AND guild_id = $2 RETURNING *",
+        "DELETE FROM roles WHERE id = $1 AND parent_guild = $2 RETURNING *",
         bigint_role_id,
         bigint_guild_id
     )
