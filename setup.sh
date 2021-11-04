@@ -13,6 +13,7 @@ echo "Checking if Rust is installed..."
 if [[ ! $(command -v cargo &> /dev/null) ]]; then
   echo "cargo not found, installing it now..."
   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -q -y --default-toolchain nightly
+  source $HOME/.cargo/env
 fi
 
 echo "Installing build dependencies..."
