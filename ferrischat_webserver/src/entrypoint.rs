@@ -7,6 +7,7 @@ use crate::messages::*;
 use crate::not_implemented::not_implemented;
 use crate::users::*;
 use crate::ws::*;
+use actix_web::http::StatusCode;
 use actix_web::{web, App, HttpResponse, HttpServer};
 use ferrischat_auth::init_auth;
 use ferrischat_db::load_db;
@@ -178,6 +179,10 @@ pub async fn entrypoint() {
             .route(
                 expand_version!("guilds/{guild_id}/members/{user_id}/role/{role_id}"),
                 web::delete().to(roles::remove_member_role),
+            )
+            .route(
+                expand_version!("teapot"),
+                web::get().to(async || HttpResponse::new(StatusCode::IM_A_TEAPOT)),
             )
             .default_service(web::route().to(HttpResponse::NotFound))
     })
