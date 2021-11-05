@@ -14,6 +14,7 @@ wget -O "ferrischat_server" https://download.ferris.chat/FerrisChat_Server
 echo "Copying server binary to /usr/bin..."
 rm /usr/bin/ferrischat_server
 mv ferrischat_server /usr/bin
+sudo chmod +x /usr/bin/ferrischat_server
 
 echo "Restarting systemd service..."
 systemctl restart ferrischat_server
