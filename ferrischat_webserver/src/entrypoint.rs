@@ -184,6 +184,10 @@ pub async fn entrypoint() {
                 expand_version!("teapot"),
                 web::get().to(async || HttpResponse::new(StatusCode::IM_A_TEAPOT)),
             )
+            .route(
+                expand_version!("ping"),
+                web::get().to(async || HttpResponse::new(StatusCode::OK))
+            )
             .default_service(web::route().to(HttpResponse::NotFound))
     })
     .max_connections(250_000)
