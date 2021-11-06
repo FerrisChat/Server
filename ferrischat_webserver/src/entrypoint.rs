@@ -188,7 +188,7 @@ pub async fn entrypoint() {
             )
             .route(
                 expand_version!("ping"),
-                web::get().to(async || HttpResponse::new(StatusCode::OK))
+                web::get().to(async || HttpResponse::new(StatusCode::OK)),
             )
             .default_service(web::route().to(HttpResponse::NotFound))
     })
