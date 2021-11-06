@@ -19,6 +19,7 @@ include = [
 [dependencies]
 actix-web = { git = "https://github.com/actix/actix-web/" }
 actix-web-actors = { git = "https://github.com/actix/actix-web/" }
+actix-cors = "0.5.4"
 actix = { git = "https://github.com/actix/actix" }
 num-traits = "0.2"
 num-bigint = "0.3"
