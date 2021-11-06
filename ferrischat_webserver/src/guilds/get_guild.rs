@@ -106,5 +106,6 @@ pub async fn get_guild(
         flags: GuildFlags::empty(),
         channels,
         members,
+        roles: None,
     })
 }

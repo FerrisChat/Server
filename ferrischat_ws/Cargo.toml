@@ -1,7 +1,7 @@
 [package]
 name = "ferrischat_ws"
 version = "0.1.0"
-edition = "2018"
+edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -17,7 +17,7 @@ num-traits = "0.2"
 tracing = "0.1"
 
 ferrischat_redis = { path = "../ferrischat_redis" }
-ferrischat_common = { git = "https://github.com/FerrisChat/Common" }
+ferrischat_common = { git = "https://github.com/FerrisChat/Common.git", version = "0.2", branch = "master" }
 ferrischat_auth = { path = "../ferrischat_auth" }
 ferrischat_macros = { path = "../ferrischat_macros" }
 ferrischat_db = { path = "../ferrischat_db" }

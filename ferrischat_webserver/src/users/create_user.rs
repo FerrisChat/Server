@@ -1,6 +1,6 @@
 use actix_web::{web::Json, HttpResponse, Responder};
 use ferrischat_common::request_json::UserCreateJson;
-use ferrischat_common::types::{GuildFlags, InternalServerErrorJson, ModelType, User, UserFlags};
+use ferrischat_common::types::{InternalServerErrorJson, ModelType, User, UserFlags};
 use ferrischat_snowflake_generator::generate_snowflake;
 use rand::Rng;
 use tokio::sync::oneshot::channel;
@@ -15,7 +15,32 @@ pub async fn create_user(user_data: Json<UserCreateJson>) -> impl Responder {
         email,
         password,
     } = user_data.0;
-    let user_discrim: i16 = rand::thread_rng().gen_range(1..=9999);
+
+    let user_discrim = {
+        let existing: Vec<i16> =
+            match sqlx::query!("SELECT discriminator FROM users WHERE name = $1", username)
+                .fetch_all(db)
+                .await
+            {
+                Ok(r) => r.into_iter().map(|x| x.discriminator).collect(),
+                Err(e) => {
+                    return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                        reason: format!("DB returned a error: {}", e),
+                    })
+                }
+            };
+        let available = (1..=9999)
+            .filter(|x| !existing.contains(x))
+            .collect::<Vec<_>>();
+        match available.get(rand::thread_rng().gen_range(0..available.len())) {
+            Some(d) => *d,
+            None => {
+                return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                    reason: "entered unreachable code".to_string(),
+                })
+            }
+        }
+    };
 
     let hashed_password = {
         let hasher = match ferrischat_auth::GLOBAL_HASHER.get() {

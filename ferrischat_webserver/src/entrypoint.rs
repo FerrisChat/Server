@@ -7,6 +7,7 @@ use crate::messages::*;
 use crate::not_implemented::not_implemented;
 use crate::users::*;
 use crate::ws::*;
+use actix_web::http::StatusCode;
 use actix_web::middleware::cors::Cors;
 use actix_web::{web, App, HttpResponse, HttpServer};
 use ferrischat_auth::init_auth;
@@ -157,9 +158,42 @@ pub async fn entrypoint() {
             .route(expand_version!("ws/info"), web::get().to(ws_info))
             // GET     /ws/connect
             .route(expand_version!("ws/connect"), web::get().to(ws_connect))
+            .route(
+                expand_version!("guilds/{guild_id}/roles"),
+                web::post().to(roles::create_role),
+            )
+            .route(
+                expand_version!("guilds/{guild_id}/roles/{role_id}"),
+                web::delete().to(roles::delete_role),
+            )
+            .route(
+                expand_version!("guilds/{guild_id}/roles/{role_id}"),
+                web::patch().to(roles::edit_role),
+            )
+            .route(
+                expand_version!("guilds/{guild_id}/roles/{role_id}"),
+                web::get().to(roles::get_role),
+            )
+            .route(
+                expand_version!("guilds/{guild_id}/members/{user_id}/role/{role_id}"),
+                web::post().to(roles::add_member_role),
+            )
+            .route(
+                expand_version!("guilds/{guild_id}/members/{user_id}/role/{role_id}"),
+                web::delete().to(roles::remove_member_role),
+            )
+            .route(
+                expand_version!("teapot"),
+                web::get().to(async || HttpResponse::new(StatusCode::IM_A_TEAPOT)),
+            )
+            .route(
+                expand_version!("ping"),
+                web::get().to(async || HttpResponse::new(StatusCode::OK))
+            )
             .default_service(web::route().to(HttpResponse::NotFound))
-        // TODO: member and message endpoints
     })
+    .max_connections(250_000)
+    .max_connection_rate(8192)
     .bind("0.0.0.0:8080")
     .expect("failed to bind to 0.0.0.0:8080")
     .run()
