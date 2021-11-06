@@ -16,7 +16,7 @@ adduser --system fc
 
 
 echo "Downloading new binary..."
-wget -O "ferrischat_server" https://download.ferris.chat/FerrisChat_Server
+wget -O "ferrischat_server" https://downloads.ferris.chat/FerrisChat_Server
 
 echo "Copying server binary to /usr/bin..."
 rm /usr/bin/ferrischat_server
