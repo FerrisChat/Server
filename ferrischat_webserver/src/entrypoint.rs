@@ -7,8 +7,8 @@ use crate::messages::*;
 use crate::not_implemented::not_implemented;
 use crate::users::*;
 use crate::ws::*;
+use actix_cors::Cors;
 use actix_web::http::StatusCode;
-use actix_web::middleware::cors::Cors;
 use actix_web::{web, App, HttpResponse, HttpServer};
 use ferrischat_auth::init_auth;
 use ferrischat_db::load_db;
@@ -41,9 +41,11 @@ pub async fn entrypoint() {
     preload_ws().await;
     init_ws_server("0.0.0.0:8081").await;
 
+    let cors = Cors::default().allowed_origin("*");
+
     HttpServer::new(|| {
         App::new()
-            .configure(|app| Cors::for_app(app).allowed_origin("*").register())
+            .wrap(cors)
             // POST   /guilds
             .route(expand_version!("guilds"), web::post().to(create_guild))
             // GET    /guilds/{guild_id}
