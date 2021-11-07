@@ -20,7 +20,7 @@ members = [
 [dependencies]
 ferrischat_webserver = { path = "ferrischat_webserver", version = "0.1.0" }
 ferrischat_config = { path = "ferrischat_config", version = "0.1.0" }
-actix-web = { git = "https://github.com/actix/actix-web/", version = "4.0.0-beta.10"}
+actix-web = { git = "https://github.com/actix/actix-web/"}
 env_logger = "0.9"
 time = "*"
 tracing = "0.1"

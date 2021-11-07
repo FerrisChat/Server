@@ -198,5 +198,5 @@ pub async fn entrypoint() {
     .expect("failed to bind to 0.0.0.0:8080")
     .run()
     .await
-    .expect("failed to run server");
+    .expect("failed to run server")
 }
