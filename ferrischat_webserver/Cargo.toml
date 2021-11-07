@@ -17,9 +17,9 @@ include = [
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-actix-web = { git = "https://github.com/actix/actix-web/" }
+actix-web = { git = "https://github.com/actix/actix-web/", version = "4.0.0-beta.10"}
 actix-web-actors = { git = "https://github.com/actix/actix-web/" }
-actix-cors = "0.5.4"
+actix-cors = "0.6.0-beta.3"
 actix = { git = "https://github.com/actix/actix" }
 num-traits = "0.2"
 num-bigint = "0.3"
