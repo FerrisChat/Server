@@ -77,7 +77,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsHandler {
             }
         };
 
-        let mut redis_conn = match REDIS_MANAGER.get() {
+        match REDIS_MANAGER.get() {
             Some(r) => r.clone(), // safe to clone cheaply according to docs
             None => {
                 ctx.close(Some(CloseReason::from((
@@ -88,7 +88,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsHandler {
             }
         };
 
-        let s = match s {
+        match s {
             WsEventType::Text(s) => s,
             WsEventType::Ping(_) => {
                 /*

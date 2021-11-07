@@ -43,7 +43,7 @@ pub async fn entrypoint() {
 
     HttpServer::new(|| {
         App::new()
-            .wrap(Cors::default().allowed_origin("https://api.ferris.chat/"))
+            .wrap(Cors::default().allowed_origin("*"))
             // POST   /guilds
             .route(expand_version!("guilds"), web::post().to(create_guild))
             // GET    /guilds/{guild_id}
