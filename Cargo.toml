@@ -28,6 +28,6 @@ clap = "2.33"
 
 [patch.crates-io]
 actix = { git = "https://github.com/actix/actix" }
-actix-web = { git = "https://github.com/actix/actix-web/" }
+actix-web = { git = "https://github.com/actix/actix-web" }
 actix-codec = { git = "https://github.com/actix/actix-net" }
 bitflags = { git = "https://github.com/bitflags/bitflags" }
