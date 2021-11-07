@@ -43,10 +43,7 @@ pub async fn entrypoint() {
 
     HttpServer::new(|| {
         App::new()
-            .wrap(
-                Cors::default()
-                    .allowed_origin("https://api.ferris.chat/")
-            )
+            .wrap(Cors::default().allowed_origin("https://api.ferris.chat/"))
             // POST   /guilds
             .route(expand_version!("guilds"), web::post().to(create_guild))
             // GET    /guilds/{guild_id}
@@ -195,13 +192,11 @@ pub async fn entrypoint() {
             )
             .default_service(web::route().to(HttpResponse::NotFound))
     })
-        .max_connections(250_000)
-        .max_connection_rate(8192)
-        .bind("0.0.0.0:8080")
-        .expect("failed to bind to 0.0.0.0:8080")
-        .run()
-        .await
-        .expect("failed to run server");
+    .max_connections(250_000)
+    .max_connection_rate(8192)
+    .bind("0.0.0.0:8080")
+    .expect("failed to bind to 0.0.0.0:8080")
+    .run()
+    .await
+    .expect("failed to run server");
 }
-
-
