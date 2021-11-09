@@ -28,7 +28,8 @@ pub async fn get_user(req: HttpRequest, auth: crate::Authorization) -> impl Resp
                     // note the AS statements here: SQLx cannot properly infer the type due to the `INNER JOIN`
                     // the ! forces the type to `NOT NULL`
                     match sqlx::query!(
-                        r#"SELECT id AS "id!", owner_id AS "owner_id!", name AS "name!" FROM guilds INNER JOIN members m on guilds.id = m.guild_id"#
+                        r#"SELECT id AS "id!", owner_id AS "owner_id!", name AS "name!" FROM guilds INNER JOIN members m on guilds.id = m.guild_id WHERE m.user_id = $1"#,
+                        bigint_user_id
                     )
                     .fetch_all(db)
                     .await
