@@ -33,6 +33,7 @@ pub async fn edit_guild(
                     flags: GuildFlags::empty(),
                     channels: None,
                     members: None,
+                    roles: None,
                 },
                 None => {
                     return HttpResponse::NotFound().json(NotFoundJson {
@@ -76,6 +77,7 @@ pub async fn edit_guild(
                     channels: None,
                     flags: GuildFlags::empty(),
                     members: None,
+                    roles: None,
                 },
                 None => {
                     return HttpResponse::NotFound().json(NotFoundJson {

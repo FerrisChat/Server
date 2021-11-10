@@ -1,7 +1,7 @@
 [package]
 name = "ferrischat_macros"
 version = "0.1.0"
-edition = "2018"
+edition = "2021"
 description = "Macro utilities for FerrisChat"
 license = "EUPL-1.2"
 homepage = "https://ferris.chat"

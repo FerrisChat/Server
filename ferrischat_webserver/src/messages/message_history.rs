@@ -17,15 +17,15 @@ pub async fn get_message_history(
 
     let mut limit = params.limit;
 
-    if limit >= Some(9223372036854775807) {
-        limit = None;
-    }
-
     if limit < Some(0) {
         return HttpResponse::BadRequest().json(BadRequestJson {
             reason: "limit must be > 0".to_string(),
             location: None,
         });
+    }
+
+    if limit >= Some(9223372036854775807) {
+        limit = None;
     }
 
     let messages = {

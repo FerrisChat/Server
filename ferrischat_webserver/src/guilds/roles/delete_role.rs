@@ -1,36 +1,38 @@
 use crate::ws::{fire_event, WsEventError};
-
+use actix_web::{HttpRequest, HttpResponse, Responder};
+use ferrischat_common::perms::Permissions;
+use ferrischat_common::types::{InternalServerErrorJson, NotFoundJson, Role};
 use ferrischat_common::ws::WsOutboundEvent;
 
-use actix_web::{HttpRequest, HttpResponse, Responder};
-use ferrischat_common::types::{Channel, InternalServerErrorJson, NotFoundJson};
-
-/// DELETE /api/v0/guilds/{guild_id/channels/{channel_id}
-pub async fn delete_channel(req: HttpRequest, _: crate::Authorization) -> impl Responder {
+/// DELETE /api/v0/guilds/{guild_id/roles/{role_id}
+pub async fn delete_role(req: HttpRequest, _: crate::Authorization) -> impl Responder {
     let db = get_db_or_fail!();
-    let channel_id = get_item_id!(req, "channel_id");
+    let role_id = get_item_id!(req, "role_id");
     let guild_id = get_item_id!(req, "guild_id");
-    let bigint_channel_id = u128_to_bigdecimal!(channel_id);
+    let bigint_role_id = u128_to_bigdecimal!(role_id);
     let bigint_guild_id = u128_to_bigdecimal!(guild_id);
 
     let resp = sqlx::query!(
-        "DELETE FROM channels WHERE id = $1 AND guild_id = $2 RETURNING *",
-        bigint_channel_id,
+        "DELETE FROM roles WHERE id = $1 AND parent_guild = $2 RETURNING *",
+        bigint_role_id,
         bigint_guild_id
     )
     .fetch_optional(db)
     .await;
 
-    let channel_obj = match resp {
+    let role_obj = match resp {
         Ok(resp) => match resp {
-            Some(channel) => Channel {
-                id: bigdecimal_to_u128!(channel.id),
-                guild_id: bigdecimal_to_u128!(channel.guild_id),
-                name: channel.name,
+            Some(role) => Role {
+                id: bigdecimal_to_u128!(role.id),
+                guild_id: bigdecimal_to_u128!(role.parent_guild),
+                name: role.name,
+                color: role.color,
+                position: role.position,
+                permissions: Permissions::from_bits_truncate(role.permissions),
             },
             None => {
                 return HttpResponse::NotFound().json(NotFoundJson {
-                    message: "Channel not found".to_string(),
+                    message: "Role not found".to_string(),
                 })
             }
         },
@@ -41,11 +43,11 @@ pub async fn delete_channel(req: HttpRequest, _: crate::Authorization) -> impl R
         }
     };
 
-    let event = WsOutboundEvent::ChannelDelete {
-        channel: channel_obj.clone(),
+    let event = WsOutboundEvent::RoleDelete {
+        role: role_obj.clone(),
     };
 
-    if let Err(e) = fire_event(format!("channel_{}_{}", channel_id, guild_id), &event).await {
+    if let Err(e) = fire_event(format!("role_{}_{}", role_id, guild_id), &event).await {
         let reason = match e {
             WsEventError::MissingRedis => "Redis pool missing".to_string(),
             WsEventError::RedisError(e) => format!("Redis returned an error: {}", e),

@@ -8,13 +8,6 @@ else
   cd /tmp/fc_setup
 fi
 
-
-echo "Checking if Rust is installed..."
-if [[ ! $(command -v cargo &> /dev/null) ]]; then
-  echo "cargo not found, installing it now..."
-  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -q -y --default-toolchain nightly
-fi
-
 echo "Installing build dependencies..."
 apt install -y pkg-config libssl-dev libclang-dev
 
@@ -22,16 +15,13 @@ echo "Adding new user to system..."
 adduser --system fc
 
 
-echo "Cloning server repo..."
-git clone --branch develop https://github.com/FerrisChat/Server || (cd Server; git checkout develop; git pull; cd ..)
+echo "Downloading new binary..."
+wget -O "ferrischat_server" https://downloads.ferris.chat/FerrisChat_Server
 
-
-cd Server
-echo "Building server binary with optimizations..."
-SQLX_OFFLINE="true" RUSTFLAGS="-Ctarget-cpu=native --emit=asm" cargo build --release
 echo "Copying server binary to /usr/bin..."
-mv target/release/ferrischat_server /usr/bin
-
+rm /usr/bin/ferrischat_server
+mv ferrischat_server /usr/bin
+sudo chmod +x /usr/bin/ferrischat_server
 
 echo "Setting up config files..."
 mkdir /etc/ferrischat

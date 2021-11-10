@@ -1,5 +1,6 @@
 #![feature(once_cell)]
 #![feature(type_alias_impl_trait)]
+#![feature(async_closure)]
 #![deny(unsafe_code)]
 
 #[cfg(not(target_os = "linux"))]

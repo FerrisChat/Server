@@ -4,7 +4,7 @@ After=network-online.target
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/ferrischat_server --config /etc/ferrischat/config.toml
+ExecStart=/usr/bin/ferrischat_server /etc/ferrischat/config.toml
 ExecReload=/usr/bin/kill -HUP $MAINPID
 RestartSec=30
 Restart=on-failure

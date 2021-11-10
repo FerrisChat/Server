@@ -1,30 +1,49 @@
 #![feature(once_cell)]
 
 use serde::{Deserialize, Serialize};
+use std::fmt::{Display, Formatter};
 use std::lazy::SyncOnceCell as OnceCell;
 
-static GLOBAL_CONFIG: OnceCell<AppConfig> = OnceCell::new();
+pub static GLOBAL_CONFIG: OnceCell<AppConfig> = OnceCell::new();
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct AppConfig {
-    database: DatabaseConfig,
-    redis: RedisConfig,
+    pub database: DatabaseConfig,
+    pub redis: RedisConfig,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct DatabaseConfig {
-    host: String,
-    port: u16,
-    user: String,
-    password: String,
+    pub host: String,
+    pub port: u16,
+    pub user: String,
+    pub password: String,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct RedisConfig {
-    host: String,
-    port: u16,
-    user: Option<String>,
-    password: Option<String>,
+    pub host: String,
+    pub port: u16,
+    pub user: Option<String>,
+    pub password: Option<String>,
+}
+
+impl Display for RedisConfig {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_str("redis://")?;
+        if let Some(ref user) = self.user {
+            f.write_str(user)?;
+        }
+        if let Some(ref password) = self.password {
+            f.write_str(":")?;
+            f.write_str(password)?;
+            f.write_str("@")?;
+        }
+        f.write_str(&*self.host)?;
+        f.write_str(":")?;
+        f.write_str(&*self.port.to_string());
+        Ok(())
+    }
 }
 
 pub fn load_config(path: std::path::PathBuf) {

@@ -57,6 +57,7 @@ pub async fn create_guild(
             user: None,
             guild: None,
         }]),
+        roles: None,
     };
 
     let event = WsOutboundEvent::GuildCreate {
