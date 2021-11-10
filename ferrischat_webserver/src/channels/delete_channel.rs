@@ -9,14 +9,11 @@ use ferrischat_common::types::{Channel, InternalServerErrorJson, NotFoundJson};
 pub async fn delete_channel(req: HttpRequest, _: crate::Authorization) -> impl Responder {
     let db = get_db_or_fail!();
     let channel_id = get_item_id!(req, "channel_id");
-    let guild_id = get_item_id!(req, "guild_id");
     let bigint_channel_id = u128_to_bigdecimal!(channel_id);
-    let bigint_guild_id = u128_to_bigdecimal!(guild_id);
 
     let resp = sqlx::query!(
-        "DELETE FROM channels WHERE id = $1 AND guild_id = $2 RETURNING *",
+        "DELETE FROM channels WHERE id = $1 RETURNING *",
         bigint_channel_id,
-        bigint_guild_id
     )
     .fetch_optional(db)
     .await;
