@@ -1,5 +1,37 @@
 {
   "db": "PostgreSQL",
+  "01cf2aecb6b8650d8e784278bf3ba12ddaf34f60fca97eb0949205e6a65a4b9f": {
+    "query": "DELETE FROM channels WHERE id = $1 RETURNING *",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 1,
+          "name": "name",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 2,
+          "name": "guild_id",
+          "type_info": "Numeric"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Numeric"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false
+      ]
+    }
+  },
   "020df59d211e2e83232af4da346c77eae53497d3e61584adc72aa71d4781a628": {
     "query": "DELETE FROM messages WHERE id = $1 AND channel_id = $2 RETURNING *",
     "describe": {
@@ -449,39 +481,6 @@
         ]
       },
       "nullable": []
-    }
-  },
-  "674fb3c0d30264324785483db21d4f7fe2d57d876a8e58279f9d1ae585ef0ac2": {
-    "query": "DELETE FROM channels WHERE id = $1 AND guild_id = $2 RETURNING *",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "id",
-          "type_info": "Numeric"
-        },
-        {
-          "ordinal": 1,
-          "name": "name",
-          "type_info": "Varchar"
-        },
-        {
-          "ordinal": 2,
-          "name": "guild_id",
-          "type_info": "Numeric"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Numeric",
-          "Numeric"
-        ]
-      },
-      "nullable": [
-        false,
-        false,
-        false
-      ]
     }
   },
   "685b72a878b692b32b239290055c454760d780222b5c1c19ab47b5afd0b45e98": {
