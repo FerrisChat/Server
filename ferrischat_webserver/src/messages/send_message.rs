@@ -65,7 +65,7 @@ pub async fn create_message(
         });
     }
 
-    let author = match sql::query!("SELECT * FROM users WHERE id = $1", bigint_author_id)
+    let author = match sqlx::query!("SELECT * FROM users WHERE id = $1", bigint_author_id)
         .fetch_optional(db)
         .await
     {
