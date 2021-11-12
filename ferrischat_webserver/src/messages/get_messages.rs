@@ -22,7 +22,7 @@ pub async fn get_message(req: HttpRequest, _: crate::Authorization) -> impl Resp
     match resp {
         Ok(r) => match r {
             Some(m) => {
-                let author = match sql::query!("SELECT * FROM users WHERE id = $1", m.author_id)
+                let author = match sqlx::query!("SELECT * FROM users WHERE id = $1", m.author_id)
                     .fetch_optional(db)
                     .await
                 {
