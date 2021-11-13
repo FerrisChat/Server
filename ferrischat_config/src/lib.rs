@@ -41,7 +41,7 @@ impl Display for RedisConfig {
         }
         f.write_str(&*self.host)?;
         f.write_str(":")?;
-        f.write_str(&*self.port.to_string());
+        f.write_str(&*self.port.to_string())?;
         Ok(())
     }
 }
