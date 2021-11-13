@@ -74,7 +74,7 @@ pub async fn edit_channel(
         }
     };
 
-    let guild_id = new_channel_obj.guild_id.clone();
+    let guild_id = new_channel_obj.guild_id;
 
     let event = WsOutboundEvent::ChannelUpdate {
         old: old_channel_obj,
