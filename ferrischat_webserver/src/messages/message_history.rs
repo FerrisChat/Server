@@ -17,9 +17,10 @@ pub async fn get_message_history(
     let bigint_channel_id = u128_to_bigdecimal!(channel_id);
     let db = get_db_or_fail!();
 
-    let mut limit = params.limit;
-
-    let oldest_first = params.oldest_first;
+    let GetMessageHistoryParams {
+        mut limit,
+        oldest_first,
+    } = params;
 
     if limit < Some(0) {
         return HttpResponse::BadRequest().json(BadRequestJson {
