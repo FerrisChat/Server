@@ -40,9 +40,10 @@ pub async fn get_message_history(
             Ok(resp) => resp
                 .iter()
                 .filter_map(|x| {
+                    let content = std::mem::take(x.content);
                     Some(Message {
                         id: x.id.with_scale(0).into_bigint_and_exponent().0.to_u128()?,
-                        content: x.content.clone(),
+                        content,
                         channel_id: x
                             .channel_id
                             .with_scale(0)
