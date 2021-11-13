@@ -18,7 +18,7 @@ pub async fn get_message_history(
     let GetMessageHistoryParams {
         mut limit,
         oldest_first,
-    } = params;
+    } = params.0;
 
     if limit < Some(0) {
         return HttpResponse::BadRequest().json(BadRequestJson {
