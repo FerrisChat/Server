@@ -31,7 +31,7 @@ pub async fn get_message_history(
         limit = None;
     }
 
-    let mut query: &str = "";
+    let mut query: &'static str = "";
 
     if oldest_first == Some(true) {
         query = r#"SELECT m.*, (
