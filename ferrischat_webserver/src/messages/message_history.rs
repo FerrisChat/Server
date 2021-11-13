@@ -31,23 +31,30 @@ pub async fn get_message_history(
         limit = None;
     }
 
-    let mut query: &'static str = "";
-
-    if oldest_first == Some(true) {
-        query = r#"SELECT m.*, (
+    let resp = {
+        if oldest_first == Some(true) {
+            sqlx::query!(
+                r#"SELECT m.*, (
                 SELECT u.* FROM users u WHERE id = m.author_id
-            ) AS author FROM messages m WHERE channel_id = $1 ORDER BY id ASC LIMIT $2"#;
-    } else {
-        query = r#"SELECT m.*, (
-                SELECT u.* FROM users u WHERE id = m.author_id
-            ) AS author FROM messages m WHERE channel_id = $1 ORDER BY id DESC LIMIT $2"#
-    }
-
-    let messages = {
-        let resp = sqlx::query!(query, bigint_channel_id, limit)
+            ) AS author FROM messages m WHERE channel_id = $1 ORDER BY id ASC LIMIT $2"#,
+                bigint_channel_id,
+                limit
+            )
             .fetch_all(db)
-            .await;
-
+            .await
+        } else {
+            sqlx::query!(
+                r#"SELECT m.*, (
+                SELECT u.* FROM users u WHERE id = m.author_id
+            ) AS author FROM messages m WHERE channel_id = $1 ORDER BY id DESC LIMIT $2"#,
+                bigint_channel_id,
+                limit
+            )
+            .fetch_all(db)
+            .await
+        }
+    };
+    let messages = {
         match resp {
             Ok(mut resp) => resp
                 .iter_mut()
