@@ -26,6 +26,7 @@ pub async fn get_message(req: HttpRequest, _: crate::Authorization) -> impl Resp
                 content: m.content,
                 channel_id,
                 author_id: bigdecimal_to_u128!(m.author_id),
+                author: None,
                 edited_at: m.edited_at,
                 embeds: vec![],
             }),

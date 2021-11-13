@@ -64,6 +64,7 @@ pub async fn delete_message(req: HttpRequest, _: crate::Authorization) -> impl R
         content: message.content,
         edited_at: message.edited_at,
         embeds: vec![],
+        author: None,
     };
 
     let event = WsOutboundEvent::MessageDelete {
