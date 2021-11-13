@@ -70,6 +70,7 @@ pub async fn create_message(
         content: Some(content),
         channel_id,
         author_id,
+        author: None,
         edited_at: None,
         embeds: vec![],
     };

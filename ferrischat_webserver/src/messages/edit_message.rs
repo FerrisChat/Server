@@ -57,11 +57,12 @@ pub async fn edit_message(
 
                 Message {
                     id: message_id,
-                    channel_id: channel_id,
+                    channel_id,
                     author_id: bigdecimal_to_u128!(resp.author_id),
                     content: resp.content,
                     edited_at: resp.edited_at,
                     embeds: vec![],
+                    author: None,
                 }
             }
             None => {
@@ -100,11 +101,12 @@ pub async fn edit_message(
 
     let new_msg_obj = Message {
         id: message_id,
-        channel_id: channel_id,
+        channel_id,
         author_id: bigdecimal_to_u128!(message.author_id),
         content: message.content,
         edited_at: message.edited_at,
         embeds: vec![],
+        author: None,
     };
 
     let event = WsOutboundEvent::MessageUpdate {

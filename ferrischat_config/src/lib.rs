@@ -51,5 +51,7 @@ pub fn load_config(path: std::path::PathBuf) {
         std::fs::read(path).expect("failed to load config: does it exist and is readable?");
     let cfg = toml::from_slice::<AppConfig>(&cfg_bytes[..])
         .expect("config deserialization failed: make sure there's no errors/missing fields");
-    GLOBAL_CONFIG.set(cfg);
+    GLOBAL_CONFIG
+        .set(cfg)
+        .unwrap_or_else(|_| panic!("config was already loaded: did you call load_config() twice?"));
 }

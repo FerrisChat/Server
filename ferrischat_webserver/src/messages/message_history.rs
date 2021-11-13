@@ -49,12 +49,13 @@ pub async fn get_message_history(
             .await;
 
         match resp {
-            Ok(resp) => resp
-                .iter()
+            Ok(mut resp) => resp
+                .iter_mut()
                 .filter_map(|x| {
+                    let content = std::mem::take(&mut x.content);
                     Some(Message {
                         id: x.id.with_scale(0).into_bigint_and_exponent().0.to_u128()?,
-                        content: x.content.clone(),
+                        content,
                         channel_id: x
                             .channel_id
                             .with_scale(0)
@@ -67,6 +68,7 @@ pub async fn get_message_history(
                             .into_bigint_and_exponent()
                             .0
                             .to_u128()?,
+                        author: None,
                         edited_at: x.edited_at,
                         embeds: vec![],
                     })
