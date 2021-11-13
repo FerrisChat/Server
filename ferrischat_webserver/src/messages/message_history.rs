@@ -38,11 +38,11 @@ pub async fn get_message_history(
     if oldest_first == Some(true) {
         query = r#"SELECT m.*, (
                 SELECT u.* FROM users u WHERE id = m.author_id
-            ) AS author FROM messages m WHERE channel_id = $1 ORDER BY id AESC LIMIT $2"#;
+            ) AS author FROM messages m WHERE channel_id = $1 ORDER BY id ASC LIMIT $2"#;
     } else {
         query = r#"SELECT m.*, (
                 SELECT u.* FROM users u WHERE id = m.author_id
-            ) AS author FROM messages m WHERE channel_id = $1 ORDER BY id AESC LIMIT $2"#
+            ) AS author FROM messages m WHERE channel_id = $1 ORDER BY id DESC LIMIT $2"#
     }
 
     let messages = {
