@@ -1,5 +1,5 @@
 use actix_web::{HttpRequest, HttpResponse, Responder};
-use ferrischat_common::types::{InternalServerErrorJson, Message, NotFoundJson, User};
+use ferrischat_common::types::{InternalServerErrorJson, Message, NotFoundJson};
 
 /// GET /api/v0/guilds/{guild_id}/channels/{channel_id}/messages/{message_id}
 pub async fn get_message(req: HttpRequest, _: crate::Authorization) -> impl Responder {
@@ -21,39 +21,14 @@ pub async fn get_message(req: HttpRequest, _: crate::Authorization) -> impl Resp
 
     match resp {
         Ok(r) => match r {
-            Some(m) => {
-                let author = match sqlx::query!("SELECT * FROM users WHERE id = $1", m.author_id)
-                    .fetch_optional(db)
-                    .await
-                {
-                    Ok(o) => match o {
-                        Some(user) => Some(User {
-                            id: bigdecimal_to_u128!(m.author_id),
-                            name: user.name,
-                            avatar: None,
-                            guilds: None,
-                            discriminator: user.discriminator,
-                            flags: user.flags,
-                        }),
-                        None => None,
-                    },
-                    Err(e) => {
-                        return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                            reason: format!("DB returned a error: {}", e),
-                        })
-                    }
-                };
-
-                HttpResponse::Ok().json(Message {
-                    id: message_id,
-                    content: m.content,
-                    channel_id,
-                    author_id: bigdecimal_to_u128!(m.author_id),
-                    author,
-                    edited_at: m.edited_at,
-                    embeds: vec![],
-                })
-            }
+            Some(m) => HttpResponse::Ok().json(Message {
+                id: message_id,
+                content: m.content,
+                channel_id,
+                author_id: bigdecimal_to_u128!(m.author_id),
+                edited_at: m.edited_at,
+                embeds: vec![],
+            }),
             None => HttpResponse::NotFound().json(NotFoundJson {
                 message: "message not found".to_string(),
             }),

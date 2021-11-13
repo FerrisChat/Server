@@ -1,9 +1,7 @@
 use actix_web::{web::Query, HttpRequest, HttpResponse, Responder};
 
 use ferrischat_common::request_json::GetMessageHistoryParams;
-use ferrischat_common::types::{
-    BadRequestJson, InternalServerErrorJson, Message, MessageHistory, User,
-};
+use ferrischat_common::types::{BadRequestJson, InternalServerErrorJson, Message, MessageHistory};
 
 use num_traits::ToPrimitive;
 
@@ -49,6 +47,7 @@ pub async fn get_message_history(
         let resp = sqlx::query!(query, bigint_channel_id, limit)
             .fetch_all(db)
             .await;
+
         match resp {
             Ok(resp) => resp
                 .iter()
@@ -68,14 +67,6 @@ pub async fn get_message_history(
                             .into_bigint_and_exponent()
                             .0
                             .to_u128()?,
-                        author: Some(User {
-                            id: bigdecimal_to_u128!(x.author_id),
-                            name: x.author.name,
-                            avatar: None,
-                            guilds: None,
-                            discriminator: x.author.discriminator,
-                            flags: x.author.flags,
-                        }),
                         edited_at: x.edited_at,
                         embeds: vec![],
                     })
