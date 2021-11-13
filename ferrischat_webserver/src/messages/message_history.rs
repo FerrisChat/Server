@@ -19,6 +19,8 @@ pub async fn get_message_history(
 
     let mut limit = params.limit;
 
+    let oldest_first = params.oldest_first;
+
     if limit < Some(0) {
         return HttpResponse::BadRequest().json(BadRequestJson {
             reason: "limit must be > 0".to_string(),
@@ -30,16 +32,22 @@ pub async fn get_message_history(
         limit = None;
     }
 
-    let messages = {
-        let resp = sqlx::query!(
-            r#"SELECT m.*, (
+    let mut query: &str = "";
+
+    if oldest_first == Some(true) {
+        query = r#"SELECT m.*, (
                 SELECT u.* FROM users u WHERE id = m.author_id
-            ) AS author FROM messages m WHERE channel_id = $1 LIMIT $2"#,
-            bigint_channel_id,
-            limit
-        )
-        .fetch_all(db)
-        .await;
+            ) AS author FROM messages m WHERE channel_id = $1 ORDER BY id AESC LIMIT $2"#;
+    } else {
+        query = r#"SELECT m.*, (
+                SELECT u.* FROM users u WHERE id = m.author_id
+            ) AS author FROM messages m WHERE channel_id = $1 ORDER BY id AESC LIMIT $2"#
+    }
+
+    let messages = {
+        let resp = sqlx::query!(query, bigint_channel_id, limit)
+            .fetch_all(db)
+            .await;
         match resp {
             Ok(resp) => resp
                 .iter()
