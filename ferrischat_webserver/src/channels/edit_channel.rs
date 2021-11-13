@@ -27,9 +27,9 @@ pub async fn edit_channel(
 
         match resp {
             Ok(resp) => match resp {
-                Some(channel) => Channel {
+                Some(mut channel) => Channel {
                     id: bigdecimal_to_u128!(channel.id),
-                    name: channel.name.clone(),
+                    name: std::mem::take(&mut channel.name),
                     guild_id: bigdecimal_to_u128!(channel.guild_id),
                 },
                 None => {
@@ -56,9 +56,9 @@ pub async fn edit_channel(
 
     let new_channel_obj = match resp {
         Ok(resp) => match resp {
-            Some(channel) => Channel {
+            Some(mut channel) => Channel {
                 id: bigdecimal_to_u128!(channel.id),
-                name: channel.name.clone(),
+                name: std::mem::take(&mut channel.name),
                 guild_id: bigdecimal_to_u128!(channel.guild_id),
             },
             None => {
