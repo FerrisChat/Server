@@ -34,9 +34,7 @@ pub async fn get_message_history(
     let resp = {
         if oldest_first == Some(true) {
             sqlx::query!(
-                r#"SELECT m.*, (
-                SELECT u.* FROM users u WHERE id = m.author_id
-            ) AS author FROM messages m WHERE channel_id = $1 ORDER BY id ASC LIMIT $2"#,
+                "SELECT * FROM messages WHERE channel_id = $1 ORDER BY id ASC LIMIT $2",
                 bigint_channel_id,
                 limit
             )
@@ -44,9 +42,7 @@ pub async fn get_message_history(
             .await
         } else {
             sqlx::query!(
-                r#"SELECT m.*, (
-                SELECT u.* FROM users u WHERE id = m.author_id
-            ) AS author FROM messages m WHERE channel_id = $1 ORDER BY id DESC LIMIT $2"#,
+                "SELECT * FROM messages WHERE channel_id = $1 ORDER BY id DESC LIMIT $2",
                 bigint_channel_id,
                 limit
             )
