@@ -34,9 +34,7 @@ pub async fn get_message_history(
         limit = None;
     }
 
-    if offset >= Some(9223372036854775807) {
-        offset = Some(0);
-    } else if offset < Some(0) {
+    if offset >= Some(9223372036854775807) || offset < Some(0) {
         offset = Some(0);
     }
 
