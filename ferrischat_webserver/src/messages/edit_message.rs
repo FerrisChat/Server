@@ -55,15 +55,17 @@ pub async fn edit_message(
                     return HttpResponse::Forbidden().finish();
                 }
 
+                let author_id = bigdecimal_to_u128!(resp.author_id);
+
                 Message {
                     id: message_id,
                     channel_id,
-                    author_id: bigdecimal_to_u128!(resp.author_id),
+                    author_id: author_id.clone(),
                     content: resp.content,
                     edited_at: resp.edited_at,
                     embeds: vec![],
                     author: User {
-                        id: resp.author.id,
+                        id: author_id,
                         name: resp.author.name,
                         avatar: None,
                         guilds: None,

@@ -30,7 +30,7 @@ pub async fn get_message(req: HttpRequest, _: crate::Authorization) -> impl Resp
                 edited_at: m.edited_at,
                 embeds: vec![],
                 author: User {
-                    id: r.author.id,
+                    id: bigdecimal_to_u128!(r.author.id),
                     name: r.author.name,
                     avatar: None,
                     guilds: None,

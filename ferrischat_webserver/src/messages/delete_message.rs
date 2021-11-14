@@ -59,15 +59,17 @@ pub async fn delete_message(req: HttpRequest, _: crate::Authorization) -> impl R
         }
     };
 
+    let author_id = bigdecimal_to_u128!(message.author_id);
+
     let msg_obj = Message {
         id: message_id,
         channel_id,
-        author_id: bigdecimal_to_u128!(message.author_id),
+        author_id: author_id.clone(),
         content: message.content,
         edited_at: message.edited_at,
         embeds: vec![],
         author: User {
-            id: message.author.id,
+            id: author_id,
             name: message.author.name,
             avatar: None,
             guilds: None,

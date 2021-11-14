@@ -46,6 +46,14 @@ pub async fn get_message_history(
                     .iter_mut()
                     .filter_map(|x| {
                         let content = std::mem::take(&mut x.content);
+
+                        let author_id = x
+                            .author_id
+                            .with_scale(0)
+                            .into_bigint_and_exponent()
+                            .0
+                            .to_u128()?;
+
                         Some(Message {
                             id: x.id.with_scale(0).into_bigint_and_exponent().0.to_u128()?,
                             content,
@@ -55,14 +63,9 @@ pub async fn get_message_history(
                                 .into_bigint_and_exponent()
                                 .0
                                 .to_u128()?,
-                            author_id: x
-                                .author_id
-                                .with_scale(0)
-                                .into_bigint_and_exponent()
-                                .0
-                                .to_u128()?,
+                            author_id: author_id.clone(),
                             author: User {
-                                id: x.author.id,
+                                id: author_id,
                                 name: x.author.name,
                                 avatar: None,
                                 guilds: None,
@@ -95,6 +98,13 @@ pub async fn get_message_history(
                     .iter_mut()
                     .filter_map(|x| {
                         let content = std::mem::take(&mut x.content);
+                        let author_id = x
+                            .author_id
+                            .with_scale(0)
+                            .into_bigint_and_exponent()
+                            .0
+                            .to_u128()?;
+
                         Some(Message {
                             id: x.id.with_scale(0).into_bigint_and_exponent().0.to_u128()?,
                             content,
@@ -104,16 +114,11 @@ pub async fn get_message_history(
                                 .into_bigint_and_exponent()
                                 .0
                                 .to_u128()?,
-                            author_id: x
-                                .author_id
-                                .with_scale(0)
-                                .into_bigint_and_exponent()
-                                .0
-                                .to_u128()?,
+                            author_id: author_id.clone(),
                             edited_at: x.edited_at,
                             embeds: vec![],
                             author: User {
-                                id: x.author.id,
+                                id: author_id,
                                 name: x.author.name,
                                 avatar: None,
                                 guilds: None,
