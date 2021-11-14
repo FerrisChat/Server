@@ -64,6 +64,7 @@ pub async fn get_message_history(
                             author: None,
                             edited_at: x.edited_at,
                             embeds: vec![],
+                            nonce: None,
                         })
                     })
                     .collect(),
@@ -105,6 +106,7 @@ pub async fn get_message_history(
                             author: None,
                             edited_at: x.edited_at,
                             embeds: vec![],
+                            nonce: None,
                         })
                     })
                     .collect(),
