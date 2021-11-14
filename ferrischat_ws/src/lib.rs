@@ -858,7 +858,7 @@ pub async fn init_ws_server<T: tokio::net::ToSocketAddrs>(addr: T) {
     ))
     .expect("failed to parse cert file");
     let privkeys =
-        tokio_rustls::rustls::internal::pemfile::rsa_private_keys(&mut std::io::BufReader::new(
+        tokio_rustls::rustls::internal::pemfile::pkcs8_private_keys(&mut std::io::BufReader::new(
             std::fs::File::open(private_key_file).expect("failed to open privkey file"),
         ))
         .expect("failed to parse privkey file");
