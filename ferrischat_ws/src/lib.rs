@@ -311,13 +311,13 @@ pub async fn handle_ws_connection(
                                                                 .with_scale(0)
                                                                 .into_bigint_and_exponent()
                                                                 .0
-                                                                .to_u128()?,
+                                                                .to_u128(),
                                                             owner_id: x
                                                                 .owner_id
                                                                 .with_scale(0)
                                                                 .into_bigint_and_exponent()
                                                                 .0
-                                                                .to_u128()?,
+                                                                .to_u128(),
                                                             name: x.name.clone(),
                                                             channels: {
                                                                 let resp = sqlx::query!(
@@ -371,7 +371,7 @@ pub async fn handle_ws_connection(
                                                                                         .to_u128()?,
                                                                                 ),
                                                                                 user: None,
-                                                                                guild_id: x.guild_id.with_scale(0).into_bigint_and_exponent().0.to_u128()?,
+                                                                                guild_id: x.guild_id.with_scale(0).into_bigint_and_exponent().0.to_u128(),
                                                                                 guild: None,
                                                                             })
                                                                         })
