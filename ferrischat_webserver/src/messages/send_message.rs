@@ -75,7 +75,7 @@ pub async fn create_message(
 
         match resp {
             Ok(r) => User {
-                id: r.id,
+                id: bigdecimal_to_u128!(r.id),
                 name: r.name,
                 avatar: None,
                 guilds: None,

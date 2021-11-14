@@ -119,14 +119,14 @@ pub async fn get_message_history(
                             author_id: author_id.clone(),
                             edited_at: x.edited_at,
                             embeds: vec![],
-                            author: User {
+                            author: Some(User {
                                 id: author_id,
                                 name: x.author.name,
                                 avatar: None,
                                 guilds: None,
                                 flags: UserFlags::from_bits_truncate(x.author.flags),
                                 discriminator: x.author.discriminator,
-                            },
+                            }),
                             nonce: None,
                         })
                     })

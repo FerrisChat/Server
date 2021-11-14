@@ -12,7 +12,7 @@ pub async fn get_message(req: HttpRequest, _: crate::Authorization) -> impl Resp
     let db = get_db_or_fail!();
 
     let resp = sqlx::query!(
-        "SELECT m.*, a.name AS author_name, a.flags AS author_flags, a.discriminator AS author_discrimator FROM messages m CROSS JOIN (SELECT * FROM users WHERE id = m.author_id) as a WHERE channel_id = $1 ORDER BY id ASC LIMIT $2",
+        "SELECT m.*, a.name AS author_name, a.flags AS author_flags, a.discriminator AS author_discrimator FROM messages m CROSS JOIN (SELECT * FROM users WHERE id = m.author_id) AS a WHERE m.message_id = $1 AND m.channel_id = $2",
         bigint_message_id,
         bigint_channel_id,
     )
