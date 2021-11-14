@@ -304,20 +304,36 @@ pub async fn handle_ws_connection(
                                             Ok(d) => {
                                                 let mut guilds = Vec::with_capacity(d.len());
                                                 for x in d {
+                                                    let id;
+                                                    let owner_id;
+
+                                                    let id_ =
+                                                        x.id.clone()
+                                                            .with_scale(0)
+                                                            .into_bigint_and_exponent()
+                                                            .0
+                                                            .to_u128();
+
+                                                    id = match id_ {
+                                                        Some(id) => id,
+                                                        None => continue,
+                                                    };
+
+                                                    let owner_id_ = x
+                                                        .owner_id
+                                                        .with_scale(0)
+                                                        .into_bigint_and_exponent()
+                                                        .0
+                                                        .to_u128();
+
+                                                    owner_id = match owner_id_ {
+                                                        Some(owner_id) => owner_id,
+                                                        None => continue,
+                                                    };
+
                                                     let g = ferrischat_common::types::Guild {
-                                                            id: x
-                                                                .id
-                                                                .clone()
-                                                                .with_scale(0)
-                                                                .into_bigint_and_exponent()
-                                                                .0
-                                                                .to_u128(),
-                                                            owner_id: x
-                                                                .owner_id
-                                                                .with_scale(0)
-                                                                .into_bigint_and_exponent()
-                                                                .0
-                                                                .to_u128(),
+                                                            id: id,
+                                                            owner_id: owner_id,
                                                             name: x.name.clone(),
                                                             channels: {
                                                                 let resp = sqlx::query!(
