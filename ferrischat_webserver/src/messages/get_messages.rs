@@ -25,23 +25,23 @@ pub async fn get_message(req: HttpRequest, _: crate::Authorization) -> impl Resp
                 let author_id = bigdecimal_to_u128!(m.author_id);
 
                 HttpResponse::Ok().json(Message {
-                id: message_id,
-                content: m.content,
-                channel_id,
-                author_id: author_id.clone(),
-                edited_at: m.edited_at,
-                embeds: vec![],
-                author: Some(User {
-                    id: author_id,
-                    name: r.author_name,
-                    avatar: None,
-                    guilds: None,
-                    flags: UserFlags::from_bits_truncate(r.author_flags),
-                    discriminator: r.author_discriminator,
-                }),
-                nonce: None,
-            })
-            },
+                    id: message_id,
+                    content: m.content,
+                    channel_id,
+                    author_id: author_id.clone(),
+                    edited_at: m.edited_at,
+                    embeds: vec![],
+                    author: Some(User {
+                        id: author_id,
+                        name: r.author_name,
+                        avatar: None,
+                        guilds: None,
+                        flags: UserFlags::from_bits_truncate(r.author_flags),
+                        discriminator: r.author_discriminator,
+                    }),
+                    nonce: None,
+                })
+            }
             None => HttpResponse::NotFound().json(NotFoundJson {
                 message: "message not found".to_string(),
             }),

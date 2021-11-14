@@ -1,7 +1,9 @@
 use actix_web::{web::Query, HttpRequest, HttpResponse, Responder};
 
 use ferrischat_common::request_json::GetMessageHistoryParams;
-use ferrischat_common::types::{BadRequestJson, InternalServerErrorJson, Message, MessageHistory, User, UserFlags};
+use ferrischat_common::types::{
+    BadRequestJson, InternalServerErrorJson, Message, MessageHistory, User, UserFlags,
+};
 
 use num_traits::ToPrimitive;
 
