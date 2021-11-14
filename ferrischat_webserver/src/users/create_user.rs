@@ -93,8 +93,19 @@ pub async fn create_user(user_data: Json<UserCreateJson>) -> impl Responder {
             flags: UserFlags::empty(),
             discriminator: user_discrim,
         }),
-        Err(e) => HttpResponse::InternalServerError().json(InternalServerErrorJson {
-            reason: format!("DB returned a error: {}", e),
-        }),
+        Err(e) => match e {
+            sqlx::Error::Database(e) => {
+                if e.code() == Some("23505".into()) {
+                    HttpResponse::Conflict().finish()
+                } else {
+                    HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                        reason: format!("DB returned a error: {}", e),
+                    })
+                }
+            }
+            _ => HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                reason: format!("DB returned a error: {}", e),
+            }),
+        },
     }
 }

@@ -13,7 +13,7 @@ pub async fn add_member_role(req: HttpRequest, _: crate::Authorization) -> impl 
         get_node_id!()
     ));
 
-    match sqlx::query!(
+    let resp = match sqlx::query!(
         "INSERT INTO role_data VALUES ($1, $2, $3, $4)",
         internal_id,
         guild_id,
@@ -27,5 +27,7 @@ pub async fn add_member_role(req: HttpRequest, _: crate::Authorization) -> impl 
         Err(e) => HttpResponse::InternalServerError().json(InternalServerErrorJson {
             reason: format!("database returned a error: {}", e),
         }),
-    }
+    };
+
+    resp
 }

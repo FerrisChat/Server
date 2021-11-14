@@ -27,7 +27,7 @@ pub async fn create_role(
 
     let name = name.unwrap_or_else(|| String::from("new role"));
     let position = position.unwrap_or(0);
-    permissions.unwrap_or(Permissions::empty());
+    let permissions = permissions.unwrap_or(Permissions::empty());
 
     let node_id = get_node_id!();
     let role_id = generate_snowflake::<0>(ModelType::Role as u8, node_id);
@@ -35,7 +35,6 @@ pub async fn create_role(
 
     let guild_id = get_item_id!(req, "guild_id");
     let bigint_guild_id = u128_to_bigdecimal!(guild_id);
-    let permissions = Permissions::empty();
 
     let resp = sqlx::query!(
         "INSERT INTO roles VALUES ($1, $2, $3, $4, $5, $6)",
