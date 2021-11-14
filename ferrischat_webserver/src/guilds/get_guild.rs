@@ -86,7 +86,7 @@ pub async fn get_guild(
                         user_id: Some(user_id),
                         user: Some(User {
                             id: user_id,
-                            name: x.name,
+                            name: x.name.clone(),
                             avatar: None,
                             guilds: None,
                             flags: UserFlags::from_bits_truncate(x.flags),
