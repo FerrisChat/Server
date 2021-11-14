@@ -6,7 +6,7 @@ use actix_web::web::Json;
 
 use actix_web::{HttpRequest, HttpResponse, Responder};
 use ferrischat_common::request_json::MessageUpdateJson;
-use ferrischat_common::types::{InternalServerErrorJson, Message, NotFoundJson};
+use ferrischat_common::types::{InternalServerErrorJson, Message, NotFoundJson, User, UserFlags};
 
 pub async fn edit_message(
     req: HttpRequest,
@@ -40,7 +40,7 @@ pub async fn edit_message(
     };
 
     let old_message = sqlx::query!(
-        "SELECT * FROM messages WHERE channel_id = $1 AND id = $2",
+        "SELECT m.*, (SELECT u.* FROM users u WHERE id = m.author_id) AS author FROM messages m WHERE id = $1 AND channel_id = $2",
         bigint_channel_id,
         bigint_message_id
     )
@@ -62,6 +62,14 @@ pub async fn edit_message(
                     content: resp.content,
                     edited_at: resp.edited_at,
                     embeds: vec![],
+                    author: User {
+                        id: resp.author.id,
+                        name: resp.author.name,
+                        avatar: None,
+                        guilds: None,
+                        flags: UserFlags::from_bits_truncate(resp.author.flags),
+                        discriminator: resp.author.discriminator,
+                    },
                 }
             }
             None => {
