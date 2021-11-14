@@ -852,7 +852,7 @@ pub async fn init_ws_server<T: tokio::net::ToSocketAddrs>(addr: T) {
     let ferrischat_config::TlsConfig {
         private_key_file,
         certificate_file,
-    } = cfg.tls;
+    } = &cfg.tls;
 
     let certs = tokio_rustls::rustls::internal::pemfile::certs(&mut std::io::BufReader::new(
         std::fs::File::open(certificate_file).expect("failed to open cert file"),
