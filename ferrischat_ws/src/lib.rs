@@ -357,7 +357,7 @@ pub async fn handle_ws_connection(
                                                                         })
                                                                         .collect(),
                                                                     Err(e) => {
-                                                                        (&mut closer_tx).send(Some(CloseFrame {
+                                                                        (&closer_tx).send(Some(CloseFrame {
                                                                             code: CloseCode::from(5000),
                                                                             reason: format!("Internal database error: {}", e).into(),
                                                                         }));
@@ -390,7 +390,7 @@ pub async fn handle_ws_connection(
                                                                         })
                                                                         .collect(),
                                                                     Err(e) => {
-                                                                        (&mut closer_tx).send(Some(CloseFrame {
+                                                                        (&closer_tx).send(Some(CloseFrame {
                                                                             code: CloseCode::from(5000),
                                                                             reason: format!("Internal database error: {}", e).into(),
                                                                         }));
