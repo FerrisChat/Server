@@ -2,7 +2,9 @@ use crate::ws::{fire_event, WsEventError};
 use ferrischat_common::ws::WsOutboundEvent;
 
 use actix_web::{HttpRequest, HttpResponse, Responder};
-use ferrischat_common::types::{InternalServerErrorJson, Invite, Member, NotFoundJson};
+use ferrischat_common::types::{
+    InternalServerErrorJson, Invite, Member, NotFoundJson, User, UserFlags,
+};
 use sqlx::types::time::OffsetDateTime;
 
 const FERRIS_EPOCH: i64 = 1_577_836_800_000;
@@ -181,7 +183,32 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
                 let member_obj = match member_resp {
                     Ok(_) => Member {
                         user_id: Some(user_id),
-                        user: None,
+                        user: match sqlx::query!(
+                            "SELECT * FROM users WHERE id = $1",
+                            bigint_user_id
+                        )
+                        .fetch_optional(db)
+                        .await
+                        {
+                            Ok(o) => match o {
+                                Some(u) => Some(User {
+                                    id: user_id,
+                                    name: u.name.clone(),
+                                    avatar: None,
+                                    guilds: None,
+                                    flags: UserFlags::from_bits_truncate(u.flags),
+                                    discriminator: u.discriminator,
+                                }),
+                                None => None,
+                            },
+                            Err(e) => {
+                                return HttpResponse::InternalServerError().json(
+                                    InternalServerErrorJson {
+                                        reason: format!("DB returned an error: {}", e),
+                                    },
+                                )
+                            }
+                        },
                         guild_id: Some(guild_id),
                         guild: None,
                     },
