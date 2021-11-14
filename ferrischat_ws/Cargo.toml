@@ -22,6 +22,7 @@ ferrischat_common = { git = "https://github.com/FerrisChat/Common.git", version 
 ferrischat_auth = { path = "../ferrischat_auth" }
 ferrischat_macros = { path = "../ferrischat_macros" }
 ferrischat_db = { path = "../ferrischat_db" }
+ferrischat_config = { path = "../ferrischat_config" }
 
 [dependencies.tokio]
 version = "1.11"

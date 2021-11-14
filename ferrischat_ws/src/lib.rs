@@ -846,13 +846,21 @@ pub async fn init_ws_server<T: tokio::net::ToSocketAddrs>(addr: T) {
         Result(tokio::io::Result<T>),
     }
 
+    let cfg = ferrischat_config::GLOBAL_CONFIG
+        .get()
+        .expect("config not loaded! call load_config before websocket setup");
+    let ferrischat_config::TlsConfig {
+        private_key_file,
+        certificate_file,
+    } = cfg.tls;
+
     let certs = tokio_rustls::rustls::internal::pemfile::certs(&mut std::io::BufReader::new(
-        std::fs::File::open(cert_file).expect("failed to open cert file"),
+        std::fs::File::open(certificate_file).expect("failed to open cert file"),
     ))
     .expect("failed to parse cert file");
     let privkeys =
         tokio_rustls::rustls::internal::pemfile::rsa_private_keys(&mut std::io::BufReader::new(
-            std::fs::File::open(cert_file).expect("failed to open privkey file"),
+            std::fs::File::open(private_key_file).expect("failed to open privkey file"),
         ))
         .expect("failed to parse privkey file");
     let mut tls_config =

@@ -10,6 +10,7 @@ pub static GLOBAL_CONFIG: OnceCell<AppConfig> = OnceCell::new();
 pub struct AppConfig {
     pub database: DatabaseConfig,
     pub redis: RedisConfig,
+    pub tls: TlsConfig,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -26,6 +27,12 @@ pub struct RedisConfig {
     pub port: u16,
     pub user: Option<String>,
     pub password: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct TlsConfig {
+    pub private_key_file: String,
+    pub certificate_file: String,
 }
 
 impl Display for RedisConfig {
