@@ -20,7 +20,7 @@ pub async fn get_message_history(
     let GetMessageHistoryParams {
         mut limit,
         oldest_first,
-        offset,
+        mut offset,
     } = params.0;
 
     if limit < Some(0) {
