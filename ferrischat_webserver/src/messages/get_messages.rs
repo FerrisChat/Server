@@ -29,7 +29,6 @@ pub async fn get_message(req: HttpRequest, _: crate::Authorization) -> impl Resp
                 author: None,
                 edited_at: m.edited_at,
                 embeds: vec![],
-<<<<<<< HEAD
                 author: User {
                     id: r.author.id,
                     name: r.author.name,
@@ -38,9 +37,7 @@ pub async fn get_message(req: HttpRequest, _: crate::Authorization) -> impl Resp
                     flags: UserFlags::from_bits_truncate(r.author.flags),
                     discriminator: r.author.discriminator,
                 },
-=======
                 nonce: None,
->>>>>>> 5f44555172705db75b9bd952972409db2dbf519c
             }),
             None => HttpResponse::NotFound().json(NotFoundJson {
                 message: "message not found".to_string(),
