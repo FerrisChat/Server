@@ -304,9 +304,6 @@ pub async fn handle_ws_connection(
                                             Ok(d) => {
                                                 let mut guilds = Vec::with_capacity(d.len());
                                                 for x in d {
-                                                    let id;
-                                                    let owner_id;
-
                                                     let id_ =
                                                         x.id.clone()
                                                             .with_scale(0)
@@ -314,7 +311,7 @@ pub async fn handle_ws_connection(
                                                             .0
                                                             .to_u128();
 
-                                                    id = match id_ {
+                                                    let id = match id_ {
                                                         Some(id) => id,
                                                         None => continue,
                                                     };
@@ -326,7 +323,7 @@ pub async fn handle_ws_connection(
                                                         .0
                                                         .to_u128();
 
-                                                    owner_id = match owner_id_ {
+                                                    let owner_id = match owner_id_ {
                                                         Some(owner_id) => owner_id,
                                                         None => continue,
                                                     };
