@@ -68,7 +68,7 @@ pub async fn get_guild(
     };
 
     let members = if params.members.unwrap_or(false) {
-        let resp = sqlx::query!("SELECT m.*, u.name AS name, u.flags AS flags, u.discriminator AS discriminator FROM members m CROSS JOIN LATERAL (SELECT * FROM users WHERE id = m.id) as u WHERE guild_id = $1", bigint_guild_id)
+        let resp = sqlx::query!("SELECT m.*, u.name AS name, u.flags AS flags, u.discriminator AS discriminator FROM members m CROSS JOIN LATERAL (SELECT * FROM users WHERE id = m.user_id) as u WHERE guild_id = $1", bigint_guild_id)
             .fetch_all(db)
             .await;
         Some(match resp {
