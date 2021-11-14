@@ -40,7 +40,7 @@ pub async fn edit_message(
     };
 
     let old_message = sqlx::query!(
-        "SELECT m.*, a.name AS author_name, a.flags AS author_flags, a.discriminator AS author_discrimator FROM messages m CROSS JOIN (SELECT * FROM users WHERE id = m.author_id) as a WHERE channel_id = $1",
+        "SELECT m.*, a.name AS author_name, a.flags AS author_flags, a.discriminator AS author_discrimator FROM messages m CROSS JOIN (SELECT * FROM users WHERE id = m.author_id) AS a WHERE m.message_id = $1 AND m.channel_id = $2",
         bigint_channel_id,
         bigint_message_id
     )
