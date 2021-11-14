@@ -20,7 +20,7 @@ pub async fn create_message(
         return HttpResponse::BadRequest().json(BadRequestJson {
             reason: "message content size must be fewer than 10,240 bytes".to_string(),
             location: None,
-        });
+        })
     }
 
     let channel_id = get_item_id!(req, "channel_id");
@@ -75,12 +75,12 @@ pub async fn create_message(
 
         match resp {
             Ok(r) => User {
-                id: r.author.id,
-                name: r.author.name,
+                id: r.id,
+                name: r.name,
                 avatar: None,
                 guilds: None,
-                flags: UserFlags::from_bits_truncate(r.author.flags),
-                discriminator: r.author.discriminator,
+                flags: UserFlags::from_bits_truncate(r.flags),
+                discriminator: r.discriminator,
             },
             Err(e) => {
                 return HttpResponse::InternalServerError().json(InternalServerErrorJson {
@@ -95,7 +95,7 @@ pub async fn create_message(
         content: Some(content),
         channel_id,
         author_id,
-        author,
+        Some(author),
         edited_at: None,
         embeds: vec![],
         nonce,

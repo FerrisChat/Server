@@ -35,7 +35,7 @@ pub async fn delete_message(req: HttpRequest, _: crate::Authorization) -> impl R
 
     let message = {
         let resp = sqlx::query!(
-            "SELECT m.*, (SELECT u.* FROM users u WHERE id = m.author_id) AS author FROM messages m WHERE id = $1 AND channel_id = $2",
+            "SELECT m.*, a.name AS author_name, a.flags AS author_flags, a.discriminator AS author_discrimator FROM messages m CROSS JOIN (SELECT * FROM users WHERE id = m.author_id) as a WHERE channel_id = $1 ORDER BY id ASC LIMIT $2",
             bigint_message_id,
             bigint_channel_id,
         )
@@ -68,14 +68,14 @@ pub async fn delete_message(req: HttpRequest, _: crate::Authorization) -> impl R
         content: message.content,
         edited_at: message.edited_at,
         embeds: vec![],
-        author: User {
+        author: Some(User {
             id: author_id,
-            name: message.author.name,
+            name: message.author_name,
             avatar: None,
             guilds: None,
-            flags: UserFlags::from_bits_truncate(message.author.flags),
-            discriminator: message.author.discriminator,
-        },
+            flags: UserFlags::from_bits_truncate(message.author_flags),
+            discriminator: message.author_discriminator,
+        }),
         nonce: None,
     };
 

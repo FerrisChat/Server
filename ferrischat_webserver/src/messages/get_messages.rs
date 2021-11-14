@@ -12,7 +12,7 @@ pub async fn get_message(req: HttpRequest, _: crate::Authorization) -> impl Resp
     let db = get_db_or_fail!();
 
     let resp = sqlx::query!(
-        "SELECT m.*, (SELECT u.* FROM users u WHERE id = m.author_id) AS author FROM messages m WHERE id = $1 AND channel_id = $2",
+        "SELECT m.*, a.name AS author_name, a.flags AS author_flags, a.discriminator AS author_discrimator FROM messages m CROSS JOIN (SELECT * FROM users WHERE id = m.author_id) as a WHERE channel_id = $1 ORDER BY id ASC LIMIT $2",
         bigint_message_id,
         bigint_channel_id,
     )
@@ -21,24 +21,27 @@ pub async fn get_message(req: HttpRequest, _: crate::Authorization) -> impl Resp
 
     match resp {
         Ok(r) => match r {
-            Some(m) => HttpResponse::Ok().json(Message {
+            Some(m) => {
+                let author_id = bigdecimal_to_u128!(m.author_id);
+
+                HttpResponse::Ok().json(Message {
                 id: message_id,
                 content: m.content,
                 channel_id,
-                author_id: bigdecimal_to_u128!(m.author_id),
-                author: None,
+                author_id: author_id.clone(),
                 edited_at: m.edited_at,
                 embeds: vec![],
-                author: User {
-                    id: bigdecimal_to_u128!(r.author.id),
-                    name: r.author.name,
+                author: Some(User {
+                    id: author_id,
+                    name: r.author_name,
                     avatar: None,
                     guilds: None,
-                    flags: UserFlags::from_bits_truncate(r.author.flags),
-                    discriminator: r.author.discriminator,
-                },
+                    flags: UserFlags::from_bits_truncate(r.author_flags),
+                    discriminator: r.author_discriminator,
+                }),
                 nonce: None,
-            }),
+            })
+            },
             None => HttpResponse::NotFound().json(NotFoundJson {
                 message: "message not found".to_string(),
             }),

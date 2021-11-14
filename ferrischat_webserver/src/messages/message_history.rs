@@ -1,7 +1,7 @@
 use actix_web::{web::Query, HttpRequest, HttpResponse, Responder};
 
 use ferrischat_common::request_json::GetMessageHistoryParams;
-use ferrischat_common::types::{BadRequestJson, InternalServerErrorJson, Message, MessageHistory};
+use ferrischat_common::types::{BadRequestJson, InternalServerErrorJson, Message, MessageHistory, User, UserFlags};
 
 use num_traits::ToPrimitive;
 
@@ -34,7 +34,7 @@ pub async fn get_message_history(
     let messages = {
         if oldest_first == Some(true) {
             let resp = sqlx::query!(
-                "SELECT m.*, (SELECT u.* FROM users u WHERE id = m.author_id) AS author FROM messages m WHERE channel_id = $1 ORDER BY id ASC LIMIT $2",
+                "SELECT m.*, a.name AS author_name, a.flags AS author_flags, a.discriminator AS author_discrimator FROM messages m CROSS JOIN (SELECT * FROM users WHERE id = m.author_id) as a WHERE channel_id = $1 ORDER BY id ASC LIMIT $2",
                 bigint_channel_id,
                 limit
             )
@@ -64,14 +64,14 @@ pub async fn get_message_history(
                                 .0
                                 .to_u128()?,
                             author_id: author_id.clone(),
-                            author: User {
+                            author: Some(User {
                                 id: author_id,
-                                name: x.author.name,
+                                name: x.author_name,
                                 avatar: None,
                                 guilds: None,
-                                flags: UserFlags::from_bits_truncate(x.author.flags),
-                                discriminator: x.author.discriminator,
-                            },
+                                flags: UserFlags::from_bits_truncate(x.author_flags),
+                                discriminator: x.author_discriminator,
+                            }),
                             edited_at: x.edited_at,
                             embeds: vec![],
                             nonce: None,
