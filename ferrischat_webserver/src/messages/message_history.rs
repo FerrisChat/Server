@@ -20,6 +20,7 @@ pub async fn get_message_history(
     let GetMessageHistoryParams {
         mut limit,
         oldest_first,
+        offset,
     } = params.0;
 
     if limit < Some(0) {
@@ -33,12 +34,19 @@ pub async fn get_message_history(
         limit = None;
     }
 
+    if offset >= Some(9223372036854775807) {
+        offset = Some(0);
+    } else if offset < Some(0) {
+        offset = Some(0);
+    }
+
     let messages = {
         if oldest_first == Some(true) {
             let resp = sqlx::query!(
-                "SELECT m.*, a.name AS author_name, a.flags AS author_flags, a.discriminator AS author_discriminator FROM messages m CROSS JOIN LATERAL (SELECT * FROM users WHERE id = m.author_id) as a WHERE channel_id = $1 ORDER BY id ASC LIMIT $2",
+                "SELECT m.*, a.name AS author_name, a.flags AS author_flags, a.discriminator AS author_discriminator FROM messages m CROSS JOIN LATERAL (SELECT * FROM users WHERE id = m.author_id) as a WHERE channel_id = $1 ORDER BY id ASC LIMIT $2 OFFSET $3",
                 bigint_channel_id,
-                limit
+                limit,
+                offset,
             )
             .fetch_all(db)
             .await;
@@ -88,9 +96,10 @@ pub async fn get_message_history(
             }
         } else {
             let resp = sqlx::query!(
-                "SELECT m.*, a.name AS author_name, a.flags AS author_flags, a.discriminator AS author_discriminator FROM messages m CROSS JOIN LATERAL (SELECT * FROM users WHERE id = m.author_id) as a WHERE channel_id = $1 ORDER BY id DESC LIMIT $2",
+                "SELECT m.*, a.name AS author_name, a.flags AS author_flags, a.discriminator AS author_discriminator FROM messages m CROSS JOIN LATERAL (SELECT * FROM users WHERE id = m.author_id) as a WHERE channel_id = $1 ORDER BY id DESC LIMIT $2 OFFSET $3",
                 bigint_channel_id,
-                limit
+                limit,
+                offset,
             )
             .fetch_all(db)
             .await;
