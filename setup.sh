@@ -12,7 +12,7 @@ echo "Installing build dependencies..."
 apt install -y pkg-config libssl-dev libclang-dev
 
 echo "Adding new user to system..."
-adduser --system fc
+adduser --system ferris
 
 
 echo "Downloading new binary..."
