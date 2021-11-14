@@ -56,6 +56,13 @@ if [[ -z "${FC_REDIS_PASSWORD}" ]]; then
   printf "password=\"%s\\n" "${FC_REDIS_PASSWORD}" >> /etc/ferrischat/config.toml
 fi
 
+printf "\n[tls]\n" >> /etc/ferrischat/config.toml
+if [[ -z "${FC_TLS_PRIVATE_KEY}" ]]; then
+  printf "private_key_file=\"%s\"\n" "${FC_TLS_PRIVATE_KEY}" >> /etc/ferrischat/config.toml
+fi
+if [[ -z "${FC_TLS_CERTIFICATE}" ]]; then
+  printf "certificate_file=%s\n" "${FC_TLS_CERTIFICATE}" >> /etc/ferrischat/config.toml
+fi
 
 echo "Adding systemctl service..."
 if [[ -n "${FC_NO_SYSTEMCTL_SETUP}" ]]; then
