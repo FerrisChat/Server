@@ -31,56 +31,88 @@ pub async fn get_message_history(
         limit = None;
     }
 
-    let resp = {
+    let messages = {
         if oldest_first == Some(true) {
-            sqlx::query!(
+            let resp = sqlx::query!(
                 "SELECT * FROM messages WHERE channel_id = $1 ORDER BY id ASC LIMIT $2",
                 bigint_channel_id,
                 limit
             )
             .fetch_all(db)
-            .await
+            .await;
+
+            match resp {
+                Ok(mut resp) => resp
+                    .iter_mut()
+                    .filter_map(|x| {
+                        let content = std::mem::take(&mut x.content);
+                        Some(Message {
+                            id: x.id.with_scale(0).into_bigint_and_exponent().0.to_u128()?,
+                            content,
+                            channel_id: x
+                                .channel_id
+                                .with_scale(0)
+                                .into_bigint_and_exponent()
+                                .0
+                                .to_u128()?,
+                            author_id: x
+                                .author_id
+                                .with_scale(0)
+                                .into_bigint_and_exponent()
+                                .0
+                                .to_u128()?,
+                            author: None,
+                            edited_at: x.edited_at,
+                            embeds: vec![],
+                        })
+                    })
+                    .collect(),
+                Err(e) => {
+                    return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                        reason: format!("database returned a error: {}", e),
+                    })
+                }
+            }
         } else {
-            sqlx::query!(
+            let resp = sqlx::query!(
                 "SELECT * FROM messages WHERE channel_id = $1 ORDER BY id DESC LIMIT $2",
                 bigint_channel_id,
                 limit
             )
             .fetch_all(db)
-            .await
-        }
-    };
-    let messages = {
-        match resp {
-            Ok(mut resp) => resp
-                .iter_mut()
-                .filter_map(|x| {
-                    let content = std::mem::take(&mut x.content);
-                    Some(Message {
-                        id: x.id.with_scale(0).into_bigint_and_exponent().0.to_u128()?,
-                        content,
-                        channel_id: x
-                            .channel_id
-                            .with_scale(0)
-                            .into_bigint_and_exponent()
-                            .0
-                            .to_u128()?,
-                        author_id: x
-                            .author_id
-                            .with_scale(0)
-                            .into_bigint_and_exponent()
-                            .0
-                            .to_u128()?,
-                        author: None,
-                        edited_at: x.edited_at,
-                        embeds: vec![],
+            .await;
+
+            match resp {
+                Ok(mut resp) => resp
+                    .iter_mut()
+                    .filter_map(|x| {
+                        let content = std::mem::take(&mut x.content);
+                        Some(Message {
+                            id: x.id.with_scale(0).into_bigint_and_exponent().0.to_u128()?,
+                            content,
+                            channel_id: x
+                                .channel_id
+                                .with_scale(0)
+                                .into_bigint_and_exponent()
+                                .0
+                                .to_u128()?,
+                            author_id: x
+                                .author_id
+                                .with_scale(0)
+                                .into_bigint_and_exponent()
+                                .0
+                                .to_u128()?,
+                            author: None,
+                            edited_at: x.edited_at,
+                            embeds: vec![],
+                        })
                     })
-                })
-                .collect(),
-            Err(e) => {
-                return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                    reason: format!("database returned a error: {}", e),
-                })
+                    .collect(),
+                Err(e) => {
+                    return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                        reason: format!("database returned a error: {}", e),
+                    })
+                }
             }
         }
     };
