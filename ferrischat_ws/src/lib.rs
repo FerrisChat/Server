@@ -357,12 +357,7 @@ pub async fn handle_ws_connection(
                                                                         })
                                                                         .collect(),
                                                                     Err(e) => {
-                                                                        let closer_tx = &closer_tx;
-                                                                        (closer_tx).send(Some(CloseFrame {
-                                                                            code: CloseCode::from(5000),
-                                                                            reason: format!("Internal database error: {}", e).into(),
-                                                                        }));
-                                                                        break;
+                                                                        continue; // TODO: zero shall fix when refactor
                                                                     }
                                                                 })
                                                             },
@@ -391,12 +386,7 @@ pub async fn handle_ws_connection(
                                                                         })
                                                                         .collect(),
                                                                     Err(e) => {
-                                                                        let closer_tx = &closer_tx;
-                                                                        (closer_tx).send(Some(CloseFrame {
-                                                                            code: CloseCode::from(5000),
-                                                                            reason: format!("Internal database error: {}", e).into(),
-                                                                        }));
-                                                                        break;
+                                                                        continue; // TODO: zero shall fix when refactor
                                                                     }
                                                                 })
                                                             },
