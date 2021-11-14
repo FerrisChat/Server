@@ -1,7 +1,7 @@
 use actix_web::{web::Query, HttpRequest, HttpResponse, Responder};
 use ferrischat_common::request_json::GetGuildUrlParams;
 use ferrischat_common::types::{
-    Channel, Guild, GuildFlags, InternalServerErrorJson, Member, NotFoundJson, User, UserFlags,
+    Channel, Guild, GuildFlags, InternalServerErrorJson, Member, NotFoundJson,
 };
 use num_traits::ToPrimitive;
 
@@ -68,30 +68,22 @@ pub async fn get_guild(
     };
 
     let members = if params.members.unwrap_or(false) {
-        let resp = sqlx::query!("SELECT m.*, u.name AS name, u.flags AS flags, u.discriminator AS discriminator FROM members m CROSS JOIN LATERAL (SELECT * FROM users WHERE id = m.user_id) as u WHERE guild_id = $1", bigint_guild_id)
+        let resp = sqlx::query!("SELECT * FROM members WHERE guild_id = $1", bigint_guild_id)
             .fetch_all(db)
             .await;
         Some(match resp {
             Ok(resp) => resp
                 .iter()
                 .filter_map(|x| {
-                    let user_id = x
-                        .user_id
-                        .with_scale(0)
-                        .into_bigint_and_exponent()
-                        .0
-                        .to_u128()?;
-
                     Some(Member {
-                        user_id: Some(user_id),
-                        user: Some(User {
-                            id: user_id,
-                            name: x.name.clone(),
-                            avatar: None,
-                            guilds: None,
-                            flags: UserFlags::from_bits_truncate(x.flags),
-                            discriminator: x.discriminator,
-                        }),
+                        user_id: Some(
+                            x.user_id
+                                .with_scale(0)
+                                .into_bigint_and_exponent()
+                                .0
+                                .to_u128()?,
+                        ),
+                        user: None,
                         guild_id: Some(guild_id),
                         guild: None,
                     })
