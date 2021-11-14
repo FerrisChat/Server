@@ -1,7 +1,7 @@
 use actix_web::{web::Query, HttpRequest, HttpResponse, Responder};
 use ferrischat_common::request_json::GetGuildUrlParams;
 use ferrischat_common::types::{
-    Channel, Guild, GuildFlags, InternalServerErrorJson, Member, NotFoundJson, User,
+    Channel, Guild, GuildFlags, InternalServerErrorJson, Member, NotFoundJson, User, UserFlags,
 };
 use num_traits::ToPrimitive;
 
@@ -68,7 +68,7 @@ pub async fn get_guild(
     };
 
     let members = if params.members.unwrap_or(false) {
-        let resp = sqlx::query!("SELECT m.*, u.name AS name, u.flags AS flags, discriminator AS u.discriminator FROM members m CROSS JOIN LATERAL (SELECT * FROM users WHERE id = m.id) as u WHERE guild_id = $1", bigint_guild_id)
+        let resp = sqlx::query!("SELECT m.*, u.name AS name, u.flags AS flags, u.discriminator AS discriminator FROM members m CROSS JOIN LATERAL (SELECT * FROM users WHERE id = m.id) as u WHERE guild_id = $1", bigint_guild_id)
             .fetch_all(db)
             .await;
         Some(match resp {
