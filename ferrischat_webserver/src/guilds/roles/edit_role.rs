@@ -35,7 +35,7 @@ pub async fn edit_role(
             Ok(resp) => match resp {
                 Some(role) => Role {
                     id: bigdecimal_to_u128!(role.id),
-                    name: role.name.clone(),
+                    name: role.name,
                     color: role.color,
                     position: role.position,
                     guild_id: bigdecimal_to_u128!(role.parent_guild),
@@ -124,7 +124,7 @@ pub async fn edit_role(
             Ok(resp) => match resp {
                 Some(role) => Role {
                     id: bigdecimal_to_u128!(role.id),
-                    name: role.name.clone(),
+                    name: role.name,
                     color: role.color,
                     position: role.position,
                     guild_id: bigdecimal_to_u128!(role.parent_guild),

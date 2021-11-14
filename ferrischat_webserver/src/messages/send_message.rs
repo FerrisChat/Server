@@ -12,7 +12,8 @@ pub async fn create_message(
     req: HttpRequest,
     json: Json<MessageCreateJson>,
 ) -> impl Responder {
-    let content = json.content.clone();
+    let MessageCreateJson { content, nonce } = json.0;
+
     if content.len() > 10240 {
         return HttpResponse::BadRequest().json(BadRequestJson {
             reason: "message content size must be fewer than 10,240 bytes".to_string(),
@@ -70,8 +71,10 @@ pub async fn create_message(
         content: Some(content),
         channel_id,
         author_id,
+        author: None,
         edited_at: None,
         embeds: vec![],
+        nonce: nonce,
     };
 
     let event = WsOutboundEvent::MessageCreate {

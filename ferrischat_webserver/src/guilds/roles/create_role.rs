@@ -35,7 +35,6 @@ pub async fn create_role(
 
     let guild_id = get_item_id!(req, "guild_id");
     let bigint_guild_id = u128_to_bigdecimal!(guild_id);
-    let permissions = Permissions::empty();
 
     let resp = sqlx::query!(
         "INSERT INTO roles VALUES ($1, $2, $3, $4, $5, $6)",

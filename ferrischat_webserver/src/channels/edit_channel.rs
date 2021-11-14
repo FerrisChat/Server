@@ -29,7 +29,7 @@ pub async fn edit_channel(
             Ok(resp) => match resp {
                 Some(channel) => Channel {
                     id: bigdecimal_to_u128!(channel.id),
-                    name: channel.name.clone(),
+                    name: channel.name,
                     guild_id: bigdecimal_to_u128!(channel.guild_id),
                 },
                 None => {
@@ -58,7 +58,7 @@ pub async fn edit_channel(
         Ok(resp) => match resp {
             Some(channel) => Channel {
                 id: bigdecimal_to_u128!(channel.id),
-                name: channel.name.clone(),
+                name: channel.name,
                 guild_id: bigdecimal_to_u128!(channel.guild_id),
             },
             None => {
@@ -74,7 +74,7 @@ pub async fn edit_channel(
         }
     };
 
-    let guild_id = new_channel_obj.guild_id.clone();
+    let guild_id = new_channel_obj.guild_id;
 
     let event = WsOutboundEvent::ChannelUpdate {
         old: old_channel_obj,

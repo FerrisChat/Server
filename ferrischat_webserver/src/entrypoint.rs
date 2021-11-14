@@ -7,6 +7,7 @@ use crate::messages::*;
 use crate::not_implemented::not_implemented;
 use crate::users::*;
 use crate::ws::*;
+use actix_cors::Cors;
 use actix_web::http::StatusCode;
 use actix_web::{web, App, HttpResponse, HttpServer};
 use ferrischat_auth::init_auth;
@@ -42,6 +43,7 @@ pub async fn entrypoint() {
 
     HttpServer::new(|| {
         App::new()
+            .wrap(Cors::permissive())
             // POST   /guilds
             .route(expand_version!("guilds"), web::post().to(create_guild))
             // GET    /guilds/{guild_id}
@@ -148,7 +150,7 @@ pub async fn entrypoint() {
             // DELETE /users/{user_id}
             .route(
                 expand_version!("users/{user_id}"),
-                web::delete().to(not_implemented),
+                web::delete().to(delete_user),
             )
             // POST    /auth
             .route(expand_version!("auth"), web::post().to(get_token))
@@ -183,6 +185,10 @@ pub async fn entrypoint() {
             .route(
                 expand_version!("teapot"),
                 web::get().to(async || HttpResponse::new(StatusCode::IM_A_TEAPOT)),
+            )
+            .route(
+                expand_version!("ping"),
+                web::get().to(async || HttpResponse::new(StatusCode::OK)),
             )
             .default_service(web::route().to(HttpResponse::NotFound))
     })

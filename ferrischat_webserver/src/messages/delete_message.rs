@@ -63,7 +63,7 @@ pub async fn delete_message(req: HttpRequest, _: crate::Authorization) -> impl R
 
     let msg_obj = Message {
         id: message_id,
-        channel_id: channel_id,
+        channel_id,
         author_id: bigdecimal_to_u128!(message.author_id),
         content: message.content,
         edited_at: message.edited_at,
@@ -75,7 +75,8 @@ pub async fn delete_message(req: HttpRequest, _: crate::Authorization) -> impl R
             guilds: None,
             flags: UserFlags::from_bits_truncate(message.author.flags),
             discriminator: message.author.discriminator,
-        }
+        },
+        nonce: None,
     };
 
     let resp = sqlx::query!(
