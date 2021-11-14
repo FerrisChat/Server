@@ -3,7 +3,7 @@ use crate::ws::{fire_event, WsEventError};
 use ferrischat_common::ws::WsOutboundEvent;
 
 use actix_web::{HttpRequest, HttpResponse, Responder};
-use ferrischat_common::types::{InternalServerErrorJson, NotFoundJson, User, UserFlags};
+use ferrischat_common::types::{InternalServerErrorJson, Message, NotFoundJson, User, UserFlags};
 
 /// DELETE /api/v0/guilds/{guild_id}/channels/{channel_id}/messages/{message_id}
 pub async fn delete_message(req: HttpRequest, _: crate::Authorization) -> impl Responder {

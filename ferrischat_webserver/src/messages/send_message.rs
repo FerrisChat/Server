@@ -95,10 +95,10 @@ pub async fn create_message(
         content: Some(content),
         channel_id,
         author_id,
-        author: author,
+        author,
         edited_at: None,
         embeds: vec![],
-        nonce: nonce,
+        nonce,
     };
 
     let event = WsOutboundEvent::MessageCreate {
