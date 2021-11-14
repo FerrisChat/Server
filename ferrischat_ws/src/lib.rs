@@ -117,10 +117,10 @@ pub async fn preload_ws() {
     });
 }
 
-pub async fn handle_ws_connection(stream: S, addr: SocketAddr) -> Result<(), Error>
-where
-    S: AsyncRead + AsyncWrite + Unpin,
-{
+pub async fn handle_ws_connection(
+    stream: TlsStream<TcpStream>,
+    addr: SocketAddr,
+) -> Result<(), Error> {
     let s = accept_async_with_config(stream, Some(WEBSOCKET_CONFIG)).await?;
 
     let (mut tx, mut rx) = s.split();
