@@ -63,6 +63,7 @@ pub async fn edit_message(
                     edited_at: resp.edited_at,
                     embeds: vec![],
                     author: None,
+                    nonce: None,
                 }
             }
             None => {
@@ -107,6 +108,7 @@ pub async fn edit_message(
         edited_at: message.edited_at,
         embeds: vec![],
         author: None,
+        nonce: None,
     };
 
     let event = WsOutboundEvent::MessageUpdate {
