@@ -29,6 +29,7 @@ pub async fn get_message(req: HttpRequest, _: crate::Authorization) -> impl Resp
                 author: None,
                 edited_at: m.edited_at,
                 embeds: vec![],
+                nonce: None,
             }),
             None => HttpResponse::NotFound().json(NotFoundJson {
                 message: "message not found".to_string(),
