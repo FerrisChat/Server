@@ -57,16 +57,13 @@ pub async fn get_token(req: HttpRequest) -> impl Responder {
     .fetch_optional(db)
     .await
     {
-        Ok(Some(r)) => {
+        Ok(Some(mut r)) => {
             let matches = {
                 let rx = match ferrischat_auth::GLOBAL_VERIFIER.get() {
                     Some(v) => {
                         let (tx, rx) = channel();
-                        // you either shut up about these clones or fix it all: deal?
-                        if v.send(((user_password.clone(), r.password.clone()), tx))
-                            .await
-                            .is_err()
-                        {
+                        let db_password = std::mem::take(&mut r.password);
+                        if v.send(((user_password, db_password), tx)).await.is_err() {
                             return HttpResponse::InternalServerError().json(
                                 InternalServerErrorJson {
                                     reason: "Password verifier has hung up connection".to_string(),

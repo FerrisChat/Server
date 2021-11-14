@@ -1,7 +1,9 @@
 use actix_web::{web::Query, HttpRequest, HttpResponse, Responder};
 
 use ferrischat_common::request_json::GetMessageHistoryParams;
-use ferrischat_common::types::{BadRequestJson, InternalServerErrorJson, Message, MessageHistory};
+use ferrischat_common::types::{
+    BadRequestJson, InternalServerErrorJson, Message, MessageHistory, User, UserFlags,
+};
 
 use num_traits::ToPrimitive;
 
@@ -15,7 +17,10 @@ pub async fn get_message_history(
     let bigint_channel_id = u128_to_bigdecimal!(channel_id);
     let db = get_db_or_fail!();
 
-    let mut limit = params.limit;
+    let GetMessageHistoryParams {
+        mut limit,
+        oldest_first,
+    } = params.0;
 
     if limit < Some(0) {
         return HttpResponse::BadRequest().json(BadRequestJson {
@@ -29,41 +34,108 @@ pub async fn get_message_history(
     }
 
     let messages = {
-        let resp = sqlx::query!(
-            "SELECT * FROM messages WHERE channel_id = $1 LIMIT $2",
-            bigint_channel_id,
-            limit
-        )
-        .fetch_all(db)
-        .await;
-        match resp {
-            Ok(resp) => resp
-                .iter()
-                .filter_map(|x| {
-                    Some(Message {
-                        id: x.id.with_scale(0).into_bigint_and_exponent().0.to_u128()?,
-                        content: x.content.clone(),
-                        channel_id: x
-                            .channel_id
-                            .with_scale(0)
-                            .into_bigint_and_exponent()
-                            .0
-                            .to_u128()?,
-                        author_id: x
+        if oldest_first == Some(true) {
+            let resp = sqlx::query!(
+                "SELECT m.*, a.name AS author_name, a.flags AS author_flags, a.discriminator AS author_discriminator FROM messages m CROSS JOIN LATERAL (SELECT * FROM users WHERE id = m.author_id) as a WHERE channel_id = $1 ORDER BY id ASC LIMIT $2",
+                bigint_channel_id,
+                limit
+            )
+            .fetch_all(db)
+            .await;
+
+            match resp {
+                Ok(mut resp) => resp
+                    .iter_mut()
+                    .filter_map(|x| {
+                        let content = std::mem::take(&mut x.content);
+
+                        let author_id = x
                             .author_id
                             .with_scale(0)
                             .into_bigint_and_exponent()
                             .0
-                            .to_u128()?,
-                        edited_at: x.edited_at,
-                        embeds: vec![],
+                            .to_u128()?;
+
+                        Some(Message {
+                            id: x.id.with_scale(0).into_bigint_and_exponent().0.to_u128()?,
+                            content,
+                            channel_id: x
+                                .channel_id
+                                .with_scale(0)
+                                .into_bigint_and_exponent()
+                                .0
+                                .to_u128()?,
+                            author_id: author_id.clone(),
+                            author: Some(User {
+                                id: author_id,
+                                name: std::mem::take(&mut x.author_name),
+                                avatar: None,
+                                guilds: None,
+                                flags: UserFlags::from_bits_truncate(x.author_flags),
+                                discriminator: x.author_discriminator,
+                            }),
+                            edited_at: x.edited_at,
+                            embeds: vec![],
+                            nonce: None,
+                        })
                     })
-                })
-                .collect(),
-            Err(e) => {
-                return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                    reason: format!("database returned a error: {}", e),
-                })
+                    .collect(),
+                Err(e) => {
+                    return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                        reason: format!("database returned a error: {}", e),
+                    })
+                }
+            }
+        } else {
+            let resp = sqlx::query!(
+                "SELECT m.*, a.name AS author_name, a.flags AS author_flags, a.discriminator AS author_discriminator FROM messages m CROSS JOIN LATERAL (SELECT * FROM users WHERE id = m.author_id) as a WHERE channel_id = $1 ORDER BY id DESC LIMIT $2",
+                bigint_channel_id,
+                limit
+            )
+            .fetch_all(db)
+            .await;
+
+            match resp {
+                Ok(mut resp) => resp
+                    .iter_mut()
+                    .filter_map(|x| {
+                        let content = std::mem::take(&mut x.content);
+                        let author_id = x
+                            .author_id
+                            .with_scale(0)
+                            .into_bigint_and_exponent()
+                            .0
+                            .to_u128()?;
+
+                        Some(Message {
+                            id: x.id.with_scale(0).into_bigint_and_exponent().0.to_u128()?,
+                            content,
+                            channel_id: x
+                                .channel_id
+                                .with_scale(0)
+                                .into_bigint_and_exponent()
+                                .0
+                                .to_u128()?,
+                            author_id: author_id.clone(),
+                            edited_at: x.edited_at,
+                            embeds: vec![],
+                            author: Some(User {
+                                id: author_id,
+                                name: std::mem::take(&mut x.author_name),
+                                avatar: None,
+                                guilds: None,
+                                flags: UserFlags::from_bits_truncate(x.author_flags),
+                                discriminator: x.author_discriminator,
+                            }),
+                            nonce: None,
+                        })
+                    })
+                    .collect(),
+                Err(e) => {
+                    return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                        reason: format!("database returned a error: {}", e),
+                    })
+                }
             }
         }
     };

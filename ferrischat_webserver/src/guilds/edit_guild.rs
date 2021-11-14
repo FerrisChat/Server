@@ -29,7 +29,7 @@ pub async fn edit_guild(
                 Some(guild) => Guild {
                     id: bigdecimal_to_u128!(guild.id),
                     owner_id: bigdecimal_to_u128!(guild.owner_id),
-                    name: guild.name.clone(),
+                    name: guild.name,
                     flags: GuildFlags::empty(),
                     channels: None,
                     members: None,
@@ -73,7 +73,7 @@ pub async fn edit_guild(
                 Some(guild) => Guild {
                     id: bigdecimal_to_u128!(guild.id),
                     owner_id: bigdecimal_to_u128!(guild.owner_id),
-                    name: guild.name.clone(),
+                    name: guild.name,
                     channels: None,
                     flags: GuildFlags::empty(),
                     members: None,

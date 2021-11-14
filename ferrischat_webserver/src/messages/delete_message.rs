@@ -3,7 +3,7 @@ use crate::ws::{fire_event, WsEventError};
 use ferrischat_common::ws::WsOutboundEvent;
 
 use actix_web::{HttpRequest, HttpResponse, Responder};
-use ferrischat_common::types::{InternalServerErrorJson, Message, NotFoundJson};
+use ferrischat_common::types::{InternalServerErrorJson, Message, NotFoundJson, User, UserFlags};
 
 /// DELETE /api/v0/guilds/{guild_id}/channels/{channel_id}/messages/{message_id}
 pub async fn delete_message(req: HttpRequest, _: crate::Authorization) -> impl Responder {
@@ -33,38 +33,68 @@ pub async fn delete_message(req: HttpRequest, _: crate::Authorization) -> impl R
         }
     };
 
-    let resp = sqlx::query!(
-        "DELETE FROM messages WHERE id = $1 AND channel_id = $2 RETURNING *",
-        bigint_message_id,
-        bigint_channel_id
-    )
-    .fetch_optional(db)
-    .await;
+    let message = {
+        let resp = sqlx::query!(
+            "SELECT m.*, a.name AS author_name, a.flags AS author_flags, a.discriminator AS author_discriminator FROM messages m CROSS JOIN LATERAL (SELECT * FROM users WHERE id = m.author_id) AS a WHERE m.id = $1 AND m.channel_id = $2",
+            bigint_message_id,
+            bigint_channel_id,
+        )
+        .fetch_optional(db)
+        .await;
 
-    let message = match resp {
-        Ok(r) => match r {
-            Some(message) => message,
-            None => {
-                return HttpResponse::NotFound().json(NotFoundJson {
-                    message: "message not found".to_string(),
+        match resp {
+            Ok(r) => match r {
+                Some(message) => message,
+                None => {
+                    return HttpResponse::NotFound().json(NotFoundJson {
+                        message: "message not found".to_string(),
+                    })
+                }
+            },
+            Err(e) => {
+                return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                    reason: format!("DB returned an error: {}", e),
                 })
             }
-        },
-        Err(e) => {
-            return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                reason: format!("DB returned a error: {}", e),
-            })
         }
     };
 
+    let author_id = bigdecimal_to_u128!(message.author_id);
+
     let msg_obj = Message {
         id: message_id,
-        channel_id: channel_id,
-        author_id: bigdecimal_to_u128!(message.author_id),
+        channel_id,
+        author_id: author_id.clone(),
         content: message.content,
         edited_at: message.edited_at,
         embeds: vec![],
+        author: Some(User {
+            id: author_id,
+            name: message.author_name,
+            avatar: None,
+            guilds: None,
+            flags: UserFlags::from_bits_truncate(message.author_flags),
+            discriminator: message.author_discriminator,
+        }),
+        nonce: None,
     };
+
+    let resp = sqlx::query!(
+        "DELETE FROM messages WHERE id = $1 AND channel_id = $2",
+        bigint_message_id,
+        bigint_channel_id
+    )
+    .execute(db)
+    .await;
+
+    match resp {
+        Ok(_) => (),
+        Err(e) => {
+            return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                reason: format!("DB return an error: {}", e),
+            })
+        }
+    }
 
     let event = WsOutboundEvent::MessageDelete {
         message: msg_obj.clone(),

@@ -8,3 +8,6 @@
 /httpRequests/
 # private datasource info
 dataSources.xml
+# per-user config
+/inspectionProfiles/
+/dictionaries/

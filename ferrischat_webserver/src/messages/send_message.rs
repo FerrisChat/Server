@@ -2,7 +2,9 @@ use crate::ws::{fire_event, WsEventError};
 use actix_web::web::Json;
 use actix_web::{HttpRequest, HttpResponse, Responder};
 use ferrischat_common::request_json::MessageCreateJson;
-use ferrischat_common::types::{BadRequestJson, InternalServerErrorJson, Message, ModelType};
+use ferrischat_common::types::{
+    BadRequestJson, InternalServerErrorJson, Message, ModelType, User, UserFlags,
+};
 use ferrischat_common::ws::WsOutboundEvent;
 use ferrischat_snowflake_generator::generate_snowflake;
 
@@ -12,7 +14,8 @@ pub async fn create_message(
     req: HttpRequest,
     json: Json<MessageCreateJson>,
 ) -> impl Responder {
-    let content = json.content.clone();
+    let MessageCreateJson { content, nonce } = json.0;
+
     if content.len() > 10240 {
         return HttpResponse::BadRequest().json(BadRequestJson {
             reason: "message content size must be fewer than 10,240 bytes".to_string(),
@@ -65,13 +68,37 @@ pub async fn create_message(
         });
     }
 
+    let author = {
+        let resp = sqlx::query!("SELECT * FROM users WHERE id = $1", bigint_author_id)
+            .fetch_one(db)
+            .await;
+
+        match resp {
+            Ok(r) => User {
+                id: bigdecimal_to_u128!(r.id),
+                name: r.name,
+                avatar: None,
+                guilds: None,
+                flags: UserFlags::from_bits_truncate(r.flags),
+                discriminator: r.discriminator,
+            },
+            Err(e) => {
+                return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                    reason: format!("DB returned a error: {}", e),
+                })
+            }
+        }
+    };
+
     let msg_obj = Message {
         id: message_id,
         content: Some(content),
         channel_id,
         author_id,
+        author: Some(author),
         edited_at: None,
         embeds: vec![],
+        nonce,
     };
 
     let event = WsOutboundEvent::MessageCreate {

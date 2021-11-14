@@ -6,7 +6,7 @@ use actix_web::web::Json;
 
 use actix_web::{HttpRequest, HttpResponse, Responder};
 use ferrischat_common::request_json::MessageUpdateJson;
-use ferrischat_common::types::{InternalServerErrorJson, Message, NotFoundJson};
+use ferrischat_common::types::{InternalServerErrorJson, Message, NotFoundJson, User, UserFlags};
 
 pub async fn edit_message(
     req: HttpRequest,
@@ -40,7 +40,7 @@ pub async fn edit_message(
     };
 
     let old_message = sqlx::query!(
-        "SELECT * FROM messages WHERE channel_id = $1 AND id = $2",
+        "SELECT m.*, a.name AS author_name, a.flags AS author_flags, a.discriminator AS author_discriminator FROM messages m CROSS JOIN LATERAL (SELECT * FROM users WHERE id = m.author_id) AS a WHERE m.id = $1 AND m.channel_id = $2",
         bigint_channel_id,
         bigint_message_id
     )
@@ -55,13 +55,24 @@ pub async fn edit_message(
                     return HttpResponse::Forbidden().finish();
                 }
 
+                let author_id = bigdecimal_to_u128!(resp.author_id);
+
                 Message {
                     id: message_id,
-                    channel_id: channel_id,
-                    author_id: bigdecimal_to_u128!(resp.author_id),
+                    channel_id,
+                    author_id: author_id.clone(),
                     content: resp.content,
                     edited_at: resp.edited_at,
                     embeds: vec![],
+                    author: Some(User {
+                        id: author_id,
+                        name: resp.author_name,
+                        avatar: None,
+                        guilds: None,
+                        flags: UserFlags::from_bits_truncate(resp.author_flags),
+                        discriminator: resp.author_discriminator,
+                    }),
+                    nonce: None,
                 }
             }
             None => {
@@ -100,11 +111,13 @@ pub async fn edit_message(
 
     let new_msg_obj = Message {
         id: message_id,
-        channel_id: channel_id,
+        channel_id,
         author_id: bigdecimal_to_u128!(message.author_id),
         content: message.content,
         edited_at: message.edited_at,
         embeds: vec![],
+        author: old_message_obj.author.clone(),
+        nonce: None,
     };
 
     let event = WsOutboundEvent::MessageUpdate {
