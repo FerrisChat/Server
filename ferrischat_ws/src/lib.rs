@@ -9,9 +9,12 @@ use num_traits::cast::ToPrimitive;
 use std::lazy::SyncOnceCell as OnceCell;
 use std::net::SocketAddr;
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
 use std::time::Duration;
+use tokio::io::{AsyncRead, AsyncWrite};
 use tokio::net::TcpStream;
 use tokio::sync::oneshot::channel;
+use tokio_rustls::server::TlsStream;
 use tokio_tungstenite::accept_async_with_config;
 use tokio_tungstenite::tungstenite::error::Error;
 use tokio_tungstenite::tungstenite::protocol::frame::coding::CloseCode;
@@ -114,7 +117,10 @@ pub async fn preload_ws() {
     });
 }
 
-pub async fn handle_ws_connection(stream: TcpStream, addr: SocketAddr) -> Result<(), Error> {
+pub async fn handle_ws_connection(stream: S, addr: SocketAddr) -> Result<(), Error>
+where
+    S: AsyncRead + AsyncWrite + Unpin,
+{
     let s = accept_async_with_config(stream, Some(WEBSOCKET_CONFIG)).await?;
 
     let (mut tx, mut rx) = s.split();
@@ -840,6 +846,22 @@ pub async fn init_ws_server<T: tokio::net::ToSocketAddrs>(addr: T) {
         Result(tokio::io::Result<T>),
     }
 
+    let certs = tokio_rustls::rustls::internal::pemfile::certs(&mut std::io::BufReader::new(
+        std::fs::File::open(cert_file).expect("failed to open cert file"),
+    ))
+    .expect("failed to parse cert file");
+    let privkeys =
+        tokio_rustls::rustls::internal::pemfile::rsa_private_keys(&mut std::io::BufReader::new(
+            std::fs::File::open(cert_file).expect("failed to open privkey file"),
+        ))
+        .expect("failed to parse privkey file");
+    let mut tls_config =
+        tokio_rustls::rustls::ServerConfig::new(tokio_rustls::rustls::NoClientAuth::new());
+    tls_config
+        .set_single_cert(certs, privkeys.get(0).expect("no privkeys found").clone())
+        .expect("privkey invalid");
+
+    let tls_acceptor = tokio_rustls::TlsAcceptor::from(Arc::new(tls_config));
     tokio::spawn(async move {
         loop {
             let res = tokio::select! {
@@ -851,7 +873,12 @@ pub async fn init_ws_server<T: tokio::net::ToSocketAddrs>(addr: T) {
                 DieOrResult::Die => break,
                 DieOrResult::Result(r) => match r {
                     Ok((stream, addr)) => {
-                        tokio::spawn(handle_ws_connection(stream, addr));
+                        let tls_stream: TlsStream<TcpStream> =
+                            match tls_acceptor.accept(stream).await {
+                                Ok(s) => s,
+                                Err(_) => continue,
+                            };
+                        tokio::spawn(handle_ws_connection(tls_stream, addr));
                     }
                     Err(e) => eprintln!("failed to accept WS conn: {}", e),
                 },

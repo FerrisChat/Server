@@ -15,6 +15,7 @@ num-bigint = "0.3"
 uuid = { version = "0.8", default-features = false, features = ["v4"] }
 num-traits = "0.2"
 tracing = "0.1"
+tokio-rustls = "=0.22"
 
 ferrischat_redis = { path = "../ferrischat_redis" }
 ferrischat_common = { git = "https://github.com/FerrisChat/Common.git", version = "0.2", branch = "master" }
