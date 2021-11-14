@@ -35,8 +35,8 @@ pub async fn create_user(user_data: Json<UserCreateJson>) -> impl Responder {
         match available.get(rand::thread_rng().gen_range(0..available.len())) {
             Some(d) => *d,
             None => {
-                return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                    reason: "entered unreachable code".to_string(),
+                return HttpResponse::Conflict().json(InternalServerErrorJson {
+                    reason: "This username has all possible discriminators taken.".to_string(),
                 })
             }
         }
@@ -96,7 +96,9 @@ pub async fn create_user(user_data: Json<UserCreateJson>) -> impl Responder {
         Err(e) => match e {
             sqlx::Error::Database(e) => {
                 if e.code() == Some("23505".into()) {
-                    HttpResponse::Conflict().finish()
+                    HttpResponse::Conflict().json(InternalServerErrorJson {
+                        reason: "A user with this email already exists".to_string(),
+                    })
                 } else {
                     HttpResponse::InternalServerError().json(InternalServerErrorJson {
                         reason: format!("DB returned a error: {}", e),
