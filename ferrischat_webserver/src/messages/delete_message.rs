@@ -33,8 +33,6 @@ pub async fn delete_message(req: HttpRequest, _: crate::Authorization) -> impl R
         }
     };
 
-
-
     let message = {
         let resp = sqlx::query!(
             "SELECT m.*, (SELECT u.* FROM users u WHERE id = m.author_id) AS author FROM messages m WHERE id = $1 AND channel_id = $2",

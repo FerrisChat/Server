@@ -114,7 +114,7 @@ pub async fn edit_message(
         content: message.content,
         edited_at: message.edited_at,
         embeds: vec![],
-        author: None,
+        author: old_message_obj.author.clone(),
         nonce: None,
     };
 

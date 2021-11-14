@@ -2,7 +2,9 @@ use crate::ws::{fire_event, WsEventError};
 use actix_web::web::Json;
 use actix_web::{HttpRequest, HttpResponse, Responder};
 use ferrischat_common::request_json::MessageCreateJson;
-use ferrischat_common::types::{BadRequestJson, InternalServerErrorJson, Message, ModelType};
+use ferrischat_common::types::{
+    BadRequestJson, InternalServerErrorJson, Message, ModelType, User, UserFlags,
+};
 use ferrischat_common::ws::WsOutboundEvent;
 use ferrischat_snowflake_generator::generate_snowflake;
 
@@ -66,12 +68,34 @@ pub async fn create_message(
         });
     }
 
+    let author = {
+        let resp = sqlx::query!("SELECT * FROM users WHERE id = $1", bigint_author_id)
+            .fetch_one(db)
+            .await;
+
+        match resp {
+            Ok(r) => User {
+                id: r.author.id,
+                name: r.author.name,
+                avatar: None,
+                guilds: None,
+                flags: UserFlags::from_bits_truncate(r.author.flags),
+                discriminator: r.author.discriminator,
+            },
+            Err(e) => {
+                return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                    reason: format!("DB returned a error: {}", e),
+                })
+            }
+        }
+    };
+
     let msg_obj = Message {
         id: message_id,
         content: Some(content),
         channel_id,
         author_id,
-        author: None,
+        author: author,
         edited_at: None,
         embeds: vec![],
         nonce: nonce,
