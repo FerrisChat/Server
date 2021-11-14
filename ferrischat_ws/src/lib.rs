@@ -277,9 +277,11 @@ pub async fn handle_ws_connection(
                     match verify_token(id, secret).await {
                         Ok(_) => {
                             // token valid
+                            let bigdecimal_user_id = u128_to_bigdecimal!(id);
+
                             let res = sqlx::query!(
                                 "SELECT * FROM users WHERE id = $1",
-                                u128_to_bigdecimal!(id)
+                                bigdecimal_user_id
                             )
                             .fetch_one(db)
                             .await;
@@ -289,7 +291,109 @@ pub async fn handle_ws_connection(
                                     id,
                                     name: u.name,
                                     avatar: None,
-                                    guilds: None,
+                                    guilds: {
+                                        let resp = sqlx::query!(
+                                            r#"SELECT id AS "id!", owner_id AS "owner_id!", name AS "name!" FROM guilds INNER JOIN members m on guilds.id = m.guild_id WHERE m.user_id = $1"#,
+                                            bigdecimal_user_id
+                                        )
+                                        .fetch_all(db)
+                                        .await;
+
+                                        match resp {
+                                            Ok(d) => Some(
+                                                d.iter()
+                                                    .filter_map(|x| {
+                                                        Some(ferrischat_common::types::Guild {
+                                                            id: x
+                                                                .id
+                                                                .clone()
+                                                                .with_scale(0)
+                                                                .into_bigint_and_exponent()
+                                                                .0
+                                                                .to_u128()?,
+                                                            owner_id: x
+                                                                .owner_id
+                                                                .with_scale(0)
+                                                                .into_bigint_and_exponent()
+                                                                .0
+                                                                .to_u128()?,
+                                                            name: x.name.clone(),
+                                                            channels: {
+                                                                let resp = sqlx::query!(
+                                                                    "SELECT * FROM channels WHERE guild_id = $1",
+                                                                    x.id
+                                                                )
+                                                                .fetch_all(db)
+                                                                .await;
+
+                                                                Some(match resp {
+                                                                    Ok(resp) => resp
+                                                                        .iter()
+                                                                        .filter_map(|x| {
+                                                                            Some(ferrischat_common::types::Channel {
+                                                                                id: x.id.with_scale(0).into_bigint_and_exponent().0.to_u128()?,
+                                                                                name: x.name.clone(),
+                                                                                guild_id: x
+                                                                                    .guild_id
+                                                                                    .with_scale(0)
+                                                                                    .into_bigint_and_exponent()
+                                                                                    .0
+                                                                                    .to_u128()?,
+                                                                            })
+                                                                        })
+                                                                        .collect(),
+                                                                    Err(e) => {
+                                                                        return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                                                                            reason: format!("database returned a error: {}", e),
+                                                                        })
+                                                                    }
+                                                                })
+                                                            },
+                                                            flags: ferrischat_common::types::GuildFlags::empty(),
+                                                            members: {
+                                                                let resp = sqlx::query!("SELECT * FROM members WHERE guild_id = $1", bigint_guild_id)
+                                                                .fetch_all(db)
+                                                                .await;
+
+                                                                Some(match resp {
+                                                                    Ok(resp) => resp
+                                                                        .iter()
+                                                                        .filter_map(|x| {
+                                                                            Some(ferrischat_common::types::Member {
+                                                                                user_id: Some(
+                                                                                    x.user_id
+                                                                                        .with_scale(0)
+                                                                                        .into_bigint_and_exponent()
+                                                                                        .0
+                                                                                        .to_u128()?,
+                                                                                ),
+                                                                                user: None,
+                                                                                guild_id: Some(guild_id),
+                                                                                guild: None,
+                                                                            })
+                                                                        })
+                                                                        .collect(),
+                                                                    Err(e) => {
+                                                                        return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                                                                            reason: format!("database returned a error: {}", e),
+                                                                        })
+                                                                    }
+                                                                })
+                                                            },
+                                                            roles: None
+                                                        })
+                                                    })
+                                                    .collect(),
+                                            ),
+                                            Err(e) => {
+                                                return HttpResponse::InternalServerError().json(
+                                                    InternalServerErrorJson {
+                                                        reason: format!("database returned a error: {}", e),
+                                                    },
+                                                )
+                                            }
+                                        }
+                                    },
                                     flags: ferrischat_common::types::UserFlags::from_bits_truncate(
                                         u.flags,
                                     ),

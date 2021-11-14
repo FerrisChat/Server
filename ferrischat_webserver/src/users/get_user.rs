@@ -40,6 +40,7 @@ pub async fn get_user(req: HttpRequest, auth: crate::Authorization) -> impl Resp
                                     Some(Guild {
                                         id: x
                                             .id
+                                            .clone()
                                             .with_scale(0)
                                             .into_bigint_and_exponent()
                                             .0
@@ -51,7 +52,37 @@ pub async fn get_user(req: HttpRequest, auth: crate::Authorization) -> impl Resp
                                             .0
                                             .to_u128()?,
                                         name: x.name.clone(),
-                                        channels: None,
+                                        channels: {
+                                            let resp = sqlx::query!(
+                                                "SELECT * FROM channels WHERE guild_id = $1",
+                                                x.id
+                                            )
+                                            .fetch_all(db)
+                                            .await;
+
+                                            Some(match resp {
+                                                Ok(resp) => resp
+                                                    .iter()
+                                                    .filter_map(|x| {
+                                                        Some(Channel {
+                                                            id: x.id.with_scale(0).into_bigint_and_exponent().0.to_u128()?,
+                                                            name: x.name.clone(),
+                                                            guild_id: x
+                                                                .guild_id
+                                                                .with_scale(0)
+                                                                .into_bigint_and_exponent()
+                                                                .0
+                                                                .to_u128()?,
+                                                        })
+                                                    })
+                                                    .collect(),
+                                                Err(e) => {
+                                                    return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                                                        reason: format!("database returned a error: {}", e),
+                                                    })
+                                                }
+                                            })
+                                        },
                                         flags: GuildFlags::empty(),
                                         members: None,
                                         roles: None
