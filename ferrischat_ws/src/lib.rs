@@ -321,7 +321,7 @@ pub async fn handle_ws_connection(
                                                             channels: {
                                                                 let resp = sqlx::query!(
                                                                     "SELECT * FROM channels WHERE guild_id = $1",
-                                                                    x.id
+                                                                    x.id.clone()
                                                                 )
                                                                 .fetch_all(db)
                                                                 .await;
@@ -351,7 +351,7 @@ pub async fn handle_ws_connection(
                                                             },
                                                             flags: ferrischat_common::types::GuildFlags::empty(),
                                                             members: {
-                                                                let resp = sqlx::query!("SELECT * FROM members WHERE guild_id = $1", bigint_guild_id)
+                                                                let resp = sqlx::query!("SELECT * FROM members WHERE guild_id = $1", x.id)
                                                                 .fetch_all(db)
                                                                 .await;
 

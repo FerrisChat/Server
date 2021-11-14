@@ -1,6 +1,6 @@
 use actix_web::{HttpRequest, HttpResponse, Responder};
 use ferrischat_common::types::{
-    Guild, GuildFlags, InternalServerErrorJson, NotFoundJson, User, UserFlags,
+    Guild, GuildFlags, InternalServerErrorJson, NotFoundJson, User, UserFlags, Channel, Member
 };
 use num_traits::cast::ToPrimitive;
 use sqlx::Error;
@@ -55,7 +55,7 @@ pub async fn get_user(req: HttpRequest, auth: crate::Authorization) -> impl Resp
                                         channels: {
                                             let resp = sqlx::query!(
                                                 "SELECT * FROM channels WHERE guild_id = $1",
-                                                x.id
+                                                x.id.clone()
                                             )
                                             .fetch_all(db)
                                             .await;
@@ -84,7 +84,36 @@ pub async fn get_user(req: HttpRequest, auth: crate::Authorization) -> impl Resp
                                             })
                                         },
                                         flags: GuildFlags::empty(),
-                                        members: None,
+                                        members: {
+                                            let resp = sqlx::query!("SELECT * FROM members WHERE guild_id = $1", x.id)
+                                            .fetch_all(db)
+                                            .await;
+
+                                            Some(match resp {
+                                                Ok(resp) => resp
+                                                    .iter()
+                                                    .filter_map(|x| {
+                                                        Some(Member {
+                                                            user_id: Some(
+                                                                x.user_id
+                                                                    .with_scale(0)
+                                                                    .into_bigint_and_exponent()
+                                                                    .0
+                                                                    .to_u128()?,
+                                                            ),
+                                                            user: None,
+                                                            guild_id: Some(guild_id),
+                                                            guild: None,
+                                                        })
+                                                    })
+                                                    .collect(),
+                                                Err(e) => {
+                                                    return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                                                        reason: format!("database returned a error: {}", e),
+                                                    })
+                                                }
+                                            })
+                                        },
                                         roles: None
                                     })
                                 })
