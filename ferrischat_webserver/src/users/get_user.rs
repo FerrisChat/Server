@@ -1,6 +1,6 @@
 use actix_web::{HttpRequest, HttpResponse, Responder};
 use ferrischat_common::types::{
-    Guild, GuildFlags, InternalServerErrorJson, NotFoundJson, User, UserFlags, Channel, Member
+    Channel, Guild, GuildFlags, InternalServerErrorJson, Member, NotFoundJson, User, UserFlags,
 };
 use num_traits::cast::ToPrimitive;
 use sqlx::Error;
