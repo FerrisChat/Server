@@ -33,11 +33,11 @@ pub async fn get_message(req: HttpRequest, _: crate::Authorization) -> impl Resp
                     embeds: vec![],
                     author: Some(User {
                         id: author_id,
-                        name: r.author_name,
+                        name: m.author_name,
                         avatar: None,
                         guilds: None,
-                        flags: UserFlags::from_bits_truncate(r.author_flags),
-                        discriminator: r.author_discriminator,
+                        flags: UserFlags::from_bits_truncate(m.author_flags),
+                        discriminator: m.author_discriminator,
                     }),
                     nonce: None,
                 })

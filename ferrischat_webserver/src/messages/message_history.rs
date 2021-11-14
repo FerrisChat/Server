@@ -68,7 +68,7 @@ pub async fn get_message_history(
                             author_id: author_id.clone(),
                             author: Some(User {
                                 id: author_id,
-                                name: x.author_name,
+                                name: std::mem::take(&mut x.author_name),
                                 avatar: None,
                                 guilds: None,
                                 flags: UserFlags::from_bits_truncate(x.author_flags),
@@ -121,7 +121,7 @@ pub async fn get_message_history(
                             embeds: vec![],
                             author: Some(User {
                                 id: author_id,
-                                name: x.author_name,
+                                name: std::mem::take(&mut x.author_name),
                                 avatar: None,
                                 guilds: None,
                                 flags: UserFlags::from_bits_truncate(x.author_flags),
