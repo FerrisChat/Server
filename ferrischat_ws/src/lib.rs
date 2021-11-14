@@ -301,10 +301,10 @@ pub async fn handle_ws_connection(
                                         .await;
 
                                         match resp {
-                                            Ok(d) => Some(
-                                                d.iter()
-                                                    .filter_map(async |x| {
-                                                        Some(ferrischat_common::types::Guild {
+                                            Ok(d) => {
+                                                let mut guilds = Vec::with_capacity(d.len());
+                                                for x in d {
+                                                    let g = ferrischat_common::types::Guild {
                                                             id: x
                                                                 .id
                                                                 .clone()
@@ -371,7 +371,7 @@ pub async fn handle_ws_connection(
                                                                                         .to_u128()?,
                                                                                 ),
                                                                                 user: None,
-                                                                                guild_id: x.id.clone().with_scale(0).into_bigint_and_exponent().0.to_u128()?,
+                                                                                guild_id: x.guild_id.with_scale(0).into_bigint_and_exponent().0.to_u128()?,
                                                                                 guild: None,
                                                                             })
                                                                         })
@@ -386,14 +386,19 @@ pub async fn handle_ws_connection(
                                                                 })
                                                             },
                                                             roles: None
-                                                        })
-                                                    })
-                                                    .collect(),
-                                            ),
+                                                        };
+                                                    guilds.push(g);
+                                                }
+                                                Some(guilds)
+                                            }
                                             Err(e) => {
                                                 closer_tx.send(Some(CloseFrame {
                                                     code: CloseCode::from(5000),
-                                                    reason: format!("Internal database error: {}", e).into(),
+                                                    reason: format!(
+                                                        "Internal database error: {}",
+                                                        e
+                                                    )
+                                                    .into(),
                                                 }));
                                                 break;
                                             }
