@@ -1,4 +1,5 @@
 #![feature(once_cell)]
+#![feature(async_closure)]
 
 use dashmap::DashMap;
 use ferrischat_auth::{split_token, verify_token};
@@ -302,7 +303,7 @@ pub async fn handle_ws_connection(
                                         match resp {
                                             Ok(d) => Some(
                                                 d.iter()
-                                                    .filter_map(|x| {
+                                                    .filter_map(async |x| {
                                                         Some(ferrischat_common::types::Guild {
                                                             id: x
                                                                 .id
@@ -331,7 +332,7 @@ pub async fn handle_ws_connection(
                                                                         .iter()
                                                                         .filter_map(|x| {
                                                                             Some(ferrischat_common::types::Channel {
-                                                                                id: x.id.with_scale(0).into_bigint_and_exponent().0.to_u128()?,
+                                                                                id: x.id.clone().with_scale(0).into_bigint_and_exponent().0.to_u128()?,
                                                                                 name: x.name.clone(),
                                                                                 guild_id: x
                                                                                     .guild_id
@@ -343,15 +344,17 @@ pub async fn handle_ws_connection(
                                                                         })
                                                                         .collect(),
                                                                     Err(e) => {
-                                                                        return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                                                                            reason: format!("database returned a error: {}", e),
-                                                                        })
+                                                                        closer_tx.send(Some(CloseFrame {
+                                                                            code: CloseCode::from(5000),
+                                                                            reason: format!("Internal database error: {}", e).into(),
+                                                                        }));
+                                                                        break;
                                                                     }
                                                                 })
                                                             },
                                                             flags: ferrischat_common::types::GuildFlags::empty(),
                                                             members: {
-                                                                let resp = sqlx::query!("SELECT * FROM members WHERE guild_id = $1", x.id)
+                                                                let resp = sqlx::query!("SELECT * FROM members WHERE guild_id = $1", x.id.clone())
                                                                 .fetch_all(db)
                                                                 .await;
 
@@ -368,15 +371,17 @@ pub async fn handle_ws_connection(
                                                                                         .to_u128()?,
                                                                                 ),
                                                                                 user: None,
-                                                                                guild_id: Some(guild_id),
+                                                                                guild_id: x.id.clone().with_scale(0).into_bigint_and_exponent().0.to_u128()?,
                                                                                 guild: None,
                                                                             })
                                                                         })
                                                                         .collect(),
                                                                     Err(e) => {
-                                                                        return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                                                                            reason: format!("database returned a error: {}", e),
-                                                                        })
+                                                                        closer_tx.send(Some(CloseFrame {
+                                                                            code: CloseCode::from(5000),
+                                                                            reason: format!("Internal database error: {}", e).into(),
+                                                                        }));
+                                                                        break;
                                                                     }
                                                                 })
                                                             },
@@ -386,11 +391,11 @@ pub async fn handle_ws_connection(
                                                     .collect(),
                                             ),
                                             Err(e) => {
-                                                return HttpResponse::InternalServerError().json(
-                                                    InternalServerErrorJson {
-                                                        reason: format!("database returned a error: {}", e),
-                                                    },
-                                                )
+                                                closer_tx.send(Some(CloseFrame {
+                                                    code: CloseCode::from(5000),
+                                                    reason: format!("Internal database error: {}", e).into(),
+                                                }));
+                                                break;
                                             }
                                         }
                                     },
