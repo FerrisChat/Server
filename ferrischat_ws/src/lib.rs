@@ -455,7 +455,7 @@ pub async fn handle_ws_connection(
                                 break;
                             }
                         },
-                    ));
+                    )).await;
                 }
                 WsInboundEvent::Pong => {
                     inter_tx.send(TxRxComm::Text(
@@ -469,7 +469,7 @@ pub async fn handle_ws_connection(
                                 break;
                             }
                         },
-                    ));
+                    )).await;
                 }
             }
         }
