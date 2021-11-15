@@ -329,8 +329,8 @@ pub async fn handle_ws_connection(
                                                     };
 
                                                     let g = ferrischat_common::types::Guild {
-                                                            id: id,
-                                                            owner_id: owner_id,
+                                                            id,
+                                                            owner_id,
                                                             name: x.name.clone(),
                                                             channels: {
                                                                 let resp = sqlx::query!(

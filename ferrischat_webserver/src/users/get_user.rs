@@ -62,8 +62,8 @@ pub async fn get_user(req: HttpRequest, auth: crate::Authorization) -> impl Resp
                                 };
 
                                 let g = Guild {
-                                    id: id,
-                                    owner_id: owner_id,
+                                    id,
+                                    owner_id,
                                     name: x.name.clone(),
                                     channels: {
                                         let resp = sqlx::query!(
