@@ -71,7 +71,7 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
                                 .execute(db)
                                 .await;
 
-                        match delete_resp {
+                        return match delete_resp {
                             Ok(_) => {
                                 let invite_obj = Invite {
                                     code: invite.code.clone(),
@@ -102,19 +102,18 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
                                             )
                                         }
                                     };
-                                    return HttpResponse::InternalServerError()
-                                        .json(InternalServerErrorJson { reason });
+                                    HttpResponse::InternalServerError()
+                                        .json(InternalServerErrorJson { reason })
+                                } else {
+                                    HttpResponse::Gone().finish()
                                 }
-                                return HttpResponse::Gone().finish();
                             }
                             Err(e) => {
-                                return HttpResponse::InternalServerError().json(
-                                    InternalServerErrorJson {
-                                        reason: format!("DB returned an error: {}", e),
-                                    },
-                                )
+                                HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                                    reason: format!("DB returned an error: {}", e),
+                                })
                             }
-                        }
+                        };
                     }
                 };
 
@@ -125,7 +124,7 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
                                 .execute(db)
                                 .await;
 
-                        match delete_resp {
+                        return match delete_resp {
                             Ok(_) => {
                                 let invite_obj = Invite {
                                     code: invite.code.clone(),
@@ -156,19 +155,18 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
                                             )
                                         }
                                     };
-                                    return HttpResponse::InternalServerError()
-                                        .json(InternalServerErrorJson { reason });
+                                    HttpResponse::InternalServerError()
+                                        .json(InternalServerErrorJson { reason })
+                                } else {
+                                    HttpResponse::Gone().finish()
                                 }
-                                return HttpResponse::Gone().finish();
                             }
                             Err(e) => {
-                                return HttpResponse::InternalServerError().json(
-                                    InternalServerErrorJson {
-                                        reason: format!("DB returned an error: {}", e),
-                                    },
-                                )
+                                HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                                    reason: format!("DB returned an error: {}", e),
+                                })
                             }
-                        }
+                        };
                     }
                 }
 
