@@ -170,6 +170,28 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
                     }
                 }
 
+                let already_exists = sqlx::query!(
+                    r#"SELECT EXISTS(SELECT * FROM members WHERE user_id = $1 AND guild_id = $2) AS "exists!""#,
+                    bigint_user_id,
+                    invite.guild_id
+                )
+                .fetch_one(db)
+                .await;
+                match already_exists {
+                    Ok(r) => {
+                        if r.exists {
+                            return HttpResponse::Conflict().json(InternalServerErrorJson {
+                                reason: "user has already joined this guild".to_string(),
+                            });
+                        }
+                    }
+                    Err(e) => {
+                        return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                            reason: format!("DB returned an error: {}", e),
+                        })
+                    }
+                }
+
                 let member_resp = sqlx::query!(
                     "INSERT INTO members VALUES ($1, $2)",
                     bigint_user_id,
