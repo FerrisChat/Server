@@ -379,7 +379,6 @@ pub async fn handle_ws_connection(
                                                                                 .into_bigint_and_exponent()
                                                                                 .0
                                                                                 .to_u128()?;
-                                                                            
                                                                             Some(ferrischat_common::types::Member {
                                                                                 user_id: Some(user_id),
                                                                                 user: ferrischat_common::types::User {
