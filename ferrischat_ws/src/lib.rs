@@ -364,7 +364,7 @@ pub async fn handle_ws_connection(
                                                             flags: ferrischat_common::types::GuildFlags::empty(),
                                                             members: {
                                                                 let resp = sqlx::query!(
-                                                                    "SELECT m.*, u.name AS name, u.discriminator AS discriminator, u.flags AS flags FROM members m CROSS JOIN LATERAL (SELECT * FROM users u WHERE id = m.user_id) WHERE guild_id = $1",
+                                                                    "SELECT m.*, u.name AS name, u.discriminator AS discriminator, u.flags AS flags FROM members m CROSS JOIN LATERAL (SELECT * FROM users u WHERE id = m.user_id) AS u WHERE guild_id = $1",
                                                                     x.id.clone()
                                                                 )
                                                                 .fetch_all(db)
