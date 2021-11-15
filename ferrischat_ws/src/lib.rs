@@ -444,32 +444,36 @@ pub async fn handle_ws_connection(
                     }
                 }
                 WsInboundEvent::Ping => {
-                    inter_tx.send(TxRxComm::Text(
-                        match simd_json::serde::to_string(&WsOutboundEvent::Pong) {
-                            Ok(v) => v,
-                            Err(e) => {
-                                closer_tx.send(Some(CloseFrame {
-                                    code: CloseCode::from(5001),
-                                    reason: format!("JSON serialization error: {}", e).into(),
-                                }));
-                                break;
-                            }
-                        },
-                    )).await;
+                    inter_tx
+                        .send(TxRxComm::Text(
+                            match simd_json::serde::to_string(&WsOutboundEvent::Pong) {
+                                Ok(v) => v,
+                                Err(e) => {
+                                    closer_tx.send(Some(CloseFrame {
+                                        code: CloseCode::from(5001),
+                                        reason: format!("JSON serialization error: {}", e).into(),
+                                    }));
+                                    break;
+                                }
+                            },
+                        ))
+                        .await;
                 }
                 WsInboundEvent::Pong => {
-                    inter_tx.send(TxRxComm::Text(
-                        match simd_json::serde::to_string(&WsOutboundEvent::Ping) {
-                            Ok(v) => v,
-                            Err(e) => {
-                                closer_tx.send(Some(CloseFrame {
-                                    code: CloseCode::from(5001),
-                                    reason: format!("JSON serialization error: {}", e).into(),
-                                }));
-                                break;
-                            }
-                        },
-                    )).await;
+                    inter_tx
+                        .send(TxRxComm::Text(
+                            match simd_json::serde::to_string(&WsOutboundEvent::Ping) {
+                                Ok(v) => v,
+                                Err(e) => {
+                                    closer_tx.send(Some(CloseFrame {
+                                        code: CloseCode::from(5001),
+                                        reason: format!("JSON serialization error: {}", e).into(),
+                                    }));
+                                    break;
+                                }
+                            },
+                        ))
+                        .await;
                 }
             }
         }
