@@ -1,6 +1,6 @@
 use actix_web::{HttpRequest, HttpResponse, Responder};
 use ferrischat_common::types::{
-    Guild, GuildFlags, InternalServerErrorJson, NotFoundJson, User, UserFlags,
+    Channel, Guild, GuildFlags, InternalServerErrorJson, Member, NotFoundJson, User, UserFlags,
 };
 use num_traits::cast::ToPrimitive;
 use sqlx::Error;
@@ -34,31 +34,100 @@ pub async fn get_user(req: HttpRequest, auth: crate::Authorization) -> impl Resp
                     .fetch_all(db)
                     .await
                     {
-                        Ok(d) => Some(
-                            d.iter()
-                                .filter_map(|x| {
-                                    Some(Guild {
-                                        id: x
-                                            .id
-                                            .with_scale(0)
-                                            .into_bigint_and_exponent()
-                                            .0
-                                            .to_u128()?,
-                                        owner_id: x
-                                            .owner_id
-                                            .with_scale(0)
-                                            .into_bigint_and_exponent()
-                                            .0
-                                            .to_u128()?,
-                                        name: x.name.clone(),
-                                        channels: None,
-                                        flags: GuildFlags::empty(),
-                                        members: None,
-                                        roles: None
-                                    })
-                                })
-                                .collect(),
-                        ),
+                        Ok(d) => {
+                            let mut guilds = Vec::with_capacity(d.len());
+
+                            for x in d {
+                                let id_ = x.id.clone()
+                                    .with_scale(0)
+                                    .into_bigint_and_exponent()
+                                    .0
+                                    .to_u128();
+
+                                let id = match id_ {
+                                    Some(id) => id,
+                                    None => continue,
+                                };
+
+                                let owner_id_ = x
+                                    .owner_id
+                                    .with_scale(0)
+                                    .into_bigint_and_exponent()
+                                    .0
+                                    .to_u128();
+
+                                let owner_id = match owner_id_ {
+                                    Some(owner_id) => owner_id,
+                                    None => continue,
+                                };
+
+                                let g = Guild {
+                                    id,
+                                    owner_id,
+                                    name: x.name.clone(),
+                                    channels: {
+                                        let resp = sqlx::query!(
+                                            "SELECT * FROM channels WHERE guild_id = $1",
+                                            x.id.clone()
+                                        )
+                                        .fetch_all(db)
+                                        .await;
+
+                                        Some(match resp {
+                                            Ok(resp) => resp
+                                                .iter()
+                                                .filter_map(|x| {
+                                                    Some(Channel {
+                                                        id: x.id.with_scale(0).into_bigint_and_exponent().0.to_u128()?,
+                                                        name: x.name.clone(),
+                                                        guild_id: x
+                                                            .guild_id
+                                                            .with_scale(0)
+                                                            .into_bigint_and_exponent()
+                                                            .0
+                                                            .to_u128()?,
+                                                    })
+                                                })
+                                                .collect(),
+                                            Err(e) => {
+                                                return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                                                    reason: format!("database returned a error: {}", e),
+                                                })
+                                            }
+                                        })
+                                    },
+                                    flags: GuildFlags::empty(),
+                                    members: {
+                                        let resp = sqlx::query!("SELECT * FROM members WHERE guild_id = $1", x.id)
+                                        .fetch_all(db)
+                                        .await;
+
+                                        Some(match resp {
+                                            Ok(resp) => resp
+                                                .iter()
+                                                .filter_map(|x| {
+                                                    Some(Member {
+                                                        user_id: x.user_id.with_scale(0).into_bigint_and_exponent().0.to_u128(),
+                                                        user: None,
+                                                        guild_id: x.guild_id.with_scale(0).into_bigint_and_exponent().0.to_u128(),
+                                                        guild: None,
+                                                    })
+                                                })
+                                                .collect(),
+                                            Err(e) => {
+                                                return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                                                    reason: format!("database returned a error: {}", e),
+                                                })
+                                            }
+                                        })
+                                    },
+                                    roles: None
+                                };
+                                guilds.push(g);
+                            }
+
+                            Some(guilds)
+                        },
                         Err(e) => {
                             return HttpResponse::InternalServerError().json(
                                 InternalServerErrorJson {
