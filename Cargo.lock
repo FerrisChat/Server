@@ -28,7 +28,7 @@ dependencies = [
 [[package]]
 name = "actix-codec"
 version = "0.4.1"
-source = "git+https://github.com/actix/actix-net#ed987eef06176262c2a9cfdfb6f6a50b23b923bb"
+source = "git+https://github.com/actix/actix-net#443a328fb44a996349c4e3979bf0acf3ddd65b8d"
 dependencies = [
  "bitflags",
  "bytes",
@@ -42,30 +42,13 @@ dependencies = [
 ]
 
 [[package]]
-name = "actix-cors"
-version = "0.6.0-beta.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fa59d36d7ad063401d94ada05264a303791796ad5222d0954cc21f2e1052e99b"
-dependencies = [
- "actix-service",
- "actix-web",
- "derive_more",
- "futures-util",
- "log",
- "once_cell",
- "smallvec",
-]
-
-[[package]]
 name = "actix-http"
-version = "3.0.0-beta.11"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c9b510d35f13987537289f38bf136e7e702a5c87cc28760310cc459544f40afd"
+version = "3.0.0-beta.12"
+source = "git+https://github.com/actix/actix-web/#a2f59c02f72c0c50cb69dd9e17439f70b6a8b6db"
 dependencies = [
  "actix-codec",
  "actix-rt",
  "actix-service",
- "actix-tls",
  "actix-utils",
  "ahash",
  "base64 0.13.0",
@@ -87,14 +70,12 @@ dependencies = [
  "local-channel",
  "log",
  "mime",
- "once_cell",
  "percent-encoding",
  "pin-project",
  "pin-project-lite",
  "rand 0.8.4",
  "sha-1",
  "smallvec",
- "tokio",
  "zstd",
 ]
 
@@ -135,17 +116,19 @@ dependencies = [
 
 [[package]]
 name = "actix-server"
-version = "2.0.0-beta.6"
+version = "2.0.0-beta.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7367665785765b066ad16e1086d26a087f696bc7c42b6f93004ced6cfcf1eeca"
+checksum = "411dd3296dd317ff5eff50baa13f31923ea40ec855dd7f2d3ed8639948f0195f"
 dependencies = [
  "actix-rt",
  "actix-service",
  "actix-utils",
  "futures-core",
+ "futures-util",
  "log",
  "mio",
  "num_cpus",
+ "socket2",
  "tokio",
 ]
 
@@ -161,23 +144,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "actix-tls"
-version = "3.0.0-beta.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e4af84e13e4600829858a3e68079be710d1ada461431e1e4c5ae663479ea0a3c"
-dependencies = [
- "actix-codec",
- "actix-rt",
- "actix-service",
- "actix-utils",
- "derive_more",
- "futures-core",
- "http",
- "log",
- "tokio-util",
-]
-
-[[package]]
 name = "actix-utils"
 version = "3.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -189,8 +155,8 @@ dependencies = [
 
 [[package]]
 name = "actix-web"
-version = "4.0.0-beta.10"
-source = "git+https://github.com/actix/actix-web/#2754608f3c98821a28c4f2a67d2ef40612587c04"
+version = "4.0.0-beta.11"
+source = "git+https://github.com/actix/actix-web/#a2f59c02f72c0c50cb69dd9e17439f70b6a8b6db"
 dependencies = [
  "actix-codec",
  "actix-http",
@@ -230,7 +196,7 @@ dependencies = [
 [[package]]
 name = "actix-web-actors"
 version = "4.0.0-beta.7"
-source = "git+https://github.com/actix/actix-web/#2754608f3c98821a28c4f2a67d2ef40612587c04"
+source = "git+https://github.com/actix/actix-web/#a2f59c02f72c0c50cb69dd9e17439f70b6a8b6db"
 dependencies = [
  "actix",
  "actix-codec",
@@ -872,7 +838,7 @@ dependencies = [
 [[package]]
 name = "ferrischat_common"
 version = "0.2.0"
-source = "git+https://github.com/FerrisChat/Common.git?branch=master#97e2b2a265a8725299eae29f532fbf92bfd5535c"
+source = "git+https://github.com/FerrisChat/Common.git?branch=master#c542960cde13d0a4b4d8fae15a9e0ce819d63cec"
 dependencies = [
  "bitflags",
  "serde",
@@ -937,7 +903,6 @@ name = "ferrischat_webserver"
 version = "0.1.0"
 dependencies = [
  "actix",
- "actix-cors",
  "actix-web",
  "actix-web-actors",
  "base64 0.13.0",
