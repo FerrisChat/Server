@@ -381,14 +381,14 @@ pub async fn handle_ws_connection(
                                                                                 .to_u128()?;
                                                                             Some(ferrischat_common::types::Member {
                                                                                 user_id: Some(user_id),
-                                                                                user: ferrischat_common::types::User {
+                                                                                user: Some(ferrischat_common::types::User {
                                                                                     id: user_id,
                                                                                     name: x.name.clone(),
                                                                                     avatar: None,
                                                                                     guilds: None,
                                                                                     flags: ferrischat_common::types::UserFlags::from_bits_truncate(x.flags),
                                                                                     discriminator: x.discriminator,
-                                                                                },
+                                                                                }),
                                                                                 guild_id: x.guild_id.with_scale(0).into_bigint_and_exponent().0.to_u128(),
                                                                                 guild: None,
                                                                             })
