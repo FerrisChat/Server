@@ -42,7 +42,12 @@ pub async fn delete_channel(req: HttpRequest, _: crate::Authorization) -> impl R
         channel: channel_obj.clone(),
     };
 
-    if let Err(e) = fire_event(format!("channel_{}_{}", channel_id, channel_obj.guild_id), &event).await {
+    if let Err(e) = fire_event(
+        format!("channel_{}_{}", channel_id, channel_obj.guild_id),
+        &event,
+    )
+    .await
+    {
         let reason = match e {
             WsEventError::MissingRedis => "Redis pool missing".to_string(),
             WsEventError::RedisError(e) => format!("Redis returned an error: {}", e),
