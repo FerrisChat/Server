@@ -363,7 +363,10 @@ pub async fn handle_ws_connection(
                                                             },
                                                             flags: ferrischat_common::types::GuildFlags::empty(),
                                                             members: {
-                                                                let resp = sqlx::query!("SELECT * FROM members WHERE guild_id = $1", x.id.clone())
+                                                                let resp = sqlx::query!(
+                                                                    "SELECT m.*, u.name AS name, u.discriminator AS discriminator, u.flags AS flags FROM members m CROSS JOIN LATERAL (SELECT * FROM users u WHERE id = m.user_id) AS u WHERE guild_id = $1",
+                                                                    x.id.clone()
+                                                                )
                                                                 .fetch_all(db)
                                                                 .await;
 
@@ -371,15 +374,21 @@ pub async fn handle_ws_connection(
                                                                     Ok(resp) => resp
                                                                         .iter()
                                                                         .filter_map(|x| {
+                                                                            let user_id = x.user_id
+                                                                                .with_scale(0)
+                                                                                .into_bigint_and_exponent()
+                                                                                .0
+                                                                                .to_u128()?;
                                                                             Some(ferrischat_common::types::Member {
-                                                                                user_id: Some(
-                                                                                    x.user_id
-                                                                                        .with_scale(0)
-                                                                                        .into_bigint_and_exponent()
-                                                                                        .0
-                                                                                        .to_u128()?,
-                                                                                ),
-                                                                                user: None,
+                                                                                user_id: Some(user_id),
+                                                                                user: Some(ferrischat_common::types::User {
+                                                                                    id: user_id,
+                                                                                    name: x.name.clone(),
+                                                                                    avatar: None,
+                                                                                    guilds: None,
+                                                                                    flags: ferrischat_common::types::UserFlags::from_bits_truncate(x.flags),
+                                                                                    discriminator: x.discriminator,
+                                                                                }),
                                                                                 guild_id: x.guild_id.with_scale(0).into_bigint_and_exponent().0.to_u128(),
                                                                                 guild: None,
                                                                             })
