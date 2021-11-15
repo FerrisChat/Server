@@ -126,7 +126,7 @@ pub async fn get_user(req: HttpRequest, auth: crate::Authorization) -> impl Resp
                                 guilds.push(g);
                             }
 
-                            guilds
+                            Some(guilds)
                         },
                         Err(e) => {
                             return HttpResponse::InternalServerError().json(
