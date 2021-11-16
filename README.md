@@ -46,3 +46,5 @@ cat /proc/cpuinfo | grep pclmulqdq # This one is required for simd-json to compi
 cat /proc/cpuinfo | grep avx2      # Either this one or...
 cat /proc/cpuinfo | grep sse4_2    # this one are required as well as pclmulqdq
 ```
+### What operating systems do you support?
+For the client.... almost all of them. For the server, Linux and FreeBSD are supported.

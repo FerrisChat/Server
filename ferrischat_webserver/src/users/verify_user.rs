@@ -1,19 +1,12 @@
-use actix_web::{web::Json, HttpRequest, HttpResponse, Responder};
+use actix_web::{HttpResponse, Responder, web};
 use check_if_email_exists::{check_email, CheckEmailInput, Reachable};
-use ferrischat_common::types::{
-    Guild, GuildFlags, InternalServerErrorJson, NotFoundJson, User, UserFlags,
-};
+use ferrischat_common::types::{InternalServerErrorJson, NotFoundJson};
 use lettre::{transport::smtp::authentication::Credentials, AsyncSmtpTransport, AsyncTransport, Message,
              Tokio1Executor,};
-use simd_json::ValueAccess;
-use sqlx::Error;
 
 use ferrischat_redis::{redis::AsyncCommands, REDIS_MANAGER};
 /// POST /v0/verify
-pub async fn send_verification_email(
-    req: HttpRequest,
-    auth: crate::Authorization,
-) -> impl Responder {
+pub async fn send_verification_email(auth: crate::Authorization) -> impl Responder {
     let db = get_db_or_fail!();
     let authorized_user = auth.0;
     let user_email = match sqlx::query!("SELECT email FROM users WHERE id = $1", u128_to_bigdecimal!(authorized_user))
@@ -44,7 +37,7 @@ pub async fn send_verification_email(
                 .await
             {
                 Ok(r) => r,
-                Err(e) => return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                Err(_) => return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                     reason: format!("No SMTP server host set."),
                 }),
             };
@@ -53,7 +46,7 @@ pub async fn send_verification_email(
                 .await
             {
                 Ok(r) => r,
-                Err(e) => return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                Err(_) => return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                     reason: format!("No SMTP server username set."),
                 }),
             };
@@ -62,7 +55,7 @@ pub async fn send_verification_email(
                 .await
             {
                 Ok(r) => r,
-                Err(e) => {
+                Err(_) => {
                     return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                         reason: format!("No SMTP server password set."),
                     })
@@ -118,13 +111,17 @@ pub async fn send_verification_email(
                 });
             }
             // writes the token to redis
-            let r = redis
+            if let Err(e) = redis
                 .set_ex::<String, String, String>(
                     format!("email:tokens:{}", token),
                     user_email,
                     86400,
                 )
-                .await;
+                .await {
+                return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                    reason: format!("Redis returned a error: {}", e),
+                })
+            }
             HttpResponse::Ok().finish()
         } else {
             HttpResponse::Conflict().json(InternalServerErrorJson {
@@ -138,7 +135,7 @@ pub async fn send_verification_email(
     }
 }
 /// GET /v0/verify/{token}
-pub async fn verify_email(req: HttpRequest, path: actix_web::web::Path<String>) -> impl Responder {
+pub async fn verify_email(path: web::Path<String>) -> impl Responder {
     let token = path.into_inner();
     let redis_key = format!("email:tokens:{}", token);
     
