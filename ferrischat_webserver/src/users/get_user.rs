@@ -104,6 +104,8 @@ pub async fn get_user(req: HttpRequest, auth: crate::Authorization) -> impl Resp
 
                                         Some(match resp {
                                             Ok(resp) => {
+                                                let members = Vec::with_capacity(resp.len());
+
                                                 for x in resp {
                                                     let user = {
                                                         let resp = sqlx::query!("SELECT * FROM users WHERE user_id = $1", x.user_id.clone())
@@ -126,13 +128,17 @@ pub async fn get_user(req: HttpRequest, auth: crate::Authorization) -> impl Resp
                                                             }
                                                         }
                                                     };
-                                                    Member {
+
+                                                    let member = Member {
                                                         user_id: x.user_id.with_scale(0).into_bigint_and_exponent().0.to_u128(),
                                                         user: user,
                                                         guild_id: x.guild_id.with_scale(0).into_bigint_and_exponent().0.to_u128(),
                                                         guild: None,
-                                                    }
+                                                    };
+
+                                                    members.push(member);
                                                 }
+                                                members
                                             },
                                             Err(e) => {
                                                 return HttpResponse::InternalServerError().json(InternalServerErrorJson {
