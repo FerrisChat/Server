@@ -44,7 +44,7 @@ pub async fn send_verification_email(
                 .await
             {
                 Ok(r) => r,
-                Err(e) => HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                Err(e) => return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                     reason: format!("No SMTP server host set."),
                 }),
             };
@@ -53,7 +53,7 @@ pub async fn send_verification_email(
                 .await
             {
                 Ok(r) => r,
-                Err(e) => HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                Err(e) => return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                     reason: format!("No SMTP server username set."),
                 }),
             };
@@ -62,7 +62,7 @@ pub async fn send_verification_email(
                 .await
             {
                 Ok(r) => r,
-                Err(e) => HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                Err(e) => return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                     reason: format!("No SMTP server password set."),
                 }),
             };
@@ -71,7 +71,7 @@ pub async fn send_verification_email(
                 None => {
                     return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                         reason: "failed to generate random bits for token generation".to_string(),
-                    });
+                    })
                 }
             };
             match message = Message::builder().from("Ferris <verification@ferris.chat>".parse().unwrap()).reply_to("Ferris <hello@ferris.chat>".parse().unwrap()).to(user_email.parse().unwrap()).subject("FerrisChat Email Verification").body(String::from(format!("Welcome to FerrisChat!<br><a href=\"https://api.ferris.chat/v0/verify/{}\">Click here to verify \
@@ -87,14 +87,14 @@ pub async fn send_verification_email(
                 .build()
             {
                 Ok(m) => m,
-                Err(e) => HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                Err(e) => return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                     reason: format!(
                         "Error creating SMTP transport! Please submit a bug report on \
                     https://github.com/ferrischat/server/issues with the error `{}`",
                         e
                     ),
                 }),
-            }
+            };
 
             // Send the email
             if let Err(e) = mailer.send(&message) {
