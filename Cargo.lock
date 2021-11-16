@@ -28,7 +28,7 @@ dependencies = [
 [[package]]
 name = "actix-codec"
 version = "0.4.1"
-source = "git+https://github.com/actix/actix-net#443a328fb44a996349c4e3979bf0acf3ddd65b8d"
+source = "git+https://github.com/actix/actix-net#7e7df2f9316900acc258bbe56485a07c138deaf5"
 dependencies = [
  "bitflags",
  "bytes",
@@ -44,7 +44,7 @@ dependencies = [
 [[package]]
 name = "actix-http"
 version = "3.0.0-beta.12"
-source = "git+https://github.com/actix/actix-web/#a2f59c02f72c0c50cb69dd9e17439f70b6a8b6db"
+source = "git+https://github.com/actix/actix-web/#e8a0e168636a439a2eb37323f4acb22be685116a"
 dependencies = [
  "actix-codec",
  "actix-rt",
@@ -156,7 +156,7 @@ dependencies = [
 [[package]]
 name = "actix-web"
 version = "4.0.0-beta.11"
-source = "git+https://github.com/actix/actix-web/#a2f59c02f72c0c50cb69dd9e17439f70b6a8b6db"
+source = "git+https://github.com/actix/actix-web/#e8a0e168636a439a2eb37323f4acb22be685116a"
 dependencies = [
  "actix-codec",
  "actix-http",
@@ -196,7 +196,7 @@ dependencies = [
 [[package]]
 name = "actix-web-actors"
 version = "4.0.0-beta.7"
-source = "git+https://github.com/actix/actix-web/#a2f59c02f72c0c50cb69dd9e17439f70b6a8b6db"
+source = "git+https://github.com/actix/actix-web/#e8a0e168636a439a2eb37323f4acb22be685116a"
 dependencies = [
  "actix",
  "actix-codec",
@@ -284,9 +284,9 @@ checksum = "ee10e43ae4a853c0a3591d4e2ada1719e553be18199d9da9d4a83f5927c2f5c7"
 
 [[package]]
 name = "arc-swap"
-version = "1.4.0"
+version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e6df5aef5c5830360ce5218cecb8f018af3438af5686ae945094affc86fdec63"
+checksum = "c5d78ce20460b82d3fa150275ed9d55e21064fc7951177baacf86a145c4a4b1f"
 
 [[package]]
 name = "argonautica"
@@ -3361,9 +3361,9 @@ checksum = "cda74da7e1a664f795bb1f8a87ec406fb89a02522cf6e50620d016add6dbbf5c"
 
 [[package]]
 name = "tokio"
-version = "1.13.0"
+version = "1.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "588b2d10a336da58d877567cd8fb8a14b463e2104910f8132cd054b4b96e29ee"
+checksum = "52963f91310c08d91cb7bff5786dfc8b79642ab839e188187e92105dbfb9d2c8"
 dependencies = [
  "autocfg 1.0.1",
  "bytes",
