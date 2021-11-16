@@ -76,7 +76,7 @@ pub async fn send_verification_email(
                     })
                 }
             };
-            match Message::builder()
+            let message = match Message::builder()
                 .from("Ferris <verification@ferris.chat>".parse().unwrap())
                 .reply_to("Ferris <hello@ferris.chat>".parse().unwrap())
                 .to(user_email.parse().unwrap())
@@ -84,7 +84,7 @@ pub async fn send_verification_email(
                 .body(String::from(format!("Welcome to FerrisChat!<br><a href=\"https://api.ferris.chat/v0/verify/{}\">Click here to verify \
         your email!</a> (expires in 1 hour) <br><br> If you don't know what this is, reset your token and change \
         your password ASAP.", token))) {
-                Ok(_) => message,
+                Ok(m) => m,
                 Err(e) => HttpResponse::InternalServerError().json(InternalServerErrorJson {
                     reason: format!("This should not have happened. Submit a bug report on \
                     https://github.com/ferrischat/server/issues with the error `{}`", e),
