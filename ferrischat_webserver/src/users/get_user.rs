@@ -103,17 +103,36 @@ pub async fn get_user(req: HttpRequest, auth: crate::Authorization) -> impl Resp
                                         .await;
 
                                         Some(match resp {
-                                            Ok(resp) => resp
-                                                .iter()
-                                                .filter_map(|x| {
-                                                    Some(Member {
+                                            Ok(resp) => {
+                                                for x in resp {
+                                                    let user = {
+                                                        let resp = sqlx::query!("SELECT * FROM users WHERE user_id = $1", x.user_id.clone())
+                                                        .fetch_one(db)
+                                                        .await;
+
+                                                        match resp {
+                                                            Ok(user) => Some(User {
+                                                                id: bigdecimal_to_u128!(user.id),
+                                                                name: user.name,
+                                                                avatar: None,
+                                                                guilds: None,
+                                                                discriminator: user.discriminator,
+                                                                flags: UserFlags::from_bits_truncate(user.flags)
+                                                            }),
+                                                            Err(e) => {
+                                                                return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                                                                    reason: format!("database returned a error: {}", e),
+                                                                })
+                                                            }
+                                                    };
+                                                    Member {
                                                         user_id: x.user_id.with_scale(0).into_bigint_and_exponent().0.to_u128(),
-                                                        user: None,
+                                                        user: user,
                                                         guild_id: x.guild_id.with_scale(0).into_bigint_and_exponent().0.to_u128(),
                                                         guild: None,
-                                                    })
-                                                })
-                                                .collect(),
+                                                    }
+                                                }
+                                            },
                                             Err(e) => {
                                                 return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                                                     reason: format!("database returned a error: {}", e),
