@@ -104,7 +104,7 @@ pub async fn get_user(req: HttpRequest, auth: crate::Authorization) -> impl Resp
 
                                         Some(match resp {
                                             Ok(resp) => {
-                                                let members = Vec::with_capacity(resp.len());
+                                                let mut members = Vec::with_capacity(resp.len());
 
                                                 for x in resp {
                                                     let user = {
