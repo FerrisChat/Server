@@ -148,7 +148,7 @@ pub async fn verify_email(req: HttpRequest, path: actix_web::web::Path<String>) 
         .expect("redis not initialized: call load_redis before this")
         .clone();
     let email = match redis
-        .get::<String, Option<String>>(redis_key)
+        .get::<String, Option<String>>(redis_key.clone())
         .await
     {
         Ok(Some(email)) => {
