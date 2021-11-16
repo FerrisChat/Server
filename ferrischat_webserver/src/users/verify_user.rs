@@ -3,8 +3,8 @@ use check_if_email_exists::{check_email, CheckEmailInput, Reachable};
 use ferrischat_common::types::{
     Guild, GuildFlags, InternalServerErrorJson, NotFoundJson, User, UserFlags,
 };
-use lettre::transport::smtp::authentication::Credentials;
-use lettre::{Message, SmtpTransport, Transport};
+use lettre::{transport::smtp::authentication::Credentials, AsyncSmtpTransport, AsyncTransport, Message,
+             Tokio1Executor,};
 use simd_json::ValueAccess;
 use sqlx::Error;
 
@@ -94,7 +94,7 @@ pub async fn send_verification_email(
             let mail_creds = Credentials::new(username.to_string(), password.to_string());
 
             // Open a remote connection to the mailserver
-            let mailer = match SmtpTransport::relay(host.as_str())
+            let mailer: AsyncSmtpTransport<Tokio1Executor> = match AsyncSmtpTransport::<Tokio1Executor>::starttls_relay(host.as_str())
             {
                 Ok(m) => m.credentials(mail_creds)
                 .build(),
@@ -108,7 +108,7 @@ pub async fn send_verification_email(
             };
 
             // Send the email
-            if let Err(e) = mailer.send(&message) {
+            if let Err(e) = mailer.send(&message).await {
                 return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                     reason: format!(
                         "Mailer failed to send correctly! Please submit a bug report \
