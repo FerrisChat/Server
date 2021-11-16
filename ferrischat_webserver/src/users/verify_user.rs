@@ -15,7 +15,7 @@ pub async fn send_verification_email(
     auth: crate::Authorization,
 ) -> impl Responder {
     let authorized_user = auth.0;
-    let user_email = match sqlx::query!("SELECT email FROM users WHERE id = $1", authorized_user)
+    let user_email = match sqlx::query!("SELECT email FROM users WHERE id = $1", u128_to_bigdecimal!(authorized_user))
         .fetch_optional(db)
         .await
     {
