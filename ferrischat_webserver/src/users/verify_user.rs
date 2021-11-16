@@ -65,7 +65,7 @@ pub async fn send_verification_email(
                     reason: format!("No SMTP server password set."),
                 }),
             }
-            let token = match ferrischat_webserver::auth::generate_random_bits() {
+            let token = match crate::auth::generate_random_bits() {
                 Some(b) => base64::encode_config(b, base64::URL_SAFE),
                 None => {
                     return HttpResponse::InternalServerError().json(InternalServerErrorJson {
