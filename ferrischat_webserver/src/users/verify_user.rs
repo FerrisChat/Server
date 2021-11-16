@@ -16,16 +16,22 @@ pub async fn send_verification_email(
     auth: crate::Authorization,
 ) -> impl Responder {
     let authorized_user = auth.0;
-    match sqlx::query!("SELECT email FROM users WHERE id = $1", authorized_user)
-        .fetch_optional(db)
-        .await
-    {
-        Ok(email) => {
-            let user_email = email.email;
+    /// GET /v0/verify/{token}
+    pub async fn verify_email(req: HttpRequest, token: actix_web::web::Path<String>) -> impl Responder {
+        let mut redis = REDIS_MANAGER
+            .get()
+            .expect("redis not initialized: call load_redis before this")
+            .clone();
+        match host = redis
+            .get(format!("email:tokens:{}", token.0))
+            .get::<String, String>()
+            .await
+        {
+            Ok(_) => password,
+            Err(e) => HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                reason: format!("No token for you found."),
+            }),
         }
-        Err(e) => HttpResponse::InternalServerError().json(InternalServerErrorJson {
-            reason: format!("Database returned a error: {}", e),
-        }),
     }
     let checker_input = CheckEmailInput::new(vec![user_email.into()]);
     let checked_email = check_email(&checker_input).await;
