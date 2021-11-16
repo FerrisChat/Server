@@ -101,7 +101,7 @@ pub async fn send_verification_email(auth: crate::Authorization) -> impl Respond
             };
 
             // Send the email
-            if let Err(e) = mailer.send(&message).await {
+            if let Err(e) = mailer.send(message).await {
                 return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                     reason: format!(
                         "Mailer failed to send correctly! Please submit a bug report \
