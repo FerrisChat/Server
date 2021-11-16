@@ -39,33 +39,33 @@ pub async fn send_verification_email(
                 .get()
                 .expect("redis not initialized: call load_redis before this")
                 .clone();
-            match host = redis
+            let host = match redis
                 .get::<String, String>("config:email:host".to_string())
                 .await
             {
-                Ok(_) => password,
+                Ok(r) => r,
                 Err(e) => HttpResponse::InternalServerError().json(InternalServerErrorJson {
                     reason: format!("No SMTP server host set."),
                 }),
-            }
-            match host = redis
+            };
+            let username = match redis
                 .get::<String, String>("config:email:username".to_string())
                 .await
             {
-                Ok(_) => password,
+                Ok(r) => r,
                 Err(e) => HttpResponse::InternalServerError().json(InternalServerErrorJson {
                     reason: format!("No SMTP server username set."),
                 }),
-            }
-            match password = redis
+            };
+            let password = match redis
                 .get::<String, String>("config:email:password".to_string())
                 .await
             {
-                Ok(_) => password,
+                Ok(r) => r,
                 Err(e) => HttpResponse::InternalServerError().json(InternalServerErrorJson {
                     reason: format!("No SMTP server password set."),
                 }),
-            }
+            };
             let token = match crate::auth::generate_random_bits() {
                 Some(b) => base64::encode_config(b, base64::URL_SAFE),
                 None => {
@@ -82,11 +82,11 @@ pub async fn send_verification_email(
             let mail_creds = Credentials::new(username.to_string(), password.to_string());
 
             // Open a remote connection to the mailserver
-            match mailer = SmtpTransport::relay(host.as_string())
+            let mailer = match SmtpTransport::relay(host.as_string())
                 .credentials(mail_creds)
                 .build()
             {
-                Ok(_) => mailer,
+                Ok(m) => m,
                 Err(e) => HttpResponse::InternalServerError().json(InternalServerErrorJson {
                     reason: format!(
                         "Error creating SMTP transport! Please submit a bug report on \
