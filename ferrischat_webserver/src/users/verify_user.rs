@@ -82,7 +82,7 @@ pub async fn send_verification_email(
             let mail_creds = Credentials::new(username.to_string(), password.to_string());
 
             // Open a remote connection to the mailserver
-            let mailer = match SmtpTransport::relay(host.as_string())
+            let mailer = match SmtpTransport::relay(host.as_str())
                 .credentials(mail_creds)
                 .build()
             {
