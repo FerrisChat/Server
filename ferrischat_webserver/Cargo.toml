@@ -33,7 +33,7 @@ nix = { git = "https://github.com/nix-rust/nix" }
 http = "0.2"
 bytes = "*"
 tokio-tungstenite = "0.15"
-lettre = "0.10.0-rc.4"
+lettre = { version = "0.10.0-rc.4", features = ["tokio1","tokio1_rustls"] }
 check-if-email-exists = "0.8"
 simd-json = { version = "0.4", features = ["128bit"] }
 
