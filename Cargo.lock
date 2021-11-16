@@ -1844,10 +1844,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "71d8da8f34d086b081c9cc3b57d3bb3b51d16fc06b5c848a188e2f14d58ac2a5"
 dependencies = [
  "async-trait",
+ "base64 0.13.0",
+ "fastrand",
  "futures-io",
  "futures-util",
+ "hostname 0.3.1",
+ "httpdate",
  "idna",
+ "mime",
+ "nom 7.1.0",
  "once_cell",
+ "quoted_printable",
  "regex",
  "tokio",
  "tokio-rustls 0.23.1",
@@ -2358,6 +2365,12 @@ checksum = "38bc8cc6a5f2e3655e0899c1b848643b2562f853f114bfec7be120678e3ace05"
 dependencies = [
  "proc-macro2 1.0.32",
 ]
+
+[[package]]
+name = "quoted_printable"
+version = "0.4.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1238256b09923649ec89b08104c4dfe9f6cb2fea734a5db5384e44916d59e9c5"
 
 [[package]]
 name = "rand"
