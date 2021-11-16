@@ -108,7 +108,7 @@ pub async fn get_user(req: HttpRequest, auth: crate::Authorization) -> impl Resp
 
                                                 for x in resp {
                                                     let user = {
-                                                        let resp = sqlx::query!("SELECT * FROM users WHERE user_id = $1", x.user_id.clone())
+                                                        let resp = sqlx::query!("SELECT * FROM users WHERE id = $1", x.user_id.clone())
                                                         .fetch_one(db)
                                                         .await;
 
