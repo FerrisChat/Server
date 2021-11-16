@@ -124,6 +124,7 @@ pub async fn get_user(req: HttpRequest, auth: crate::Authorization) -> impl Resp
                                                                     reason: format!("database returned a error: {}", e),
                                                                 })
                                                             }
+                                                        }
                                                     };
                                                     Member {
                                                         user_id: x.user_id.with_scale(0).into_bigint_and_exponent().0.to_u128(),
