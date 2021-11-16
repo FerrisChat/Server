@@ -135,16 +135,17 @@ pub async fn verify_email(req: HttpRequest, path: actix_web::web::Path<String>) 
         .get()
         .expect("redis not initialized: call load_redis before this")
         .clone();
-    match redis
+    let email = match redis
         .get::<String, Option<String>>(redis_key)
         .await
     {
-        Ok(Some(_)) => {
+        Ok(Some(addr)) => {
             if let Err(e) = redis.del::<String, i32>(redis_key).await {
                 return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                     reason: format!("Redis returned a error: {}", e),
                 });
             }
+            addr
         }
         Ok(None) => {
             return HttpResponse::NotFound().json(NotFoundJson {
@@ -160,7 +161,7 @@ pub async fn verify_email(req: HttpRequest, path: actix_web::web::Path<String>) 
     let db = get_db_or_fail!();
     if let Err(e) = sqlx::query!(
         "UPDATE users SET verified = true WHERE email = $1",
-        authorized_user
+        email
     )
     .execute(db)
     .await
