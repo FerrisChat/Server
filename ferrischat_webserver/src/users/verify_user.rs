@@ -27,7 +27,7 @@ pub async fn send_verification_email(
             })
         }
     };
-    let checker_input = CheckEmailInput::new(vec![user_email.into()]);
+    let checker_input = CheckEmailInput::new(vec![user_email.clone().into()]);
     let checked_email = check_email(&checker_input).await;
     if checked_email[0].syntax.is_valid_syntax {
         if checked_email[0].is_reachable == Reachable::Safe
