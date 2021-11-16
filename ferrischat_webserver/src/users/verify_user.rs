@@ -9,7 +9,6 @@ use simd_json::ValueAccess;
 use sqlx::Error;
 
 use ferrischat_redis::{redis::AsyncCommands, REDIS_MANAGER};
-
 /// POST /v0/verify
 pub async fn send_verification_email(
     req: HttpRequest,
@@ -17,18 +16,15 @@ pub async fn send_verification_email(
 ) -> impl Responder {
     let db = get_db_or_fail!();
     let authorized_user = auth.0;
-    let user_email = match sqlx::query!(
-        "SELECT email FROM users WHERE id = $1",
-        u128_to_bigdecimal!(authorized_user)
-    )
-    .fetch_one(db)
-    .await
+    let user_email = match sqlx::query!("SELECT email FROM users WHERE id = $1", u128_to_bigdecimal!(authorized_user))
+        .fetch_one(db)
+        .await
     {
         Ok(email) => email.email,
         Err(e) => {
             return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                 reason: format!("Database returned a error: {}", e),
-            });
+            })
         }
     };
     let checker_input = CheckEmailInput::new(vec![user_email.into()]);
@@ -48,22 +44,18 @@ pub async fn send_verification_email(
                 .await
             {
                 Ok(r) => r,
-                Err(e) => {
-                    return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                        reason: format!("No SMTP server host set."),
-                    })
-                }
+                Err(e) => return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                    reason: format!("No SMTP server host set."),
+                }),
             };
             let username = match redis
                 .get::<String, String>("config:email:username".to_string())
                 .await
             {
                 Ok(r) => r,
-                Err(e) => {
-                    return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                        reason: format!("No SMTP server username set."),
-                    })
-                }
+                Err(e) => return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                    reason: format!("No SMTP server username set."),
+                }),
             };
             let password = match redis
                 .get::<String, String>("config:email:password".to_string())
@@ -81,7 +73,7 @@ pub async fn send_verification_email(
                 None => {
                     return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                         reason: "failed to generate random bits for token generation".to_string(),
-                    });
+                    })
                 }
             };
             match Message::builder()
@@ -107,15 +99,13 @@ pub async fn send_verification_email(
                 .build()
             {
                 Ok(m) => m,
-                Err(e) => {
-                    return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                        reason: format!(
-                            "Error creating SMTP transport! Please submit a bug report on \
+                Err(e) => return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                    reason: format!(
+                        "Error creating SMTP transport! Please submit a bug report on \
                     https://github.com/ferrischat/server/issues with the error `{}`",
-                            e
-                        ),
-                    })
-                }
+                        e
+                    ),
+                }),
             };
 
             // Send the email
@@ -148,17 +138,19 @@ pub async fn send_verification_email(
         })
     }
 }
-
 /// GET /v0/verify/{token}
 pub async fn verify_email(req: HttpRequest, path: actix_web::web::Path<String>) -> impl Responder {
     let token = path.into_inner();
     let redis_key = format!("email:tokens:{}", token);
-
+    
     let mut redis = REDIS_MANAGER
         .get()
         .expect("redis not initialized: call load_redis before this")
         .clone();
-    match redis.get::<String, Option<String>>(redis_key).await {
+    match redis
+        .get::<String, Option<String>>(redis_key)
+        .await
+    {
         Ok(Some(_)) => {
             if let Err(e) = redis.del::<String, i32>(redis_key).await {
                 return HttpResponse::InternalServerError().json(InternalServerErrorJson {
