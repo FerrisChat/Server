@@ -127,29 +127,46 @@ pub async fn send_verification_email(
 }
 /// GET /v0/verify/{token}
 pub async fn verify_email(req: HttpRequest, path: actix_web::web::Path<String>) -> impl Responder {
+    let token = path.into_inner();
+    let redis_key = format!("email:tokens:{}", token);
+    
     let mut redis = REDIS_MANAGER
         .get()
         .expect("redis not initialized: call load_redis before this")
         .clone();
-    match host = redis
-        .get(format!("email:tokens:{}", path.into_inner()))
-        .get::<String, String>()
+    match redis
+        .get::<String, Option<String>>(redis_key)
         .await
     {
-        Ok(_) => HttpResponse::Ok().body("Verified email. You can close this page."),
-        Err(_) => HttpResponse::NotFound().json(NotFoundJson {
-            message: format!("This token has expired or was not found."),
-        }),
+        Ok(Some(_)) => {
+            if let Err(e) = redis.del::<String, i32>(redis_key).await {
+                return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                    reason: format!("Redis returned a error: {}", e),
+                });
+            }
+        }
+        Ok(None) => {
+            return HttpResponse::NotFound().json(NotFoundJson {
+                message: format!("This token has expired or was not found."),
+            });
+        }
+        Err(e) => {
+            return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                reason: format!("Redis returned a error: {}", e),
+            });
+        }
     }
     if let Err(e) = sqlx::query!(
         "UPDATE users SET verified = true WHERE email = $1",
         authorized_user
     )
-    .fetch_optional(db)
+    .execute(db)
     .await
     {
         HttpResponse::InternalServerError().json(InternalServerErrorJson {
             reason: format!("Database returned a error: {}", e),
         })
+    } else {
+        HttpResponse::Ok().body("Verified email. You can close this page.")
     }
 }
