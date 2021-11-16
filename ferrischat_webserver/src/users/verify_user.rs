@@ -96,15 +96,14 @@ pub async fn send_verification_email(
             }
 
             // Send the email
-            match mailer.send(&message) {
-                Ok(_) => HttpResponse::Ok().finish(),
-                Err(e) => HttpResponse::InternalServerError().json(InternalServerErrorJson {
+            if let Err(e) = mailer.send(&message) {
+                return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                     reason: format!(
                         "Mailer failed to send correctly! Please submit a bug report \
                     on https://github.com/ferrischat/server/issues with the error `{}`",
                         e
                     ),
-                }),
+                });
             }
             // writes the token to redis
             let r = redis
@@ -114,6 +113,7 @@ pub async fn send_verification_email(
                     86400,
                 )
                 .await;
+            HttpResponse::Ok().finish()
         } else {
             HttpResponse::Conflict().json(InternalServerErrorJson {
                 reason: format!("Email deemed unsafe to send to. Is it a real email?"),
