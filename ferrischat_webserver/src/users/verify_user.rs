@@ -1,19 +1,12 @@
-use actix_web::{web::Json, HttpRequest, HttpResponse, Responder};
+use actix_web::{HttpRequest, HttpResponse, Responder};
 use check_if_email_exists::{check_email, CheckEmailInput, Reachable};
-use ferrischat_common::types::{
-    Guild, GuildFlags, InternalServerErrorJson, NotFoundJson, User, UserFlags,
-};
+use ferrischat_common::types::{InternalServerErrorJson, NotFoundJson};
 use lettre::transport::smtp::authentication::Credentials;
 use lettre::{Message, SmtpTransport, Transport};
-use simd_json::ValueAccess;
-use sqlx::Error;
 
 use ferrischat_redis::{redis::AsyncCommands, REDIS_MANAGER};
 /// POST /v0/verify
-pub async fn send_verification_email(
-    req: HttpRequest,
-    auth: crate::Authorization,
-) -> impl Responder {
+pub async fn send_verification_email(auth: crate::Authorization) -> impl Responder {
     let db = get_db_or_fail!();
     let authorized_user = auth.0;
     let user_email = match sqlx::query!("SELECT email FROM users WHERE id = $1", u128_to_bigdecimal!(authorized_user))
