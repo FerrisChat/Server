@@ -95,10 +95,9 @@ pub async fn send_verification_email(
 
             // Open a remote connection to the mailserver
             let mailer = match SmtpTransport::relay(host.as_str())
-                .credentials(mail_creds)
-                .build()
             {
-                Ok(m) => m,
+                Ok(m) => m.credentials(mail_creds)
+                .build(),
                 Err(e) => return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                     reason: format!(
                         "Error creating SMTP transport! Please submit a bug report on \
