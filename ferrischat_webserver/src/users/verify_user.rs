@@ -7,6 +7,8 @@ use lettre::{
 };
 
 use ferrischat_redis::{redis::AsyncCommands, REDIS_MANAGER};
+use tokio::time::Duration;
+
 /// POST /v0/verify
 pub async fn send_verification_email(auth: crate::Authorization) -> impl Responder {
     let db = get_db_or_fail!();
@@ -25,7 +27,8 @@ pub async fn send_verification_email(auth: crate::Authorization) -> impl Respond
             })
         }
     };
-    let checker_input = CheckEmailInput::new(vec![user_email.clone().into()]);
+    let mut checker_input = CheckEmailInput::new(vec![user_email.clone().into()]);
+    checker_input.set_smtp_timeout(Duration::new(5,0));
     let checked_email = check_email(&checker_input).await;
     if checked_email[0].syntax.is_valid_syntax {
         if checked_email[0].is_reachable == Reachable::Safe
