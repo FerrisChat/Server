@@ -82,8 +82,7 @@ pub async fn send_verification_email(auth: crate::Authorization) -> impl Respond
                 }
             };
             let message = match Message::builder()
-                .from("Ferris <verification@ferris.chat>".parse().unwrap())
-                .reply_to("Ferris <hello@ferris.chat>".parse().unwrap())
+                .from(format!("Ferris <{}>", username).parse().unwrap())
                 .to(user_email.parse().unwrap())
                 .subject("FerrisChat Email Verification")
                 .body(String::from(format!("Welcome to FerrisChat!<br><a href=\"https://api.ferris.chat/v0/verify/{}\">Click here to verify \
