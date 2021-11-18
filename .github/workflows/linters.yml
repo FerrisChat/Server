@@ -32,6 +32,23 @@ jobs:
   clippy:
     name: Clippy
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_DB: ferris_chat
+          POSTGRES_PASSWORD: ferris_chat
+          POSTGRES_PORT: 5432
+          POSTGRES_USER: ferris_chat
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: "install ld"
         run: "sudo apt install lld -y"
@@ -49,6 +66,8 @@ jobs:
 
       - name: "run database migrations"
         run: "cargo sqlx migrate run"
+        env:
+          - DATABASE_URL: "postgres://ferris_chat:ferris_chat@postgres:5432/ferris_chat"
 
       - uses: actions-rs/clippy-check@v1
         with:

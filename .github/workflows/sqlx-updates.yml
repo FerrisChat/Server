@@ -12,6 +12,23 @@ jobs:
   sqlx_check:
     name: "sqlx check"
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_DB: ferris_chat
+          POSTGRES_PASSWORD: ferris_chat
+          POSTGRES_PORT: 5432
+          POSTGRES_USER: ferris_chat
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: "checkout repo"
         uses: actions/checkout@v2
@@ -29,8 +46,15 @@ jobs:
       - name: "save current sqlx-data.json"
         run: "mv sqlx-data.json sqlx-data.json.old || touch sqlx-data.json.old"
 
+      - name: "migrate db"
+        run: "cargo sqlx migrate run"
+        env:
+          - DATABASE_URL: "postgres://ferris_chat:ferris_chat@postgres:5432/ferris_chat"
+
       - name: "regenerate sqlx-data.json"
         run: "cargo sqlx prepare"
+        env:
+          - DATABASE_URL: "postgres://ferris_chat:ferris_chat@postgres:5432/ferris_chat"
 
       - name: "assert eq"
         run: "diff -q sqlx-data.json sqlx-data.json.old"
