@@ -7,6 +7,7 @@ use sqlx::Error;
 
 /// GET /api/v0/users/{user_id}
 pub async fn get_user(req: HttpRequest, auth: crate::Authorization) -> impl Responder {
+    // TODO add more comments
     let user_id = get_item_id!(req, "user_id");
     let db = get_db_or_fail!();
     let bigint_user_id = u128_to_bigdecimal!(user_id);
