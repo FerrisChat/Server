@@ -1,4 +1,5 @@
 use actix_web::{web, HttpResponse, Responder};
+use base64::encode;
 use check_if_email_exists::{check_email, CheckEmailInput, Reachable};
 use ferrischat_common::types::{InternalServerErrorJson, NotFoundJson};
 use lettre::{
@@ -8,6 +9,7 @@ use lettre::{
 
 use ferrischat_redis::{redis::AsyncCommands, REDIS_MANAGER};
 use tokio::time::Duration;
+use urlencoding;
 
 /// POST /v0/verify
 pub async fn send_verification_email(auth: crate::Authorization) -> impl Responder {
@@ -73,7 +75,7 @@ pub async fn send_verification_email(auth: crate::Authorization) -> impl Respond
                     })
                 }
             };
-            let token = match crate::auth::generate_random_bits() {
+            let mut token = match crate::auth::generate_random_bits() {
                 Some(b) => base64::encode_config(b, base64::URL_SAFE_NO_PAD),
                 None => {
                     return HttpResponse::InternalServerError().json(InternalServerErrorJson {
@@ -81,6 +83,8 @@ pub async fn send_verification_email(auth: crate::Authorization) -> impl Respond
                     })
                 }
             };
+            // encode the token so it will always be a valid url
+            token = urlencoding::encode(token.as_str()).into_owned();
             let default_email = format!(
                 "Click here to verify your email: https://api.ferris.chat/v0/verify/{}",
                 token
