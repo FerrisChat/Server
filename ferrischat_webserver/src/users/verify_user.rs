@@ -1,5 +1,4 @@
 use actix_web::{web, HttpResponse, Responder};
-use base64::encode;
 use check_if_email_exists::{check_email, CheckEmailInput, Reachable};
 use ferrischat_common::types::{InternalServerErrorJson, NotFoundJson};
 use lettre::{
@@ -9,7 +8,6 @@ use lettre::{
 
 use ferrischat_redis::{redis::AsyncCommands, REDIS_MANAGER};
 use tokio::time::Duration;
-use urlencoding;
 
 /// POST /v0/verify
 pub async fn send_verification_email(auth: crate::Authorization) -> impl Responder {
