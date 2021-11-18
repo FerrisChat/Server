@@ -10,9 +10,11 @@ use ferrischat_redis::{redis::AsyncCommands, REDIS_MANAGER};
 use tokio::time::Duration;
 
 /// POST /v0/verify
+/// Requires only an authorization token.
 pub async fn send_verification_email(auth: crate::Authorization) -> impl Responder {
     let db = get_db_or_fail!();
     let authorized_user = auth.0;
+    // Get the authorized user's email.
     let user_email = match sqlx::query!(
         "SELECT email FROM users WHERE id = $1",
         u128_to_bigdecimal!(authorized_user)
@@ -27,6 +29,8 @@ pub async fn send_verification_email(auth: crate::Authorization) -> impl Respond
             })
         }
     };
+    // Makes a call to the email checker to avoid sending to completely fake emails
+    // TODO check if the user is verified already and send 304 Not Modified if they are
     let mut checker_input = CheckEmailInput::new(vec![user_email.clone().into()]);
     checker_input.set_smtp_timeout(Duration::new(5, 0));
     let checked_email = check_email(&checker_input).await;
@@ -35,12 +39,13 @@ pub async fn send_verification_email(auth: crate::Authorization) -> impl Respond
             || checked_email[0].is_reachable == Reachable::Risky
             || checked_email[0].is_reachable == Reachable::Unknown
         {
-            // get configs
+            // Get configurations, they're set in redis for speed reasons. Set them with redis-cli `set config:email:<setting> <value>`
             let mut redis = REDIS_MANAGER
                 .get()
                 .expect("redis not initialized: call load_redis before this")
                 .clone();
             let host = match redis
+                // FQDN of the SMTP server
                 .get::<String, String>("config:email:host".to_string())
                 .await
             {
@@ -52,6 +57,7 @@ pub async fn send_verification_email(auth: crate::Authorization) -> impl Respond
                 }
             };
             let username = match redis
+                // FULL SMTP username, e.g. `verification@ferris.chat`
                 .get::<String, String>("config:email:username".to_string())
                 .await
             {
@@ -63,6 +69,7 @@ pub async fn send_verification_email(auth: crate::Authorization) -> impl Respond
                 }
             };
             let password = match redis
+                // SMTP password
                 .get::<String, String>("config:email:password".to_string())
                 .await
             {
@@ -73,18 +80,23 @@ pub async fn send_verification_email(auth: crate::Authorization) -> impl Respond
                     })
                 }
             };
+            // This generates a random string that can be used to verify that the request is actually from the email owner
             let mut token = match crate::auth::generate_random_bits() {
-                Some(b) => base64::encode_config(b, base64::URL_SAFE_NO_PAD),
+                Some(b) => base64::encode_config(b, base64::URL_SAFE),
                 None => {
                     return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                         reason: "failed to generate random bits for token generation".to_string(),
                     })
                 }
             };
+            // Default email.
+            // TODO HTML rather then plaintext
+            // Also encodes the email to be URL-safe, however some work is needed on it still
             let default_email = format!(
                 "Click here to verify your email: https://api.ferris.chat/v0/verify/{}",
                 urlencoding::encode(token.as_str()).into_owned()
             );
+            // Builds the message with a hardcoded subject and sender full name
             let message = match Message::builder()
                 .from(format!("Ferris <{}>", username).parse().unwrap())
                 .to(user_email.parse().unwrap())
@@ -102,10 +114,10 @@ pub async fn send_verification_email(auth: crate::Authorization) -> impl Respond
                     })
                 }
             };
-
+            // simply gets credentials for the SMTP server
             let mail_creds = Credentials::new(username.to_string(), password.to_string());
 
-            // Open a remote connection to the mailserver
+            // Open a remote, asynchronous connection to the mailserver
             let mailer: AsyncSmtpTransport<Tokio1Executor> =
                 match AsyncSmtpTransport::<Tokio1Executor>::starttls_relay(host.as_str()) {
                     Ok(m) => m.credentials(mail_creds).build(),
@@ -130,7 +142,8 @@ pub async fn send_verification_email(auth: crate::Authorization) -> impl Respond
                     ),
                 });
             }
-            // writes the token to redis
+            // writes the token to redis.
+            // The reason we use the token as the key rather then the value is so we can check against it more easily later, when it's part of the URL.
             if let Err(e) = redis
                 .set_ex::<String, String, String>(
                     format!("email:tokens:{}", token),
@@ -158,7 +171,9 @@ pub async fn send_verification_email(auth: crate::Authorization) -> impl Respond
     }
 }
 /// GET /v0/verify/{token}
+/// Verifies the user's email when they click the linke mailed to them.
 pub async fn verify_email(path: web::Path<String>) -> impl Responder {
+    // Gets the last component of the path (should be the token) and searches redis for it
     let token = path.into_inner();
     let redis_key = format!("email:tokens:{}", token);
 
@@ -166,6 +181,7 @@ pub async fn verify_email(path: web::Path<String>) -> impl Responder {
         .get()
         .expect("redis not initialized: call load_redis before this")
         .clone();
+    // r/askredis
     let email = match redis.get::<String, Option<String>>(redis_key.clone()).await {
         Ok(Some(email)) => {
             if let Err(e) = redis.del::<String, i32>(redis_key).await {
@@ -187,6 +203,7 @@ pub async fn verify_email(path: web::Path<String>) -> impl Responder {
         }
     };
     let db = get_db_or_fail!();
+    // Tell the database to set their verified field to true! The user is now verified.
     if let Err(e) = sqlx::query!("UPDATE users SET verified = true WHERE email = $1", email)
         .execute(db)
         .await
