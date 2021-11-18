@@ -43,9 +43,13 @@ jobs:
           components: clippy
           override: true
 
+      - name: "install sqlx cli"
+        run: "cargo install sqlx-cli"
+
+      - name: "run database migrations"
+        run: "cargo sqlx migrate run"
+
       - uses: actions-rs/clippy-check@v1
-        env:
-          SQLX_OFFLINE: "true"
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           args: --all-features -- --forbid expect_used --forbid unwrap_used

@@ -1,0 +1,35 @@
+on:
+  pull_request:
+
+  push:
+    branches:
+      - main
+
+name: "sqlx checks"
+
+jobs:
+  sqlx_check:
+    name: "sqlx check"
+    runs-on: ubuntu-latest
+    steps:
+      - name: "checkout repo"
+        uses: actions/checkout@v2
+
+      - name: "install rust"
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: nightly
+          override: true
+
+      - name: "install sqlx-cli"
+        run: "cargo install sqlx-cli"
+
+      - name: "save current sqlx-data.json"
+        run: "mv sqlx-data.json sqlx-data.json.old || touch sqlx-data.json.old"
+
+      - name: "regenerate sqlx-data.json"
+        run: "cargo sqlx prepare"
+
+      - name: "assert eq"
+        run: "diff -q sqlx-data.json sqlx-data.json.old"
