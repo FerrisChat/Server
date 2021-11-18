@@ -28,7 +28,7 @@ pub async fn send_verification_email(auth: crate::Authorization) -> impl Respond
         }
     };
     let mut checker_input = CheckEmailInput::new(vec![user_email.clone().into()]);
-    checker_input.set_smtp_timeout(Duration::new(5,0));
+    checker_input.set_smtp_timeout(Duration::new(5, 0));
     let checked_email = check_email(&checker_input).await;
     if checked_email[0].syntax.is_valid_syntax {
         if checked_email[0].is_reachable == Reachable::Safe
@@ -81,17 +81,26 @@ pub async fn send_verification_email(auth: crate::Authorization) -> impl Respond
                     })
                 }
             };
-            let default_email = format!("Click here to verify your email: https://api.ferris.chat/v0/verify/{}", token);
+            let default_email = format!(
+                "Click here to verify your email: https://api.ferris.chat/v0/verify/{}",
+                token
+            );
             let message = match Message::builder()
                 .from(format!("Ferris <{}>", username).parse().unwrap())
                 .to(user_email.parse().unwrap())
                 .subject("FerrisChat Email Verification")
-                .body(String::from(default_email)) {
+                .body(String::from(default_email))
+            {
                 Ok(m) => m,
-                Err(e) => return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                    reason: format!("This should not have happened. Submit a bug report on \
-                    https://github.com/ferrischat/server/issues with the error `{}`", e),
-                }),
+                Err(e) => {
+                    return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                        reason: format!(
+                            "This should not have happened. Submit a bug report on \
+                    https://github.com/ferrischat/server/issues with the error `{}`",
+                            e
+                        ),
+                    })
+                }
             };
 
             let mail_creds = Credentials::new(username.to_string(), password.to_string());
