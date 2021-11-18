@@ -192,6 +192,7 @@ pub async fn verify_email(path: web::Path<String>) -> impl Responder {
             email
         }
         Ok(None) => {
+            // TODO use 498 rather then 404
             return HttpResponse::NotFound().json(NotFoundJson {
                 message: format!("This token has expired or was not found."),
             });
