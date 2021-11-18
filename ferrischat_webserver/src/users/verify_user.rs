@@ -74,7 +74,7 @@ pub async fn send_verification_email(auth: crate::Authorization) -> impl Respond
                 }
             };
             let token = match crate::auth::generate_random_bits() {
-                Some(b) => base64::encode_config(b, base64::URL_SAFE),
+                Some(b) => base64::encode_config(b, base64::URL_SAFE_NO_PAD),
                 None => {
                     return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                         reason: "failed to generate random bits for token generation".to_string(),
