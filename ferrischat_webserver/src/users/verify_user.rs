@@ -143,7 +143,9 @@ pub async fn send_verification_email(auth: crate::Authorization) -> impl Respond
                     reason: format!("Redis returned a error: {}", e),
                 });
             }
-            HttpResponse::Ok().body("Verification sent, please check your email.").finish()
+            HttpResponse::Ok().json(InternalServerErrorJson {
+                reason: format!("Sent verification, please check your email."),
+            })
         } else {
             HttpResponse::Conflict().json(InternalServerErrorJson {
                 reason: format!("Email deemed unsafe to send to. Is it a real email?"),
