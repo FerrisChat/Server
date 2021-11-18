@@ -81,11 +81,9 @@ pub async fn send_verification_email(auth: crate::Authorization) -> impl Respond
                     })
                 }
             };
-            // encode the token so it will always be a valid url
-            token = urlencoding::encode(token.as_str()).into_owned();
             let default_email = format!(
                 "Click here to verify your email: https://api.ferris.chat/v0/verify/{}",
-                token
+                urlencoding::encode(token.as_str()).into_owned()
             );
             let message = match Message::builder()
                 .from(format!("Ferris <{}>", username).parse().unwrap())
