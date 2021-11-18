@@ -59,50 +59,6 @@
       "nullable": []
     }
   },
-  "05a8912cfdbf9863e40f36a1f43e4a363738570fbfcdbe82230ea5a19d7b3fb1": {
-    "query": "SELECT m.*, u.name AS name, u.discriminator AS discriminator, u.flags AS flags FROM members m CROSS JOIN LATERAL (SELECT * FROM users u WHERE id = m.user_id) AS u WHERE guild_id = $1",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "user_id",
-          "type_info": "Numeric"
-        },
-        {
-          "ordinal": 1,
-          "name": "guild_id",
-          "type_info": "Numeric"
-        },
-        {
-          "ordinal": 2,
-          "name": "name",
-          "type_info": "Varchar"
-        },
-        {
-          "ordinal": 3,
-          "name": "discriminator",
-          "type_info": "Int2"
-        },
-        {
-          "ordinal": 4,
-          "name": "flags",
-          "type_info": "Int8"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Numeric"
-        ]
-      },
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        false
-      ]
-    }
-  },
   "0ab41e15cb53d5b92c5c32f871188e500679b9301249f5cdebff0b11b40c84f1": {
     "query": "DELETE FROM invites WHERE code = $1",
     "describe": {
@@ -559,26 +515,6 @@
       "nullable": []
     }
   },
-  "79a40009b7e09a7b443779142a8022f65c38ab7d75a362c5c1a1ab1052840234": {
-    "query": "SELECT guild_id FROM members WHERE user_id = $1",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "guild_id",
-          "type_info": "Numeric"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Numeric"
-        ]
-      },
-      "nullable": [
-        false
-      ]
-    }
-  },
   "7ebd0aa1d91d1a8e8aa325c7e8903ad041bb364aa95f726700a32e80cda3ed45": {
     "query": "INSERT INTO members VALUES ($1, $2)",
     "describe": {
@@ -828,27 +764,6 @@
       "nullable": [
         false,
         false,
-        false
-      ]
-    }
-  },
-  "a05f422e19e53ad66232fde951226f3c50a0c1d251996bda3e1fabe37032cfe3": {
-    "query": "SELECT guild_id FROM members WHERE user_id = $1 AND guild_id = $2",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "guild_id",
-          "type_info": "Numeric"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Numeric",
-          "Numeric"
-        ]
-      },
-      "nullable": [
         false
       ]
     }
