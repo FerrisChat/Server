@@ -81,13 +81,12 @@ pub async fn send_verification_email(auth: crate::Authorization) -> impl Respond
                     })
                 }
             };
+            let default_email = format!("Click here to verify your email: https://api.ferris.chat/v0/verify/{}", token);
             let message = match Message::builder()
                 .from(format!("Ferris <{}>", username).parse().unwrap())
                 .to(user_email.parse().unwrap())
                 .subject("FerrisChat Email Verification")
-                .body(String::from(format!("<!DOCTYPE html>Welcome to FerrisChat!<br><a href=\"https://api.ferris.chat/v0/verify/{}\">Click here to verify \
-        your email!</a> (expires in 1 hour) <br><br> If you don't know what this is, reset your token and change \
-        your password ASAP.", token))) {
+                .body(String::from(default_email)) {
                 Ok(m) => m,
                 Err(e) => return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                     reason: format!("This should not have happened. Submit a bug report on \
