@@ -32,51 +32,6 @@
       ]
     }
   },
-  "020df59d211e2e83232af4da346c77eae53497d3e61584adc72aa71d4781a628": {
-    "query": "DELETE FROM messages WHERE id = $1 AND channel_id = $2 RETURNING *",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "id",
-          "type_info": "Numeric"
-        },
-        {
-          "ordinal": 1,
-          "name": "content",
-          "type_info": "Text"
-        },
-        {
-          "ordinal": 2,
-          "name": "channel_id",
-          "type_info": "Numeric"
-        },
-        {
-          "ordinal": 3,
-          "name": "author_id",
-          "type_info": "Numeric"
-        },
-        {
-          "ordinal": 4,
-          "name": "edited_at",
-          "type_info": "Timestamp"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Numeric",
-          "Numeric"
-        ]
-      },
-      "nullable": [
-        false,
-        true,
-        false,
-        false,
-        true
-      ]
-    }
-  },
   "027e7c30c91ee3b95167286e599d4002e38388ce4b634ddf7bfe2635a18e179e": {
     "query": "DELETE FROM role_data WHERE guild_id = $1 AND user_id = $2 AND role_id = $3",
     "describe": {
@@ -102,6 +57,50 @@
         ]
       },
       "nullable": []
+    }
+  },
+  "05a8912cfdbf9863e40f36a1f43e4a363738570fbfcdbe82230ea5a19d7b3fb1": {
+    "query": "SELECT m.*, u.name AS name, u.discriminator AS discriminator, u.flags AS flags FROM members m CROSS JOIN LATERAL (SELECT * FROM users u WHERE id = m.user_id) AS u WHERE guild_id = $1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "user_id",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 1,
+          "name": "guild_id",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 2,
+          "name": "name",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 3,
+          "name": "discriminator",
+          "type_info": "Int2"
+        },
+        {
+          "ordinal": 4,
+          "name": "flags",
+          "type_info": "Int8"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Numeric"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ]
     }
   },
   "0ab41e15cb53d5b92c5c32f871188e500679b9301249f5cdebff0b11b40c84f1": {
@@ -211,6 +210,18 @@
       ]
     }
   },
+  "20bd497ceb2178456f6e8d5270f3629da01cf4edb4c7fc8eede316942b10326b": {
+    "query": "UPDATE users SET verified = true WHERE email = $1",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      },
+      "nullable": []
+    }
+  },
   "2e8ad39e8eb4fe5778326411975ba6591eab874885e8fc5dbf046af31750b47a": {
     "query": "UPDATE roles SET permissions = $1 WHERE id = $2",
     "describe": {
@@ -264,8 +275,8 @@
       ]
     }
   },
-  "38c6fe73fe078fe1853fe8ce9fbdbb66e7bf639d56985faf52193c3e953da14a": {
-    "query": "SELECT * FROM messages WHERE channel_id = $1 AND id = $2",
+  "35bcf5cfae18f5d7f659a5b148a4f58c982f4977f8cdaa46e69a639f8ab3ad80": {
+    "query": "SELECT m.*, a.name AS author_name, a.flags AS author_flags, a.discriminator AS author_discriminator FROM messages m CROSS JOIN LATERAL (SELECT * FROM users WHERE id = m.author_id) as a WHERE channel_id = $1 ORDER BY id ASC LIMIT $2 OFFSET $3",
     "describe": {
       "columns": [
         {
@@ -292,12 +303,28 @@
           "ordinal": 4,
           "name": "edited_at",
           "type_info": "Timestamp"
+        },
+        {
+          "ordinal": 5,
+          "name": "author_name",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 6,
+          "name": "author_flags",
+          "type_info": "Int8"
+        },
+        {
+          "ordinal": 7,
+          "name": "author_discriminator",
+          "type_info": "Int2"
         }
       ],
       "parameters": {
         "Left": [
           "Numeric",
-          "Numeric"
+          "Int8",
+          "Int8"
         ]
       },
       "nullable": [
@@ -305,52 +332,10 @@
         true,
         false,
         false,
-        true
-      ]
-    }
-  },
-  "403f35a938b3f1ba26670331192c75eb5b1449fafd55b12bddf6d21210754972": {
-    "query": "SELECT * FROM messages WHERE id = $1 AND channel_id = $2",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "id",
-          "type_info": "Numeric"
-        },
-        {
-          "ordinal": 1,
-          "name": "content",
-          "type_info": "Text"
-        },
-        {
-          "ordinal": 2,
-          "name": "channel_id",
-          "type_info": "Numeric"
-        },
-        {
-          "ordinal": 3,
-          "name": "author_id",
-          "type_info": "Numeric"
-        },
-        {
-          "ordinal": 4,
-          "name": "edited_at",
-          "type_info": "Timestamp"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Numeric",
-          "Numeric"
-        ]
-      },
-      "nullable": [
-        false,
         true,
         false,
         false,
-        true
+        false
       ]
     }
   },
@@ -397,6 +382,50 @@
         ]
       },
       "nullable": []
+    }
+  },
+  "49ba127ec2d19babdeadf56b81da98009c5487a7fb67f5672036368e5c166fea": {
+    "query": "SELECT m.*, u.name AS name, u.flags AS flags, u.discriminator AS discriminator FROM members m CROSS JOIN LATERAL (SELECT * FROM users WHERE id = m.user_id) as u WHERE guild_id = $1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "user_id",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 1,
+          "name": "guild_id",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 2,
+          "name": "name",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 3,
+          "name": "flags",
+          "type_info": "Int8"
+        },
+        {
+          "ordinal": 4,
+          "name": "discriminator",
+          "type_info": "Int2"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Numeric"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ]
     }
   },
   "4e3170cbcb6da9b1b4e4a57436334974dbc454333b32d11bd319a45e33f8fb92": {
@@ -481,6 +510,27 @@
         ]
       },
       "nullable": []
+    }
+  },
+  "64cbca9b0741ea1bb57a3f0749801660961436215dfe4dc584714c7d24125da8": {
+    "query": "SELECT EXISTS(SELECT * FROM members WHERE user_id = $1 AND guild_id = $2) AS \"exists!\"",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "exists!",
+          "type_info": "Bool"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Numeric",
+          "Numeric"
+        ]
+      },
+      "nullable": [
+        null
+      ]
     }
   },
   "685b72a878b692b32b239290055c454760d780222b5c1c19ab47b5afd0b45e98": {
@@ -588,6 +638,11 @@
           "ordinal": 5,
           "name": "discriminator",
           "type_info": "Int2"
+        },
+        {
+          "ordinal": 6,
+          "name": "verified",
+          "type_info": "Bool"
         }
       ],
       "parameters": {
@@ -601,7 +656,8 @@
         false,
         false,
         false,
-        false
+        false,
+        true
       ]
     }
   },
@@ -824,6 +880,69 @@
         ]
       },
       "nullable": [
+        false,
+        false,
+        false
+      ]
+    }
+  },
+  "a6d3e6051fd74a9bb3e89d42ee64fead49d5e323b359cfa0a936d6358751c4ff": {
+    "query": "SELECT m.*, a.name AS author_name, a.flags AS author_flags, a.discriminator AS author_discriminator FROM messages m CROSS JOIN LATERAL (SELECT * FROM users WHERE id = m.author_id) AS a WHERE m.id = $1 AND m.channel_id = $2",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 1,
+          "name": "content",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 2,
+          "name": "channel_id",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 3,
+          "name": "author_id",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 4,
+          "name": "edited_at",
+          "type_info": "Timestamp"
+        },
+        {
+          "ordinal": 5,
+          "name": "author_name",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 6,
+          "name": "author_flags",
+          "type_info": "Int8"
+        },
+        {
+          "ordinal": 7,
+          "name": "author_discriminator",
+          "type_info": "Int2"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Numeric",
+          "Numeric"
+        ]
+      },
+      "nullable": [
+        false,
+        true,
+        false,
+        false,
+        true,
         false,
         false,
         false
@@ -1108,51 +1227,6 @@
       ]
     }
   },
-  "e2dcdf96725dea03ae0f6db1ae2c06d073f6fcf83f335942f2f55f8eff7109fc": {
-    "query": "SELECT * FROM messages WHERE channel_id = $1 LIMIT $2",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "id",
-          "type_info": "Numeric"
-        },
-        {
-          "ordinal": 1,
-          "name": "content",
-          "type_info": "Text"
-        },
-        {
-          "ordinal": 2,
-          "name": "channel_id",
-          "type_info": "Numeric"
-        },
-        {
-          "ordinal": 3,
-          "name": "author_id",
-          "type_info": "Numeric"
-        },
-        {
-          "ordinal": 4,
-          "name": "edited_at",
-          "type_info": "Timestamp"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Numeric",
-          "Int8"
-        ]
-      },
-      "nullable": [
-        false,
-        true,
-        false,
-        false,
-        true
-      ]
-    }
-  },
   "e9f8d85417fdc81bd2dbfe749c7da303738ef2b5b1bd2f4fc1a22947108d93a2": {
     "query": "SELECT * FROM channels WHERE id = $1",
     "describe": {
@@ -1197,6 +1271,103 @@
         ]
       },
       "nullable": []
+    }
+  },
+  "f097718cce3349d88d5d8c01966697788131591ac244df768b8b37042547775f": {
+    "query": "DELETE FROM messages WHERE id = $1 AND channel_id = $2",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Numeric",
+          "Numeric"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "f182af3b1a61e207f757c88957e95deda7dde7d33cf7df7c4f9f7ee74a73af85": {
+    "query": "SELECT m.*, a.name AS author_name, a.flags AS author_flags, a.discriminator AS author_discriminator FROM messages m CROSS JOIN LATERAL (SELECT * FROM users WHERE id = m.author_id) as a WHERE channel_id = $1 ORDER BY id DESC LIMIT $2 OFFSET $3",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 1,
+          "name": "content",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 2,
+          "name": "channel_id",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 3,
+          "name": "author_id",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 4,
+          "name": "edited_at",
+          "type_info": "Timestamp"
+        },
+        {
+          "ordinal": 5,
+          "name": "author_name",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 6,
+          "name": "author_flags",
+          "type_info": "Int8"
+        },
+        {
+          "ordinal": 7,
+          "name": "author_discriminator",
+          "type_info": "Int2"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Numeric",
+          "Int8",
+          "Int8"
+        ]
+      },
+      "nullable": [
+        false,
+        true,
+        false,
+        false,
+        true,
+        false,
+        false,
+        false
+      ]
+    }
+  },
+  "f467aff95ef5ca0bae0f063d73838c35d672b83acb7897d87b61eef900ccccbd": {
+    "query": "SELECT email FROM users WHERE id = $1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "email",
+          "type_info": "Varchar"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Numeric"
+        ]
+      },
+      "nullable": [
+        false
+      ]
     }
   },
   "fa62dd8bf63a953f84864dcd447f305ad452ca13d068cefe8aea4695c862ba60": {
