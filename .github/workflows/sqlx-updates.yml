@@ -6,11 +6,11 @@ on:
       - main
       - gh-actions-fixes
 
-name: "sqlx checks"
+name: "SQLx Checks"
 
 jobs:
   sqlx_check:
-    name: "sqlx check"
+    name: "SQLx Check"
     runs-on: ubuntu-latest
 
     services:
@@ -54,4 +54,4 @@ jobs:
           DATABASE_URL: "postgres://postgres:postgres@localhost:5432/ferris_chat"
 
       - name: "assert eq, update if not eq"
-        run: "diff -q sqlx-data.json sqlx-data.json.old || { git add sqlx-data.json; git commit -m \"automated sqlx-data.json update\"; }"
+        run: "diff -q sqlx-data.json sqlx-data.json.old || { git config user.name github-actions; git config user.email github-actions@github.com; git add sqlx-data.json; git commit -m \"automated sqlx-data.json update\"; }"
