@@ -62,7 +62,7 @@ jobs:
       - name: "run database migrations"
         run: "cargo sqlx database setup"
         env:
-          - DATABASE_URL: "postgres://postgres:postgres@localhost:5432/ferris_chat"
+          DATABASE_URL: "postgres://postgres:postgres@localhost:5432/ferris_chat"
 
       - uses: actions-rs/clippy-check@v1
         with:
