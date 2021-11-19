@@ -15,14 +15,9 @@ jobs:
 
     services:
       postgres:
-        image: postgres:latest
-        env:
-          POSTGRES_DB: ferris_chat
-          POSTGRES_PASSWORD: ferris_chat
-          POSTGRES_PORT: 5432
-          POSTGRES_USER: ferris_chat
+        image: "postgres:latest"
         ports:
-          - 5432:5432
+          - "5432:5432"
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -47,14 +42,14 @@ jobs:
         run: "mv sqlx-data.json sqlx-data.json.old || touch sqlx-data.json.old"
 
       - name: "migrate db"
-        run: "cargo sqlx migrate run"
+        run: "cargo sqlx database setup"
         env:
-          - DATABASE_URL: "postgres://ferris_chat:ferris_chat@postgres:5432/ferris_chat"
+          - DATABASE_URL: "postgres://postgres:postgres@localhost:5432/ferris_chat"
 
       - name: "regenerate sqlx-data.json"
         run: "cargo sqlx prepare"
         env:
-          - DATABASE_URL: "postgres://ferris_chat:ferris_chat@postgres:5432/ferris_chat"
+          - DATABASE_URL: "postgres://postgres:postgres@localhost:5432/ferris_chat"
 
       - name: "assert eq"
         run: "diff -q sqlx-data.json sqlx-data.json.old"

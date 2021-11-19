@@ -35,14 +35,9 @@ jobs:
 
     services:
       postgres:
-        image: postgres:latest
-        env:
-          POSTGRES_DB: ferris_chat
-          POSTGRES_PASSWORD: ferris_chat
-          POSTGRES_PORT: 5432
-          POSTGRES_USER: ferris_chat
+        image: "postgres:latest"
         ports:
-          - 5432:5432
+          - "5432:5432"
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -65,9 +60,9 @@ jobs:
         run: "cargo install sqlx-cli"
 
       - name: "run database migrations"
-        run: "cargo sqlx migrate run"
+        run: "cargo sqlx database setup"
         env:
-          - DATABASE_URL: "postgres://ferris_chat:ferris_chat@postgres:5432/ferris_chat"
+          - DATABASE_URL: "postgres://postgres:postgres@localhost:5432/ferris_chat"
 
       - uses: actions-rs/clippy-check@v1
         with:
