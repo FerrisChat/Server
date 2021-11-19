@@ -53,5 +53,5 @@ jobs:
         env:
           DATABASE_URL: "postgres://postgres:postgres@localhost:5432/ferris_chat"
 
-      - name: "assert eq"
-        run: "diff -q sqlx-data.json sqlx-data.json.old"
+      - name: "assert eq, update if not eq"
+        run: "diff -q sqlx-data.json sqlx-data.json.old || { git add sqlx-data.json; git commit -m \"automated sqlx-data.json update\"; }"
