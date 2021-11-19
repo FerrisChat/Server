@@ -44,12 +44,12 @@ jobs:
       - name: "migrate db"
         run: "cargo sqlx database setup"
         env:
-          - DATABASE_URL: "postgres://postgres:postgres@localhost:5432/ferris_chat"
+          DATABASE_URL: "postgres://postgres:postgres@localhost:5432/ferris_chat"
 
       - name: "regenerate sqlx-data.json"
         run: "cargo sqlx prepare"
         env:
-          - DATABASE_URL: "postgres://postgres:postgres@localhost:5432/ferris_chat"
+          DATABASE_URL: "postgres://postgres:postgres@localhost:5432/ferris_chat"
 
       - name: "assert eq"
         run: "diff -q sqlx-data.json sqlx-data.json.old"
