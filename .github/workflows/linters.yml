@@ -61,9 +61,6 @@ jobs:
       - name: "install sqlx cli"
         run: "cargo install sqlx-cli"
 
-      - name: "remove .env"
-        run: "rm -f .env"
-
       - name: "run database migrations"
         run: "cargo sqlx database setup"
         env:
@@ -74,3 +71,5 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           args: --all-features -- --forbid expect_used --forbid unwrap_used
           name: Clippy Output
+        env:
+          DATABASE_URL: "postgres://postgres:postgres@localhost:5432/ferris_chat"
