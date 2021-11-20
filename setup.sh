@@ -53,7 +53,7 @@ if [[ -z "${FC_REDIS_USERNAME}" ]]; then
   printf "user=\"%s\"\n" "${FC_REDIS_USERNAME}" >> /etc/ferrischat/config.toml
 fi
 if [[ -z "${FC_REDIS_PASSWORD}" ]]; then
-  printf "password=\"%s\\n" "${FC_REDIS_PASSWORD}" >> /etc/ferrischat/config.toml
+  printf "password=\"%s\"\n" "${FC_REDIS_PASSWORD}" >> /etc/ferrischat/config.toml
 fi
 
 printf "\n[tls]\n" >> /etc/ferrischat/config.toml

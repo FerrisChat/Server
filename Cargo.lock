@@ -44,7 +44,7 @@ dependencies = [
 [[package]]
 name = "actix-http"
 version = "3.0.0-beta.12"
-source = "git+https://github.com/actix/actix-web/#66620a101211c424ffc7e2f1b1c7bb9e2a78ff87"
+source = "git+https://github.com/actix/actix-web/#194a69153751e5d28df78ec69444daa80e93f84c"
 dependencies = [
  "actix-codec",
  "actix-rt",
@@ -156,7 +156,7 @@ dependencies = [
 [[package]]
 name = "actix-web"
 version = "4.0.0-beta.11"
-source = "git+https://github.com/actix/actix-web/#66620a101211c424ffc7e2f1b1c7bb9e2a78ff87"
+source = "git+https://github.com/actix/actix-web/#194a69153751e5d28df78ec69444daa80e93f84c"
 dependencies = [
  "actix-codec",
  "actix-http",
@@ -196,7 +196,7 @@ dependencies = [
 [[package]]
 name = "actix-web-actors"
 version = "4.0.0-beta.7"
-source = "git+https://github.com/actix/actix-web/#66620a101211c424ffc7e2f1b1c7bb9e2a78ff87"
+source = "git+https://github.com/actix/actix-web/#194a69153751e5d28df78ec69444daa80e93f84c"
 dependencies = [
  "actix",
  "actix-codec",
@@ -278,9 +278,9 @@ dependencies = [
 
 [[package]]
 name = "anyhow"
-version = "1.0.45"
+version = "1.0.47"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ee10e43ae4a853c0a3591d4e2ada1719e553be18199d9da9d4a83f5927c2f5c7"
+checksum = "38d9ff5d688f1c13395289f67db01d4826b46dd694e7580accdc3e8430f2d98e"
 
 [[package]]
 name = "arc-swap"
@@ -1173,7 +1173,7 @@ dependencies = [
 [[package]]
 name = "ferrischat_common"
 version = "0.2.0"
-source = "git+https://github.com/FerrisChat/Common.git?branch=master#c542960cde13d0a4b4d8fae15a9e0ce819d63cec"
+source = "git+https://github.com/FerrisChat/Common.git?branch=master#719e70ae37bef04daad032a9de4bcd8da0d3756d"
 dependencies = [
  "bitflags",
  "serde",
@@ -1879,9 +1879,9 @@ dependencies = [
 
 [[package]]
 name = "libc"
-version = "0.2.107"
+version = "0.2.108"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fbe5e23404da5b4f555ef85ebed98fb4083e55a00c317800bc2a50ede9f3d219"
+checksum = "8521a1b57e76b1ec69af7599e75e38e7b7fad6610f037db8c79b127201b5d119"
 
 [[package]]
 name = "libloading"
@@ -1947,11 +1947,12 @@ dependencies = [
 
 [[package]]
 name = "mailchecker"
-version = "4.0.16"
+version = "4.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "80d012c79f38febe303bfc81289a1d9a90d1844225a335568b6241317419368b"
+checksum = "f08ababb9ce907758f1feca940fabc48605b372d626d3fbbbf0f56e20a29e212"
 dependencies = [
  "fast_chemail",
+ "once_cell",
 ]
 
 [[package]]
@@ -2057,7 +2058,7 @@ dependencies = [
 [[package]]
 name = "nix"
 version = "0.23.0"
-source = "git+https://github.com/nix-rust/nix#94cbb66823ec77142e27a59713954a735248895d"
+source = "git+https://github.com/nix-rust/nix#7c3121a6c807b2b170fda7bc466e2dc2d28e62f2"
 dependencies = [
  "bitflags",
  "cc",
