@@ -4,3 +4,4 @@ mod token_gen;
 
 pub use auth_struct::Authorization;
 pub use get_token::*;
+pub use token_gen::*;

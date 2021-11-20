@@ -1,4 +1,5 @@
 #![feature(once_cell)]
+#![feature(async_closure)]
 
 use dashmap::DashMap;
 use ferrischat_auth::{split_token, verify_token};
@@ -277,9 +278,11 @@ pub async fn handle_ws_connection(
                     match verify_token(id, secret).await {
                         Ok(_) => {
                             // token valid
+                            let bigdecimal_user_id = u128_to_bigdecimal!(id);
+
                             let res = sqlx::query!(
                                 "SELECT * FROM users WHERE id = $1",
-                                u128_to_bigdecimal!(id)
+                                bigdecimal_user_id
                             )
                             .fetch_one(db)
                             .await;
@@ -289,7 +292,132 @@ pub async fn handle_ws_connection(
                                     id,
                                     name: u.name,
                                     avatar: None,
-                                    guilds: None,
+                                    guilds: {
+                                        let resp = sqlx::query!(
+                                            r#"SELECT id AS "id!", owner_id AS "owner_id!", name AS "name!" FROM guilds INNER JOIN members m on guilds.id = m.guild_id WHERE m.user_id = $1"#,
+                                            bigdecimal_user_id
+                                        )
+                                        .fetch_all(db)
+                                        .await;
+
+                                        match resp {
+                                            Ok(d) => {
+                                                let mut guilds = Vec::with_capacity(d.len());
+                                                for x in d {
+                                                    let id_ =
+                                                        x.id.clone()
+                                                            .with_scale(0)
+                                                            .into_bigint_and_exponent()
+                                                            .0
+                                                            .to_u128();
+
+                                                    let id = match id_ {
+                                                        Some(id) => id,
+                                                        None => continue,
+                                                    };
+
+                                                    let owner_id_ = x
+                                                        .owner_id
+                                                        .with_scale(0)
+                                                        .into_bigint_and_exponent()
+                                                        .0
+                                                        .to_u128();
+
+                                                    let owner_id = match owner_id_ {
+                                                        Some(owner_id) => owner_id,
+                                                        None => continue,
+                                                    };
+
+                                                    let g = ferrischat_common::types::Guild {
+                                                            id,
+                                                            owner_id,
+                                                            name: x.name.clone(),
+                                                            channels: {
+                                                                let resp = sqlx::query!(
+                                                                    "SELECT * FROM channels WHERE guild_id = $1",
+                                                                    x.id.clone()
+                                                                )
+                                                                .fetch_all(db)
+                                                                .await;
+
+                                                                Some(match resp {
+                                                                    Ok(resp) => resp
+                                                                        .iter()
+                                                                        .filter_map(|x| {
+                                                                            Some(ferrischat_common::types::Channel {
+                                                                                id: x.id.clone().with_scale(0).into_bigint_and_exponent().0.to_u128()?,
+                                                                                name: x.name.clone(),
+                                                                                guild_id: x
+                                                                                    .guild_id
+                                                                                    .with_scale(0)
+                                                                                    .into_bigint_and_exponent()
+                                                                                    .0
+                                                                                    .to_u128()?,
+                                                                            })
+                                                                        })
+                                                                        .collect(),
+                                                                    Err(e) => {
+                                                                        continue; // TODO: zero shall fix when refactor
+                                                                    }
+                                                                })
+                                                            },
+                                                            flags: ferrischat_common::types::GuildFlags::empty(),
+                                                            members: {
+                                                                let resp = sqlx::query!(
+                                                                    "SELECT m.*, u.name AS name, u.discriminator AS discriminator, u.flags AS flags FROM members m CROSS JOIN LATERAL (SELECT * FROM users u WHERE id = m.user_id) AS u WHERE guild_id = $1",
+                                                                    x.id.clone()
+                                                                )
+                                                                .fetch_all(db)
+                                                                .await;
+
+                                                                Some(match resp {
+                                                                    Ok(resp) => resp
+                                                                        .iter()
+                                                                        .filter_map(|x| {
+                                                                            let user_id = x.user_id
+                                                                                .with_scale(0)
+                                                                                .into_bigint_and_exponent()
+                                                                                .0
+                                                                                .to_u128()?;
+                                                                            Some(ferrischat_common::types::Member {
+                                                                                user_id: Some(user_id),
+                                                                                user: Some(ferrischat_common::types::User {
+                                                                                    id: user_id,
+                                                                                    name: x.name.clone(),
+                                                                                    avatar: None,
+                                                                                    guilds: None,
+                                                                                    flags: ferrischat_common::types::UserFlags::from_bits_truncate(x.flags),
+                                                                                    discriminator: x.discriminator,
+                                                                                }),
+                                                                                guild_id: x.guild_id.with_scale(0).into_bigint_and_exponent().0.to_u128(),
+                                                                                guild: None,
+                                                                            })
+                                                                        })
+                                                                        .collect(),
+                                                                    Err(e) => {
+                                                                        continue; // TODO: zero shall fix when refactor
+                                                                    }
+                                                                })
+                                                            },
+                                                            roles: None
+                                                        };
+                                                    guilds.push(g);
+                                                }
+                                                Some(guilds)
+                                            }
+                                            Err(e) => {
+                                                closer_tx.send(Some(CloseFrame {
+                                                    code: CloseCode::from(5000),
+                                                    reason: format!(
+                                                        "Internal database error: {}",
+                                                        e
+                                                    )
+                                                    .into(),
+                                                }));
+                                                break;
+                                            }
+                                        }
+                                    },
                                     flags: ferrischat_common::types::UserFlags::from_bits_truncate(
                                         u.flags,
                                     ),
@@ -325,32 +453,36 @@ pub async fn handle_ws_connection(
                     }
                 }
                 WsInboundEvent::Ping => {
-                    inter_tx.send(TxRxComm::Text(
-                        match simd_json::serde::to_string(&WsOutboundEvent::Pong) {
-                            Ok(v) => v,
-                            Err(e) => {
-                                closer_tx.send(Some(CloseFrame {
-                                    code: CloseCode::from(5001),
-                                    reason: format!("JSON serialization error: {}", e).into(),
-                                }));
-                                break;
-                            }
-                        },
-                    ));
+                    inter_tx
+                        .send(TxRxComm::Text(
+                            match simd_json::serde::to_string(&WsOutboundEvent::Pong) {
+                                Ok(v) => v,
+                                Err(e) => {
+                                    closer_tx.send(Some(CloseFrame {
+                                        code: CloseCode::from(5001),
+                                        reason: format!("JSON serialization error: {}", e).into(),
+                                    }));
+                                    break;
+                                }
+                            },
+                        ))
+                        .await;
                 }
                 WsInboundEvent::Pong => {
-                    inter_tx.send(TxRxComm::Text(
-                        match simd_json::serde::to_string(&WsOutboundEvent::Ping) {
-                            Ok(v) => v,
-                            Err(e) => {
-                                closer_tx.send(Some(CloseFrame {
-                                    code: CloseCode::from(5001),
-                                    reason: format!("JSON serialization error: {}", e).into(),
-                                }));
-                                break;
-                            }
-                        },
-                    ));
+                    inter_tx
+                        .send(TxRxComm::Text(
+                            match simd_json::serde::to_string(&WsOutboundEvent::Ping) {
+                                Ok(v) => v,
+                                Err(e) => {
+                                    closer_tx.send(Some(CloseFrame {
+                                        code: CloseCode::from(5001),
+                                        reason: format!("JSON serialization error: {}", e).into(),
+                                    }));
+                                    break;
+                                }
+                            },
+                        ))
+                        .await;
                 }
             }
         }

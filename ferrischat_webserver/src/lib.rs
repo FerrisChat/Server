@@ -3,7 +3,7 @@
 #![feature(async_closure)]
 #![deny(unsafe_code)]
 
-#[cfg(not(target_os = "linux"))]
+#[cfg(not(any(target_os = "linux", target_os = "bsd")))]
 compile_error!("the server of FerrisChat is only supported on Linux systems");
 
 #[macro_use]

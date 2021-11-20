@@ -1,3 +1,13 @@
+use actix_web::http::StatusCode;
+use actix_web::{web, App, HttpResponse, HttpServer};
+use ring::rand::{SecureRandom, SystemRandom};
+
+use ferrischat_auth::init_auth;
+use ferrischat_db::load_db;
+use ferrischat_macros::expand_version;
+use ferrischat_redis::load_redis;
+use ferrischat_ws::{init_ws_server, preload_ws};
+
 use crate::auth::get_token;
 use crate::channels::*;
 use crate::guilds::*;
@@ -7,15 +17,6 @@ use crate::messages::*;
 use crate::not_implemented::not_implemented;
 use crate::users::*;
 use crate::ws::*;
-use actix_cors::Cors;
-use actix_web::http::StatusCode;
-use actix_web::{web, App, HttpResponse, HttpServer};
-use ferrischat_auth::init_auth;
-use ferrischat_db::load_db;
-use ferrischat_macros::expand_version;
-use ferrischat_redis::load_redis;
-use ferrischat_ws::{init_ws_server, preload_ws};
-use ring::rand::{SecureRandom, SystemRandom};
 
 #[allow(clippy::expect_used)]
 pub async fn entrypoint() {
@@ -43,7 +44,6 @@ pub async fn entrypoint() {
 
     HttpServer::new(|| {
         App::new()
-            .wrap(Cors::permissive())
             // POST   /guilds
             .route(expand_version!("guilds"), web::post().to(create_guild))
             // GET    /guilds/{guild_id}
@@ -181,6 +181,14 @@ pub async fn entrypoint() {
             .route(
                 expand_version!("guilds/{guild_id}/members/{user_id}/role/{role_id}"),
                 web::delete().to(roles::remove_member_role),
+            )
+            .route(
+                expand_version!("verify"),
+                web::post().to(send_verification_email),
+            )
+            .route(
+                expand_version!("verify/{token}"),
+                web::get().to(verify_email),
             )
             .route(
                 expand_version!("teapot"),
