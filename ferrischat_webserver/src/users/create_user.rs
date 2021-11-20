@@ -6,6 +6,7 @@ use rand::Rng;
 use tokio::sync::oneshot::channel;
 
 /// POST /api/v0/users/
+/// Creates a ferrischat user with the given info
 pub async fn create_user(user_data: Json<UserCreateJson>) -> impl Responder {
     let db = get_db_or_fail!();
     let node_id = get_node_id!();
@@ -15,8 +16,9 @@ pub async fn create_user(user_data: Json<UserCreateJson>) -> impl Responder {
         email,
         password,
     } = user_data.0;
-
+    // Gets a descriminator for the user
     let user_discrim = {
+        // Makes sure the name doesn't already exist
         let existing: Vec<i16> =
             match sqlx::query!("SELECT discriminator FROM users WHERE name = $1", username)
                 .fetch_all(db)
@@ -29,6 +31,7 @@ pub async fn create_user(user_data: Json<UserCreateJson>) -> impl Responder {
                     })
                 }
             };
+        // your descrim can be between 1 and 9999
         let available = (1..=9999)
             .filter(|x| !existing.contains(x))
             .collect::<Vec<_>>();
@@ -41,7 +44,7 @@ pub async fn create_user(user_data: Json<UserCreateJson>) -> impl Responder {
             }
         }
     };
-
+    // Hash the password for security.
     let hashed_password = {
         let hasher = match ferrischat_auth::GLOBAL_HASHER.get() {
             Some(h) => h,
@@ -73,6 +76,7 @@ pub async fn create_user(user_data: Json<UserCreateJson>) -> impl Responder {
     };
 
     let bigint_user_id = u128_to_bigdecimal!(user_id);
+    // tell the database about our new user
     match sqlx::query!(
         "INSERT INTO users VALUES ($1, $2, $3, $4, $5, $6)",
         bigint_user_id,

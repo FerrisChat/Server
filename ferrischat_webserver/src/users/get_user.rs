@@ -7,6 +7,7 @@ use sqlx::Error;
 
 /// GET /api/v0/users/{user_id}
 pub async fn get_user(req: HttpRequest, auth: crate::Authorization) -> impl Responder {
+    // TODO add more comments
     let user_id = get_item_id!(req, "user_id");
     let db = get_db_or_fail!();
     let bigint_user_id = u128_to_bigdecimal!(user_id);
@@ -103,17 +104,43 @@ pub async fn get_user(req: HttpRequest, auth: crate::Authorization) -> impl Resp
                                         .await;
 
                                         Some(match resp {
-                                            Ok(resp) => resp
-                                                .iter()
-                                                .filter_map(|x| {
-                                                    Some(Member {
+                                            Ok(resp) => {
+                                                let mut members = Vec::with_capacity(resp.len());
+
+                                                for x in resp {
+                                                    let user = {
+                                                        let resp = sqlx::query!("SELECT * FROM users WHERE id = $1", x.user_id.clone())
+                                                        .fetch_one(db)
+                                                        .await;
+
+                                                        match resp {
+                                                            Ok(user) => Some(User {
+                                                                id: bigdecimal_to_u128!(user.id),
+                                                                name: user.name,
+                                                                avatar: None,
+                                                                guilds: None,
+                                                                discriminator: user.discriminator,
+                                                                flags: UserFlags::from_bits_truncate(user.flags)
+                                                            }),
+                                                            Err(e) => {
+                                                                return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                                                                    reason: format!("database returned a error: {}", e),
+                                                                })
+                                                            }
+                                                        }
+                                                    };
+
+                                                    let member = Member {
                                                         user_id: x.user_id.with_scale(0).into_bigint_and_exponent().0.to_u128(),
-                                                        user: None,
+                                                        user: user,
                                                         guild_id: x.guild_id.with_scale(0).into_bigint_and_exponent().0.to_u128(),
                                                         guild: None,
-                                                    })
-                                                })
-                                                .collect(),
+                                                    };
+
+                                                    members.push(member);
+                                                }
+                                                members
+                                            },
                                             Err(e) => {
                                                 return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                                                     reason: format!("database returned a error: {}", e),
