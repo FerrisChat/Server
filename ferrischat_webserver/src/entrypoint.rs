@@ -8,7 +8,7 @@ use ferrischat_macros::expand_version;
 use ferrischat_redis::load_redis;
 use ferrischat_ws::{init_ws_server, preload_ws};
 
-use crate::auth::get_token;
+use crate::auth::{get_bot_token, get_token};
 use crate::channels::*;
 use crate::guilds::*;
 use crate::invites::*;
@@ -152,9 +152,25 @@ pub async fn entrypoint() {
                 expand_version!("users/{user_id}"),
                 web::delete().to(delete_user),
             )
+            // POST /users/{user_id}/bots
             .route(
                 expand_version!("users/{user_id}/bots"),
                 web::post().to(create_bot)
+            )
+            // PATCH /users/{user_id}/bots/{bot_id}
+            .route(
+                expand_version!("users/{user_id}/bots/{bot_id}"),
+                web::patch().to(edit_bot)
+            )
+            // DELETE /users/{user_id}/bots/{bot_id}
+            .route(
+                expand_version!("users/{user_id}/bots/{bot_id}"),
+                web::delete().to(delete_bot)
+            )
+            // POST     /users/{user_id}/bots/{bot_id}/auth
+            .route(expand_version!(
+                "users/{user_id}/bots/{bot_id}/auth"),
+                   web::post().to(get_bot_token)
             )
             // POST    /auth
             .route(expand_version!("auth"), web::post().to(get_token))

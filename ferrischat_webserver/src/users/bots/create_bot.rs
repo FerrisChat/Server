@@ -6,7 +6,7 @@ use rand::{thread_rng, Rng};
 use rand::distributions::Alphanumeric;
 use tokio::sync::oneshot::channel;
 
-/// POST /api/v0/users/{id}/bots
+/// POST /api/v0/users/{user_id}/bots
 /// Creates a FerrisChat bot with the given info
 pub async fn create_bot(auth: crate::Authorization, bot_data: Json<BotCreateJson>) -> impl Responder {
     let db = get_db_or_fail!();
