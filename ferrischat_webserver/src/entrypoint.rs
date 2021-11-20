@@ -152,6 +152,10 @@ pub async fn entrypoint() {
                 expand_version!("users/{user_id}"),
                 web::delete().to(delete_user),
             )
+            .route(
+                expand_version!("users/{user_id}/bots"),
+                web::post().to(create_bot)
+            )
             // POST    /auth
             .route(expand_version!("auth"), web::post().to(get_token))
             // GET     /ws/info

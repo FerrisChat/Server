@@ -39,7 +39,7 @@ simd-json = { version = "0.4", features = ["128bit"] }
 urlencoding = "2.1.0"
 
 ferrischat_db = { path = "../ferrischat_db", version = "0.1" }
-ferrischat_common = { git = "https://github.com/FerrisChat/Common.git", version = "0.2", branch = "master" }
+ferrischat_common = { git = "https://github.com/FerrisChat/Common.git", version = "0.2", branch = "hydro-patch-3" }
 ferrischat_macros = { path = "../ferrischat_macros", version = "0.1" }
 ferrischat_redis = { path = "../ferrischat_redis", version = "0.1"}
 ferrischat_ws = { path = "../ferrischat_ws", version = "0.1" }
