@@ -16,7 +16,7 @@ pub async fn create_bot(
     let node_id = get_node_id!();
     let user_id = generate_snowflake::<0>(ModelType::User as u8, node_id);
     let BotCreateJson { username } = bot_data.0;
-    let email = format!("{}@bots.ferris.chat", user_id.to_string());
+    let email = format!("{}@bots.ferris.chat", user_id);
     let password: String = (&mut thread_rng())
         .sample_iter(&Alphanumeric)
         .take(64)
