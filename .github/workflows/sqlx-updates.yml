@@ -1,0 +1,59 @@
+on:
+  pull_request:
+
+  push:
+    branches:
+      - main
+      - gh-actions-fixes
+
+name: "SQLx Checks"
+
+jobs:
+  sqlx_check:
+    name: "SQLx Check"
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: "postgres:latest"
+        env:
+          POSTGRES_PASSWORD: "postgres"
+        ports:
+          - "5432:5432"
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: "checkout repo"
+        uses: actions/checkout@v2
+
+      - name: "install rust"
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: nightly
+          override: true
+      
+      - uses: Swatinem/rust-cache@v1
+
+      - name: "install sqlx-cli"
+        run: "cargo install sqlx-cli"
+
+      - name: "save current sqlx-data.json"
+        run: "mv sqlx-data.json sqlx-data.json.old || touch sqlx-data.json.old"
+
+      - name: "migrate db"
+        run: "cargo sqlx database setup"
+        env:
+          DATABASE_URL: "postgres://postgres:postgres@localhost:5432/ferris_chat"
+
+      - name: "regenerate sqlx-data.json"
+        run: "cargo sqlx prepare"
+        env:
+          DATABASE_URL: "postgres://postgres:postgres@localhost:5432/ferris_chat"
+
+      - name: "assert eq, update if not eq"
+        run: "diff -q sqlx-data.json sqlx-data.json.old || { git config user.name github-actions; git config user.email github-actions@github.com; git add sqlx-data.json; git commit -m \"automated sqlx-data.json update\"; }"
