@@ -222,7 +222,7 @@ pub async fn entrypoint() {
     })
     .max_connections(250_000)
     .max_connection_rate(8192)
-    .bind("0.0.0.0:8080")
+    .bind_uds("/etc/ferrischat/knit.sock")
     .expect("failed to bind to 0.0.0.0:8080")
     .run()
     .await
