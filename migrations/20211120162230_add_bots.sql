@@ -1,0 +1,5 @@
+-- Add migration script here
+CREATE TABLE IF NOT EXISTS bots (user_id BIGINT PRIMARY KEY, owner_id BIGINT);
+
+ALTER TABLE bots ALTER COLUMN user_id SET NOT NULL;
+ALTER TABLE bots ALTER COLUMN owner_id SET NOT NULL;
