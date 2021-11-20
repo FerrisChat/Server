@@ -40,9 +40,7 @@ pub async fn delete_bot(req: HttpRequest, auth: crate::Authorization) -> impl Re
 
     match resp {
         Ok(r) => match r {
-            Some(_) => HttpResponse::Ok().json(NotFoundJson {
-                message: "Deleted bot".to_string(),
-            }),
+            Some(_) => HttpResponse::NoContent().finish(),
             None => HttpResponse::NotFound().json(NotFoundJson {
                 message: "User not found".to_string(),
             }),
