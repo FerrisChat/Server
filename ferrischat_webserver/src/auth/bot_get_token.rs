@@ -9,23 +9,22 @@ pub async fn get_bot_token(auth: crate::Authorization, req: HttpRequest) -> impl
     let bigint_user_id = get_item_id!(req, "bot_id");
     let user_id = u128_to_bigdecimal!(bigint_user_id);
     let db = get_db_or_fail!();
-    let owner_id_resp = match sqlx::query!(
-        "SELECT * FROM bots WHERE user_id = $1",
-        user_id,
-    )
+    let owner_id_resp = match sqlx::query!("SELECT * FROM bots WHERE user_id = $1", user_id,)
         .fetch_one(db)
         .await
     {
         Ok(r) => r,
-        Err(e) => return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-            reason: format!("DB returned a error: {}", e)
-        })
+        Err(e) => {
+            return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                reason: format!("DB returned a error: {}", e),
+            })
+        }
     };
 
     let u128_owner_id = bigdecimal_to_u128!(owner_id_resp.owner_id);
 
     if u128_owner_id != auth.0 {
-        return HttpResponse::Forbidden().finish()
+        return HttpResponse::Forbidden().finish();
     }
 
     let token = match generate_random_bits() {

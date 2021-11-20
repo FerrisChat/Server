@@ -2,19 +2,20 @@ use actix_web::{web::Json, HttpResponse, Responder};
 use ferrischat_common::request_json::BotCreateJson;
 use ferrischat_common::types::{InternalServerErrorJson, ModelType, User, UserFlags};
 use ferrischat_snowflake_generator::generate_snowflake;
-use rand::{thread_rng, Rng};
 use rand::distributions::Alphanumeric;
+use rand::{thread_rng, Rng};
 use tokio::sync::oneshot::channel;
 
 /// POST /api/v0/users/{user_id}/bots
 /// Creates a FerrisChat bot with the given info
-pub async fn create_bot(auth: crate::Authorization, bot_data: Json<BotCreateJson>) -> impl Responder {
+pub async fn create_bot(
+    auth: crate::Authorization,
+    bot_data: Json<BotCreateJson>,
+) -> impl Responder {
     let db = get_db_or_fail!();
     let node_id = get_node_id!();
     let user_id = generate_snowflake::<0>(ModelType::User as u8, node_id);
-    let BotCreateJson {
-        username,
-    } = bot_data.0;
+    let BotCreateJson { username } = bot_data.0;
     let email = format!("{0}@bots.ferris.chat", user_id.to_string());
     let password: String = (&mut thread_rng())
         .sample_iter(&Alphanumeric)
@@ -86,8 +87,8 @@ pub async fn create_bot(auth: crate::Authorization, bot_data: Json<BotCreateJson
         bigint_bot_id,
         bigint_owner_id
     )
-        .execute(db)
-        .await;
+    .execute(db)
+    .await;
 
     // tell the database about our new bot
     match sqlx::query!(
@@ -99,8 +100,8 @@ pub async fn create_bot(auth: crate::Authorization, bot_data: Json<BotCreateJson
         hashed_password,
         user_discrim,
     )
-        .execute(db)
-        .await
+    .execute(db)
+    .await
     {
         Ok(_) => HttpResponse::Created().json(User {
             id: user_id,
@@ -114,7 +115,8 @@ pub async fn create_bot(auth: crate::Authorization, bot_data: Json<BotCreateJson
             sqlx::Error::Database(e) => {
                 if e.code() == Some("23505".into()) {
                     HttpResponse::Conflict().json(InternalServerErrorJson {
-                        reason: "A bot with this email already exists? (this is DEFINITELY a bug)".to_string(),
+                        reason: "A bot with this email already exists? (this is DEFINITELY a bug)"
+                            .to_string(),
                     })
                 } else {
                     HttpResponse::InternalServerError().json(InternalServerErrorJson {

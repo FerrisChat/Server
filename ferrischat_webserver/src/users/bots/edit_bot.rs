@@ -18,29 +18,27 @@ pub async fn edit_bot(
 
     let bigint_user_id = u128_to_bigdecimal!(user_id);
 
-    let BotUpdateJson {
-        username,
-    } = bot_info.0;
+    let BotUpdateJson { username } = bot_info.0;
 
     let db = get_db_or_fail!();
 
-    let owner_id_resp = match sqlx::query!(
-        "SELECT * FROM bots WHERE user_id = $1",
-        bigdecimal_user_id,
-    )
-        .fetch_one(db)
-        .await
-    {
-        Ok(r) => r,
-        Err(e) => return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-            reason: format!("DB returned a error: {}", e)
-        })
-    };
+    let owner_id_resp =
+        match sqlx::query!("SELECT * FROM bots WHERE user_id = $1", bigdecimal_user_id,)
+            .fetch_one(db)
+            .await
+        {
+            Ok(r) => r,
+            Err(e) => {
+                return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                    reason: format!("DB returned a error: {}", e),
+                })
+            }
+        };
 
     let u128_owner_id = bigdecimal_to_u128!(owner_id_resp.owner_id);
 
     if u128_owner_id != auth.0 {
-        return HttpResponse::Forbidden().finish()
+        return HttpResponse::Forbidden().finish();
     }
 
     if let Some(username) = username {
@@ -49,8 +47,8 @@ pub async fn edit_bot(
             username,
             bigint_user_id
         )
-            .execute(db)
-            .await;
+        .execute(db)
+        .await;
         match resp {
             Ok(_) => (),
             Err(e) => {

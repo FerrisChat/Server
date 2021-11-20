@@ -155,22 +155,22 @@ pub async fn entrypoint() {
             // POST /users/{user_id}/bots
             .route(
                 expand_version!("users/{user_id}/bots"),
-                web::post().to(create_bot)
+                web::post().to(create_bot),
             )
             // PATCH /users/{user_id}/bots/{bot_id}
             .route(
                 expand_version!("users/{user_id}/bots/{bot_id}"),
-                web::patch().to(edit_bot)
+                web::patch().to(edit_bot),
             )
             // DELETE /users/{user_id}/bots/{bot_id}
             .route(
                 expand_version!("users/{user_id}/bots/{bot_id}"),
-                web::delete().to(delete_bot)
+                web::delete().to(delete_bot),
             )
             // POST     /users/{user_id}/bots/{bot_id}/auth
-            .route(expand_version!(
-                "users/{user_id}/bots/{bot_id}/auth"),
-                   web::post().to(get_bot_token)
+            .route(
+                expand_version!("users/{user_id}/bots/{bot_id}/auth"),
+                web::post().to(get_bot_token),
             )
             // POST    /auth
             .route(expand_version!("auth"), web::post().to(get_token))
