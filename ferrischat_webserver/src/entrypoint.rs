@@ -8,7 +8,7 @@ use ferrischat_macros::expand_version;
 use ferrischat_redis::load_redis;
 use ferrischat_ws::{init_ws_server, preload_ws};
 
-use crate::auth::{get_bot_token, get_token};
+use crate::auth::*;
 use crate::channels::*;
 use crate::guilds::*;
 use crate::invites::*;
