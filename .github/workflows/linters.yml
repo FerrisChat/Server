@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - gh-actions-fixes
 
 
 name: Linters
@@ -31,6 +32,20 @@ jobs:
   clippy:
     name: Clippy
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: "postgres:latest"
+        env:
+          POSTGRES_PASSWORD: "postgres"
+        ports:
+          - "5432:5432"
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: "install ld"
         run: "sudo apt install lld -y"
@@ -42,11 +57,21 @@ jobs:
           toolchain: nightly
           components: clippy
           override: true
+          
+      - uses: Swatinem/rust-cache@v1
+
+      - name: "install sqlx cli"
+        run: "cargo install sqlx-cli"
+
+      - name: "run database migrations"
+        run: "cargo sqlx database setup"
+        env:
+          DATABASE_URL: "postgres://postgres:postgres@localhost:5432/ferris_chat"
 
       - uses: actions-rs/clippy-check@v1
-        env:
-          SQLX_OFFLINE: "true"
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           args: --all-features -- --forbid expect_used --forbid unwrap_used
           name: Clippy Output
+        env:
+          DATABASE_URL: "postgres://postgres:postgres@localhost:5432/ferris_chat"
