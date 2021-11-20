@@ -1,29 +1,28 @@
 use crate::auth::token_gen::generate_random_bits;
 use actix_web::{HttpRequest, HttpResponse, Responder};
-use ferrischat_common::types::{
-    AuthResponse, BadRequestJson, BadRequestJsonLocation, InternalServerErrorJson, NotFoundJson,
-};
+use ferrischat_common::types::{AuthResponse, InternalServerErrorJson};
 use tokio::sync::oneshot::channel;
 
 pub async fn get_bot_token(auth: crate::Authorization, req: HttpRequest) -> impl Responder {
-    let bigint_user_id = get_item_id!(req, "bot_id");
-    let user_id = u128_to_bigdecimal!(bigint_user_id);
+    let user_id = get_item_id!(req, "bot_id");
+    let bigint_user_id = u128_to_bigdecimal!(user_id);
     let db = get_db_or_fail!();
-    let owner_id_resp = match sqlx::query!("SELECT * FROM bots WHERE user_id = $1", user_id,)
-        .fetch_one(db)
-        .await
-    {
-        Ok(r) => r,
-        Err(e) => {
-            return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                reason: format!("DB returned a error: {}", e),
-            })
-        }
-    };
+    let bigint_owner_id =
+        match sqlx::query!("SELECT * FROM bots WHERE user_id = $1", bigint_user_id)
+            .fetch_one(db)
+            .await
+        {
+            Ok(r) => r.owner_id,
+            Err(e) => {
+                return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                    reason: format!("DB returned a error: {}", e),
+                })
+            }
+        };
 
-    let u128_owner_id = bigdecimal_to_u128!(owner_id_resp.owner_id);
+    let owner_id = bigdecimal_to_u128!(bigint_owner_id);
 
-    if u128_owner_id != auth.0 {
+    if owner_id != auth.0 {
         return HttpResponse::Forbidden().finish();
     }
 
@@ -69,7 +68,7 @@ pub async fn get_bot_token(auth: crate::Authorization, req: HttpRequest) -> impl
         }
     };
 
-    if let Err(e) = sqlx::query!("INSERT INTO auth_tokens VALUES ($1, $2) ON CONFLICT (user_id) DO UPDATE SET auth_token = $2", user_id, hashed_token).execute(db).await {
+    if let Err(e) = sqlx::query!("INSERT INTO auth_tokens VALUES ($1, $2) ON CONFLICT (user_id) DO UPDATE SET auth_token = $2", bigint_user_id, hashed_token).execute(db).await {
         return HttpResponse::InternalServerError().json(InternalServerErrorJson {
             reason: format!("DB returned a error: {}", e)
         })

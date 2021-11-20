@@ -16,7 +16,7 @@ pub async fn create_bot(
     let node_id = get_node_id!();
     let user_id = generate_snowflake::<0>(ModelType::User as u8, node_id);
     let BotCreateJson { username } = bot_data.0;
-    let email = format!("{0}@bots.ferris.chat", user_id.to_string());
+    let email = format!("{}@bots.ferris.chat", user_id.to_string());
     let password: String = (&mut thread_rng())
         .sample_iter(&Alphanumeric)
         .take(64)
@@ -82,13 +82,18 @@ pub async fn create_bot(
     let bigint_bot_id = u128_to_bigdecimal!(user_id);
     let bigint_owner_id = u128_to_bigdecimal!(auth.0);
 
-    let bot_table = sqlx::query!(
+    if let Err(e) = sqlx::query!(
         "INSERT INTO bots VALUES ($1, $2)",
         bigint_bot_id,
         bigint_owner_id
     )
     .execute(db)
-    .await;
+    .await
+    {
+        return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+            reason: format!("DB returned a error: {}", e),
+        });
+    }
 
     // tell the database about our new bot
     match sqlx::query!(
@@ -114,7 +119,7 @@ pub async fn create_bot(
         Err(e) => match e {
             sqlx::Error::Database(e) => {
                 if e.code() == Some("23505".into()) {
-                    HttpResponse::Conflict().json(InternalServerErrorJson {
+                    HttpResponse::InternalServerError().json(InternalServerErrorJson {
                         reason: "A bot with this email already exists? (this is DEFINITELY a bug)"
                             .to_string(),
                     })
