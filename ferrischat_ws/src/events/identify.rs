@@ -11,7 +11,7 @@ use tokio_tungstenite::tungstenite::protocol::frame::coding::CloseCode;
 use tokio_tungstenite::tungstenite::protocol::CloseFrame;
 use uuid::Uuid;
 
-pub async fn handle_identify<'a>(
+pub async fn handle_identify_rx<'a>(
     token: String,
     _intents: u64,
     inter_tx: &Sender<TxRxComm>,

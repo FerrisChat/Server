@@ -106,7 +106,7 @@ pub async fn rx_handler(
 
         let handler_response = match data {
             WsInboundEvent::Identify { token, intents } => {
-                handle_identify(
+                handle_identify_rx(
                     token,
                     intents,
                     &inter_tx,
@@ -117,8 +117,8 @@ pub async fn rx_handler(
                 )
                 .await
             }
-            WsInboundEvent::Ping => handle_ping(&inter_tx).await,
-            WsInboundEvent::Pong => handle_pong(&inter_tx).await,
+            WsInboundEvent::Ping => handle_ping_rx(&inter_tx).await,
+            WsInboundEvent::Pong => handle_pong_rx(&inter_tx).await,
         };
         match handler_response {
             Err(WsEventHandlerError::Sender) => break,

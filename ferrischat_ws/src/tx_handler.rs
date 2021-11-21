@@ -1,3 +1,6 @@
+use crate::events::{
+    handle_channel_tx, handle_guild_tx, handle_invite_tx, handle_member_tx, handle_message_tx,
+};
 use crate::{TxRxComm, USERID_CONNECTION_MAP};
 use ferrischat_common::ws::WsOutboundEvent;
 use ferrischat_redis::redis::Msg;
@@ -29,9 +32,35 @@ pub async fn tx_handler(
 
     let mut redis_rx: Option<tokio::sync::mpsc::Receiver<Option<Msg>>> = None;
 
+    let db = match ferrischat_db::DATABASE_POOL.get() {
+        Some(db) => db,
+        None => {
+            return (
+                Some(CloseFrame {
+                    code: CloseCode::from(5003),
+                    reason: "Database pool not found".into(),
+                }),
+                tx,
+            );
+        }
+    };
+
+    let uid_conn_map = match USERID_CONNECTION_MAP.get() {
+        Some(m) => m,
+        None => {
+            return (
+                Some(CloseFrame {
+                    code: CloseCode::from(5003),
+                    reason: "Database pool not found".into(),
+                }),
+                tx,
+            );
+        }
+    };
+
     let ret = loop {
-        let x = match &mut redis_rx {
-            Some(rx) => tokio::select! {
+        let x = match redis_rx {
+            Some(ref mut rx) => tokio::select! {
                 item = &mut closer_rx => TransmitType::Exit(item.ok().flatten()),
                 item = inter_rx.recv() => TransmitType::InterComm(item),
                 item = rx.recv() => TransmitType::Redis(item),
@@ -40,32 +69,6 @@ pub async fn tx_handler(
                 item = &mut closer_rx => TransmitType::Exit(item.ok().flatten()),
                 item = inter_rx.recv() => TransmitType::InterComm(item),
             },
-        };
-
-        let db = match ferrischat_db::DATABASE_POOL.get() {
-            Some(db) => db,
-            None => {
-                return (
-                    Some(CloseFrame {
-                        code: CloseCode::from(5003),
-                        reason: "Database pool not found".into(),
-                    }),
-                    tx,
-                );
-            }
-        };
-
-        let uid_conn_map = match USERID_CONNECTION_MAP.get() {
-            Some(m) => m,
-            None => {
-                return (
-                    Some(CloseFrame {
-                        code: CloseCode::from(5003),
-                        reason: "Database pool not found".into(),
-                    }),
-                    tx,
-                );
-            }
         };
 
         match x {
@@ -89,338 +92,60 @@ pub async fn tx_handler(
                 };
                 let bigdecimal_uid = u128_to_bigdecimal!(uid);
 
-                match msg {
-                    Some(msg) => {
-                        match msg.get_channel::<String>() {
-                            Ok(c) => {
-                                let mut names = c.split('_');
-
-                                // root event format: {type}_{event specific data}
-                                match names.next() {
-                                    Some("channel") => {
-                                        if let (Some(Ok(channel_id)), Some(Ok(guild_id))) = (
-                                            names.next().map(|x| x.parse::<u128>()),
-                                            names.next().map(|x| x.parse::<u128>()),
-                                        ) {
-                                            // FIXME: once implemented, do a query to check the user has permissions to view channel in here
-
-                                            // all checks completed, fire event
-                                            let outbound_message = match simd_json::serde::from_reader::<_, WsOutboundEvent>(msg.get_payload_bytes()) {
-                                                Ok(msg) => msg,
-                                                Err(e) => {
-                                                    return (
-                                                        Some(CloseFrame {
-                                                            code: CloseCode::from(5005),
-                                                            reason: format!("Internal JSON representation decoding failed: {}", e).into(),
-                                                        }),
-                                                        tx,
-                                                    )
-                                                }
-                                            };
-
-                                            match outbound_message {
-                                                WsOutboundEvent::ChannelDelete { .. } => (),
-                                                _ => {
-                                                    match sqlx::query!("SELECT user_id FROM members WHERE user_id = $1 AND guild_id = $2", bigdecimal_uid, u128_to_bigdecimal!(guild_id)).fetch_optional(db).await {
-                                                        Ok(val) => {
-                                                            match val {
-                                                                Some(_) => (),
-                                                                None => continue,
-                                                            }
-                                                        },
-                                                        Err(e) => {
-                                                            return (
-                                                                Some(CloseFrame {
-                                                                    code: CloseCode::from(5000),
-                                                                    reason: format!(
-                                                                        "Internal database error: {}",
-                                                                        e
-                                                                    )
-                                                                        .into(),
-                                                                }),
-                                                                tx,
-                                                            )
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                            let outbound_message =
-                                                match simd_json::to_string(&outbound_message) {
-                                                    Ok(msg) => msg,
-                                                    Err(e) => {
-                                                        return (
-                                                            Some(CloseFrame {
-                                                                code: CloseCode::from(5001),
-                                                                reason: format!(
-                                                                    "JSON serialization error: {}",
-                                                                    e
-                                                                )
-                                                                .into(),
-                                                            }),
-                                                            tx,
-                                                        )
-                                                    }
-                                                };
-                                            tx.feed(Message::Text(outbound_message)).await;
-                                        }
-                                    }
-                                    Some("message") => {
-                                        // message event format: message_{channel ID}_{guild ID}
-                                        if let (Some(Ok(channel_id)), Some(Ok(guild_id))) = (
-                                            names.next().map(|x| x.parse::<u128>()),
-                                            names.next().map(|x| x.parse::<u128>()),
-                                        ) {
-                                            // FIXME: once implemented, do a query to check the user has permissions to read messages in here
-                                            match sqlx::query!("SELECT guild_id FROM members WHERE user_id = $1 AND guild_id = $2", bigdecimal_uid, u128_to_bigdecimal!(guild_id)).fetch_optional(db).await {
-                                                Ok(val) => {
-                                                    match val {
-                                                        Some(_) => (),
-                                                        None => continue,
-                                                    }
-                                                }
-                                                Err(e) => {
-                                                    return (
-                                                        Some(CloseFrame {
-                                                            code: CloseCode::from(5000),
-                                                            reason: format!("Internal database error: {}", e).into(),
-                                                        }),
-                                                        tx,
-                                                    )
-                                                }
-                                            }
-
-                                            // all checks completed, fire event
-                                            let outbound_message = match simd_json::serde::from_reader::<_, WsOutboundEvent>(msg.get_payload_bytes()) {
-                                                Ok(msg) => msg,
-                                                Err(e) => {
-                                                    return (
-                                                        Some(CloseFrame {
-                                                            code: CloseCode::from(5005),
-                                                            reason: format!("Internal JSON representation decoding failed: {}", e).into(),
-                                                        }),
-                                                        tx,
-                                                    )
-                                                }
-                                            };
-                                            let outbound_message =
-                                                match simd_json::to_string(&outbound_message) {
-                                                    Ok(msg) => msg,
-                                                    Err(e) => {
-                                                        return (
-                                                            Some(CloseFrame {
-                                                                code: CloseCode::from(5001),
-                                                                reason: format!(
-                                                                    "JSON serialization error: {}",
-                                                                    e
-                                                                )
-                                                                .into(),
-                                                            }),
-                                                            tx,
-                                                        )
-                                                    }
-                                                };
-                                            tx.feed(Message::Text(outbound_message)).await;
-                                        }
-                                    }
-                                    Some("guild") => {
-                                        if let Some(Ok(guild_id)) =
-                                            names.next().map(|x| x.parse::<u128>())
-                                        {
-                                            // FIXME: once implemented, do a query to check the user has permissions to read messages in here
-
-                                            // all checks completed, fire event
-                                            let outbound_message = match simd_json::serde::from_reader::<_, WsOutboundEvent>(msg.get_payload_bytes()) {
-                                                Ok(msg) => msg,
-                                                Err(e) => {
-                                                    return (
-                                                        Some(CloseFrame {
-                                                            code: CloseCode::from(5005),
-                                                            reason: format!("Internal JSON representation decoding failed: {}", e).into(),
-                                                        }),
-                                                        tx,
-                                                    )
-                                                }
-                                            };
-
-                                            match outbound_message {
-                                                WsOutboundEvent::GuildDelete { .. } => (),
-                                                _ => {
-                                                    match sqlx::query!("SELECT user_id FROM members WHERE user_id = $1 AND guild_id = $2", bigdecimal_uid, u128_to_bigdecimal!(guild_id)).fetch_optional(db).await {
-                                                        Ok(val) => {
-                                                            match val {
-                                                                Some(_) => (),
-                                                                None => continue,
-                                                            }
-                                                        },
-                                                        Err(e) => {
-                                                            return (
-                                                                Some(CloseFrame {
-                                                                    code: CloseCode::from(5000),
-                                                                    reason: format!("Internal database error: {}", e).into(),
-                                                                }),
-                                                                tx,
-                                                            )
-                                                        }
-                                                    }
-                                                }
-                                            }
-
-                                            let outbound_message =
-                                                match simd_json::to_string(&outbound_message) {
-                                                    Ok(msg) => msg,
-                                                    Err(e) => {
-                                                        return (
-                                                            Some(CloseFrame {
-                                                                code: CloseCode::from(5001),
-                                                                reason: format!(
-                                                                    "JSON serialization error: {}",
-                                                                    e
-                                                                )
-                                                                .into(),
-                                                            }),
-                                                            tx,
-                                                        )
-                                                    }
-                                                };
-
-                                            tx.feed(Message::Text(outbound_message)).await;
-                                        }
-                                    }
-                                    Some("member") => {
-                                        if let Some(Ok(guild_id)) =
-                                            names.next().map(|x| x.parse::<u128>())
-                                        {
-                                            // FIXME: once implemented, do a query to check the user has permissions to read messages in here
-
-                                            // all checks completed, fire event
-                                            let outbound_message = match simd_json::serde::from_reader::<_, WsOutboundEvent>(msg.get_payload_bytes()) {
-                                                Ok(msg) => msg,
-                                                Err(e) => {
-                                                    return (
-                                                        Some(CloseFrame {
-                                                            code: CloseCode::from(5005),
-                                                            reason: format!("Internal JSON representation decoding failed: {}", e).into(),
-                                                        }),
-                                                        tx,
-                                                    )
-                                                }
-                                            };
-
-                                            match outbound_message {
-                                                WsOutboundEvent::MemberDelete { .. } => (),
-                                                _ => {
-                                                    match sqlx::query!("SELECT user_id FROM members WHERE user_id = $1 AND guild_id = $2", bigdecimal_uid, u128_to_bigdecimal!(guild_id)).fetch_optional(db).await {
-                                                        Ok(val) => {
-                                                            match val {
-                                                                Some(_) => (),
-                                                                None => continue,
-                                                            }
-                                                        },
-                                                        Err(e) => {
-                                                            return (
-                                                                Some(CloseFrame {
-                                                                    code: CloseCode::from(5000),
-                                                                    reason: format!("Internal database error: {}", e).into(),
-                                                                }),
-                                                                tx,
-                                                            )
-                                                        }
-                                                    }
-                                                }
-                                            }
-
-                                            let outbound_message =
-                                                match simd_json::to_string(&outbound_message) {
-                                                    Ok(msg) => msg,
-                                                    Err(e) => {
-                                                        return (
-                                                            Some(CloseFrame {
-                                                                code: CloseCode::from(5001),
-                                                                reason: format!(
-                                                                    "JSON serialization error: {}",
-                                                                    e
-                                                                )
-                                                                .into(),
-                                                            }),
-                                                            tx,
-                                                        )
-                                                    }
-                                                };
-
-                                            tx.feed(Message::Text(outbound_message)).await;
-                                        }
-                                    }
-                                    Some("invite") => {
-                                        if let Some(Ok(guild_id)) =
-                                            names.next().map(|x| x.parse::<u128>())
-                                        {
-                                            // FIXME: once implemented, do a query to check the user has permissions to read messages in here
-
-                                            // all checks completed, fire event
-                                            let outbound_message = match simd_json::serde::from_reader::<_, WsOutboundEvent>(msg.get_payload_bytes()) {
-                                                Ok(msg) => msg,
-                                                Err(e) => {
-                                                    return (
-                                                        Some(CloseFrame {
-                                                            code: CloseCode::from(5005),
-                                                            reason: format!("Internal JSON representation decoding failed: {}", e).into(),
-                                                        }),
-                                                        tx,
-                                                    )
-                                                }
-                                            };
-
-                                            match outbound_message {
-                                                WsOutboundEvent::MemberDelete { .. } => (),
-                                                _ => {
-                                                    match sqlx::query!("SELECT user_id FROM members WHERE user_id = $1 AND guild_id = $2", bigdecimal_uid, u128_to_bigdecimal!(guild_id)).fetch_optional(db).await {
-                                                        Ok(val) => {
-                                                            match val {
-                                                                Some(_) => (),
-                                                                None => continue,
-                                                            }
-                                                        },
-                                                        Err(e) => {
-                                                            return (
-                                                                Some(CloseFrame {
-                                                                    code: CloseCode::from(5000),
-                                                                    reason: format!("Internal database error: {}", e).into(),
-                                                                }),
-                                                                tx,
-                                                            )
-                                                        }
-                                                    }
-                                                }
-                                            }
-
-                                            let outbound_message =
-                                                match simd_json::to_string(&outbound_message) {
-                                                    Ok(msg) => msg,
-                                                    Err(e) => {
-                                                        return (
-                                                            Some(CloseFrame {
-                                                                code: CloseCode::from(5001),
-                                                                reason: format!(
-                                                                    "JSON serialization error: {}",
-                                                                    e
-                                                                )
-                                                                .into(),
-                                                            }),
-                                                            tx,
-                                                        )
-                                                    }
-                                                };
-
-                                            tx.feed(Message::Text(outbound_message)).await;
-                                        }
-                                    }
-                                    Some(_) | None => continue,
-                                }
+                if let Some(msg) = msg {
+                    let mut names = match msg.get_channel::<String>().ok().map(|c| c.split('_')) {
+                        Some(n) => n,
+                        None => continue,
+                    };
+                    match names.next() {
+                        Some("channel") => {
+                            if let (Some(Ok(channel_id)), Some(Ok(guild_id))) =
+                                (names.next().map(str::parse), names.next().map(str::parse))
+                            {
+                                handle_channel_tx(
+                                    &mut tx,
+                                    db,
+                                    msg,
+                                    bigdecimal_uid,
+                                    channel_id,
+                                    guild_id,
+                                )
+                                .await
                             }
-                            Err(_) => continue,
-                        };
+                        }
+                        Some("message") => {
+                            // message event format: message_{channel ID}_{guild ID}
+                            if let (Some(Ok(channel_id)), Some(Ok(guild_id))) =
+                                (names.next().map(str::parse), names.next().map(str::parse))
+                            {
+                                handle_message_tx(
+                                    &mut tx,
+                                    db,
+                                    msg,
+                                    bigdecimal_uid,
+                                    channel_id,
+                                    guild_id,
+                                )
+                                .await
+                            }
+                        }
+                        Some("guild") => {
+                            if let Some(Ok(guild_id)) = names.next().map(str::parse) {
+                                handle_guild_tx(&mut tx, db, msg, bigdecimal_uid, guild_id).await
+                            }
+                        }
+                        Some("member") => {
+                            if let Some(Ok(guild_id)) = names.next().map(str::parse) {
+                                handle_member_tx(&mut tx, db, msg, bigdecimal_uid, guild_id).await
+                            }
+                        }
+                        Some("invite") => {
+                            if let Some(Ok(guild_id)) = names.next().map(str::parse) {
+                                handle_invite_tx(&mut tx, db, msg, bigdecimal_uid, guild_id).await
+                            }
+                        }
+                        Some(_) | None => continue,
                     }
-                    None => {}
                 }
             }
             TransmitType::Redis(None) => break None,
@@ -478,7 +203,6 @@ pub async fn tx_handler(
                         }
                     }
                     None => {
-                        // since we drop the sender that was moved in, the other thread will panic
                         return (
                             Some(CloseFrame {
                                 code: CloseCode::from(5002),
@@ -490,9 +214,8 @@ pub async fn tx_handler(
                 };
             };
         }
+        tx.flush().await;
     };
-
-    tx.flush().await;
 
     (ret, tx)
 }

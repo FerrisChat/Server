@@ -5,7 +5,9 @@ use tokio::sync::mpsc::Sender;
 use tokio_tungstenite::tungstenite::protocol::frame::coding::CloseCode;
 use tokio_tungstenite::tungstenite::protocol::CloseFrame;
 
-pub async fn handle_pong<'a>(inter_tx: &Sender<TxRxComm>) -> Result<(), WsEventHandlerError<'a>> {
+pub async fn handle_pong_rx<'a>(
+    inter_tx: &Sender<TxRxComm>,
+) -> Result<(), WsEventHandlerError<'a>> {
     if inter_tx
         .send(TxRxComm::Text(
             match simd_json::serde::to_string(&WsOutboundEvent::Ping) {

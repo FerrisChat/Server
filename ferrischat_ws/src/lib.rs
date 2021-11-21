@@ -10,6 +10,7 @@ mod preload;
 mod redis_handler;
 mod rx_handler;
 mod tx_handler;
+mod types;
 
 use dashmap::DashMap;
 use ferrischat_redis::redis::Msg;
