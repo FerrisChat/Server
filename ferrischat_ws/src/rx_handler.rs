@@ -1,10 +1,8 @@
-use crate::error_handling::handle_error;
-use crate::{error_handling::WsEventHandlerError, events::*, TxRxComm, USERID_CONNECTION_MAP};
+use std::sync::atomic::{AtomicBool, Ordering};
+
 use ferrischat_common::ws::WsInboundEvent;
-use ferrischat_redis::REDIS_MANAGER;
 use futures_util::stream::SplitStream;
 use futures_util::StreamExt;
-use std::sync::atomic::{AtomicBool, Ordering};
 use tokio::net::TcpStream;
 use tokio_rustls::server::TlsStream;
 use tokio_tungstenite::tungstenite::error::Error;
@@ -13,6 +11,12 @@ use tokio_tungstenite::tungstenite::protocol::CloseFrame;
 use tokio_tungstenite::tungstenite::Message;
 use tokio_tungstenite::WebSocketStream;
 use uuid::Uuid;
+
+use ferrischat_redis::REDIS_MANAGER;
+
+use crate::error_handling::handle_error;
+use crate::inter_communication::TxRxComm;
+use crate::{error_handling::WsEventHandlerError, events::*, USERID_CONNECTION_MAP};
 
 fn decode_event<'a>(
     msg: Result<Message, Error>,

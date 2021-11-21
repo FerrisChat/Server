@@ -1,5 +1,5 @@
 use crate::error_handling::WsEventHandlerError;
-use crate::TxRxComm;
+use crate::inter_communication::TxRxComm;
 use dashmap::DashMap;
 use ferrischat_auth::{split_token, verify_token};
 use ferrischat_common::ws::WsOutboundEvent;

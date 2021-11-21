@@ -1,6 +1,3 @@
-use crate::events::*;
-use crate::{TxRxComm, USERID_CONNECTION_MAP};
-use ferrischat_redis::redis::Msg;
 use futures_util::stream::SplitSink;
 use futures_util::SinkExt;
 use num_traits::ToPrimitive;
@@ -11,6 +8,12 @@ use tokio_tungstenite::tungstenite::protocol::CloseFrame;
 use tokio_tungstenite::tungstenite::Message;
 use tokio_tungstenite::WebSocketStream;
 use uuid::Uuid;
+
+use ferrischat_redis::redis::Msg;
+
+use crate::events::*;
+use crate::inter_communication::TxRxComm;
+use crate::USERID_CONNECTION_MAP;
 
 pub async fn tx_handler(
     mut tx: SplitSink<WebSocketStream<TlsStream<TcpStream>>, Message>,

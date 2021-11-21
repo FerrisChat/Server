@@ -1,5 +1,5 @@
 use crate::error_handling::WsEventHandlerError;
-use crate::TxRxComm;
+use crate::inter_communication::TxRxComm;
 use ferrischat_common::ws::WsOutboundEvent;
 use tokio::sync::mpsc::Sender;
 use tokio_tungstenite::tungstenite::protocol::frame::coding::CloseCode;
