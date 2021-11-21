@@ -21,7 +21,7 @@ pub async fn handle_ws_connection(
     let (tx, rx) = s.split();
 
     let (inter_tx, inter_rx) = tokio::sync::mpsc::channel(100);
-    let (closer_tx, closer_rx) = futures::channel::oneshot::channel::<Option<CloseFrame>>();
+    let (closer_tx, closer_rx) = futures::channel::oneshot::channel();
     let conn_id = Uuid::new_v4();
 
     let rx_future = tokio::spawn(rx_handler(rx, inter_tx, closer_tx, conn_id));
