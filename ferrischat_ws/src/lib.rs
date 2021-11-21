@@ -2,6 +2,7 @@
 #![feature(async_closure)]
 
 mod config;
+mod error_handling;
 mod events;
 mod handle_connection;
 mod init;
