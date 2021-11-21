@@ -6,7 +6,7 @@ use ferrischat_auth::init_auth;
 use ferrischat_db::load_db;
 use ferrischat_macros::expand_version;
 use ferrischat_redis::load_redis;
-use ferrischat_ws::{init_ws_server, preload_ws};
+use ferrischat_ws::{init_ws, init_ws_server};
 
 use crate::auth::*;
 use crate::channels::*;
@@ -39,7 +39,7 @@ pub async fn entrypoint() {
     init_auth().await;
     load_redis().await;
     load_db().await;
-    preload_ws().await;
+    init_ws().await;
     init_ws_server("0.0.0.0:8081").await;
 
     HttpServer::new(|| {
@@ -222,8 +222,8 @@ pub async fn entrypoint() {
     })
     .max_connections(250_000)
     .max_connection_rate(8192)
-    .bind("0.0.0.0:8080")
-    .expect("failed to bind to 0.0.0.0:8080")
+    .bind_uds("/etc/ferrischat/knit.sock")
+    .expect("failed to bind to knit sock!")
     .run()
     .await
     .expect("failed to run server")
