@@ -118,19 +118,20 @@ pub async fn send_verification_email(auth: crate::Authorization) -> impl Respond
                 .body(String::from(default_email))
             {
                 Ok(m) => m,
-                Err(e) => return HttpResponse::InternalServerError()
-                    .json(InternalServerErrorJson {
-                    reason: format!(
+                Err(e) => {
+                    return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                        reason: format!(
                         "This should not have happened. Submit a bug report with the error `{}`",
                         e
                     ),
-                    is_bug: true,
-                    link: Option::from(
-                        "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
+                        is_bug: true,
+                        link: Option::from(
+                            "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
                         labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+"
-                            .to_string(),
-                    ),
-                }),
+                                .to_string(),
+                        ),
+                    })
+                }
             };
             // simply gets credentials for the SMTP server
             let mail_creds = Credentials::new(username.to_string(), password.to_string());
