@@ -11,7 +11,7 @@ macro_rules! get_db_or_fail {
                 return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                     reason: "Database pool was not found".to_string(),
                     is_bug: false,
-                    link: None
+                    link: None,
                 })
             }
         }

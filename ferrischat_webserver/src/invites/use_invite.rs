@@ -3,41 +3,42 @@ use ferrischat_common::ws::WsOutboundEvent;
 
 use actix_web::{HttpRequest, HttpResponse, Responder};
 use ferrischat_common::types::{
-    InternalServerErrorJson, Invite, Member, NotFoundJson, User, UserFlags, Json,
+    InternalServerErrorJson, Invite, Json, Member, NotFoundJson, User, UserFlags,
 };
 use sqlx::types::time::OffsetDateTime;
 
 const FERRIS_EPOCH: i64 = 1_577_836_800_000;
 
 pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Responder {
-    let invite_code = {
-        match req.match_info().get("code") {
-            Some(invite_code) => match invite_code.parse::<String>() {
-                Ok(invite_code) => invite_code,
-                Err(_) => {
-                    return HttpResponse::BadRequest().json(InternalServerErrorJson {
+    let invite_code =
+        {
+            match req.match_info().get("code") {
+                Some(invite_code) => match invite_code.parse::<String>() {
+                    Ok(invite_code) => invite_code,
+                    Err(_) => return HttpResponse::BadRequest().json(InternalServerErrorJson {
                         reason: "Failed to parse invite code as String".to_string(),
                         is_bug: true,
                         link: Option::from(
                             "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
                         labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+"
-                                .to_string()),
+                                .to_string(),
+                        ),
+                    }),
+                },
+                None => {
+                    return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                        reason: "code not found in match_info: this is a bug, please report it"
+                            .to_string(),
+                        is_bug: true,
+                        link: Option::from(
+                            "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
+                        labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+"
+                                .to_string(),
+                        ),
                     })
                 }
-            },
-            None => {
-                return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                    reason: "code not found in match_info: this is a bug, please report it"
-                        .to_string(),
-                    is_bug: true,
-                    link: Option::from(
-                        "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
-                        labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+"
-                            .to_string()),
-                })
             }
-        }
-    };
+        };
 
     let user_id = auth.0;
     let bigint_user_id = u128_to_bigdecimal!(user_id);
@@ -320,7 +321,8 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
             link: Option::from(
                 "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
                         labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+"
-                    .to_string()),
+                    .to_string(),
+            ),
         });
     }
 

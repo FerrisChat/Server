@@ -1,6 +1,6 @@
 use actix_web::{web, HttpResponse, Responder};
 use check_if_email_exists::{check_email, CheckEmailInput, Reachable};
-use ferrischat_common::types::{InternalServerErrorJson, NotFoundJson, Json};
+use ferrischat_common::types::{InternalServerErrorJson, Json, NotFoundJson};
 use lettre::{
     transport::smtp::authentication::Credentials, AsyncSmtpTransport, AsyncTransport, Message,
     Tokio1Executor,
@@ -98,7 +98,8 @@ pub async fn send_verification_email(auth: crate::Authorization) -> impl Respond
                         link: Option::from(
                             "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
                         labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+"
-                                .to_string()),
+                                .to_string(),
+                        ),
                     })
                 }
             };
@@ -117,19 +118,19 @@ pub async fn send_verification_email(auth: crate::Authorization) -> impl Respond
                 .body(String::from(default_email))
             {
                 Ok(m) => m,
-                Err(e) => {
-                    return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                        reason: format!(
-                            "This should not have happened. Submit a bug report with the error `{}`",
-                            e
-                        ),
-                        is_bug: true,
-                        link: Option::from(
-                            "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
+                Err(e) => return HttpResponse::InternalServerError()
+                    .json(InternalServerErrorJson {
+                    reason: format!(
+                        "This should not have happened. Submit a bug report with the error `{}`",
+                        e
+                    ),
+                    is_bug: true,
+                    link: Option::from(
+                        "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
                         labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+"
-                                .to_string()),
-                    })
-                }
+                            .to_string(),
+                    ),
+                }),
             };
             // simply gets credentials for the SMTP server
             let mail_creds = Credentials::new(username.to_string(), password.to_string());
@@ -165,7 +166,8 @@ pub async fn send_verification_email(auth: crate::Authorization) -> impl Respond
                     link: Option::from(
                         "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
                         labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+"
-                            .to_string()),
+                            .to_string(),
+                    ),
                 });
             }
             // writes the token to redis.

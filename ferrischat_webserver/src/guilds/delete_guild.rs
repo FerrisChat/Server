@@ -50,7 +50,10 @@ pub async fn delete_guild(req: HttpRequest, auth: crate::Authorization) -> impl 
             }
             None => {
                 return HttpResponse::NotFound().json(NotFoundJson {
-                    message: format!("Unknown guild with id {0} or owner_id {1}", guild_id, auth.0),
+                    message: format!(
+                        "Unknown guild with id {0} or owner_id {1}",
+                        guild_id, auth.0
+                    ),
                 })
             }
         },
@@ -74,7 +77,8 @@ pub async fn delete_guild(req: HttpRequest, auth: crate::Authorization) -> impl 
             link: Option::from(
                 "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
                         labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+"
-                    .to_string()),
+                    .to_string(),
+            ),
         });
     }
 

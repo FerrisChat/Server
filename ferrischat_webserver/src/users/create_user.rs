@@ -1,6 +1,8 @@
 use actix_web::{web::Json, HttpResponse, Responder};
 use ferrischat_common::request_json::UserCreateJson;
-use ferrischat_common::types::{InternalServerErrorJson, ModelType, User, UserFlags, Json as MsgJson};
+use ferrischat_common::types::{
+    InternalServerErrorJson, Json as MsgJson, ModelType, User, UserFlags,
+};
 use ferrischat_snowflake_generator::generate_snowflake;
 use rand::Rng;
 use tokio::sync::oneshot::channel;
@@ -57,7 +59,8 @@ pub async fn create_user(user_data: Json<UserCreateJson>) -> impl Responder {
                     link: Option::from(
                         "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
                         labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+"
-                            .to_string()),
+                            .to_string(),
+                    ),
                 })
             }
         };

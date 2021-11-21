@@ -74,16 +74,16 @@ pub async fn get_token(req: HttpRequest) -> impl Responder {
                         };
                         rx
                     }
-                    None => {
-                        return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                            reason: "password verifier not found".to_string(),
-                            is_bug: true,
-                            link: Option::from(
-                                "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
+                    None => return HttpResponse::InternalServerError()
+                        .json(InternalServerErrorJson {
+                        reason: "password verifier not found".to_string(),
+                        is_bug: true,
+                        link: Option::from(
+                            "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
                         labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+"
-                                    .to_string()),
-                        })
-                    }
+                                .to_string(),
+                        ),
+                    }),
                 };
                 match rx.await {
                     Ok(r) => {
@@ -130,7 +130,8 @@ pub async fn get_token(req: HttpRequest) -> impl Responder {
                 link: Option::from(
                     "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
                         labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+"
-                        .to_string()),
+                        .to_string(),
+                ),
             })
         }
     };
@@ -155,7 +156,8 @@ pub async fn get_token(req: HttpRequest) -> impl Responder {
                     link: Option::from(
                         "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
                         labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+"
-                            .to_string()),
+                            .to_string(),
+                    ),
                 })
             }
         };
@@ -169,7 +171,8 @@ pub async fn get_token(req: HttpRequest) -> impl Responder {
                         link: Option::from(
                             "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
                         labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+"
-                                .to_string()),
+                                .to_string(),
+                        ),
                     })
                 }
             },

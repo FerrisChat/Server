@@ -103,7 +103,8 @@ pub async fn create_invite(
             link: Option::from(
                 "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
                         labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+"
-                    .to_string()),
+                    .to_string(),
+            ),
         });
     }
 
