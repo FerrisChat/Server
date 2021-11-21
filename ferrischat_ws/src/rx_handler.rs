@@ -30,14 +30,12 @@ fn decode_event<'a>(
                 }
             },
         )),
-        Ok(Message::Binary(_)) => {
-            return Err(Some(CloseFrame {
-                code: CloseCode::Unsupported,
-                reason: "Binary data sent: only text supported at the moment".into(),
-            }))
-        }
-        Ok(Message::Ping(_) | Message::Pong(_)) => return Ok(None),
-        Ok(Message::Close(_)) => return Err(None),
+        Ok(Message::Binary(_)) => Err(Some(CloseFrame {
+            code: CloseCode::Unsupported,
+            reason: "Binary data sent: only text supported at the moment".into(),
+        })),
+        Ok(Message::Ping(_) | Message::Pong(_)) => Ok(None),
+        Ok(Message::Close(_)) => Err(None),
         Err(e) => return Err(Some(handle_error(e))),
     }
 }
@@ -111,7 +109,7 @@ pub async fn rx_handler(
                     token,
                     intents,
                     &inter_tx,
-                    &uid_conn_map,
+                    uid_conn_map,
                     &identify_received,
                     db,
                     conn_id,

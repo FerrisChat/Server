@@ -205,9 +205,10 @@ pub async fn handle_identify_rx<'a>(
         }
     };
 
-    if let Err(_) = inter_tx
+    if inter_tx
         .send(WsOutboundEvent::IdentifyAccepted { user })
         .await
+        .is_err()
     {
         return Err(WsEventHandlerError::Sender);
     };

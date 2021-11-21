@@ -83,7 +83,7 @@ pub async fn redis_event_handler(
         }
 
         // if any, remove nonexistent subscriptions
-        if to_unsub.len() > 0 {
+        if !to_unsub.is_empty() {
             let mut positions = Vec::with_capacity(to_unsub.len());
             for (channel, map) in event_channel_to_uuid_map.iter_mut() {
                 for x in &to_unsub {
@@ -100,7 +100,7 @@ pub async fn redis_event_handler(
                     // we do not care about ordering, so we use this function which is O(1) not O(n)
                     x.swap_remove(idx);
 
-                    if x.len() == 0 {
+                    if x.is_empty() {
                         unsub.push(channel.clone());
                     }
                 }
