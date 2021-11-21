@@ -35,7 +35,7 @@ pub async fn handle_identify_rx<'a>(
         .await;
 
     let guilds = {
-        let resp = sqlx::query!(
+        let d = sqlx::query!(
             r#"SELECT id AS "id!", owner_id AS "owner_id!", name AS "name!" FROM guilds INNER JOIN members m on guilds.id = m.guild_id WHERE m.user_id = $1"#,
             bigdecimal_user_id
         )
