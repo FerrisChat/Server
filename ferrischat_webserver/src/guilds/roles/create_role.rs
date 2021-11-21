@@ -6,7 +6,7 @@ use actix_web::web::Json;
 use actix_web::{HttpRequest, HttpResponse, Responder};
 use ferrischat_common::perms::Permissions;
 use ferrischat_common::request_json::RoleCreateJson;
-use ferrischat_common::types::{Channel, InternalServerErrorJson, ModelType, Role};
+use ferrischat_common::types::{InternalServerErrorJson, ModelType, Role};
 use ferrischat_macros::get_db_or_fail;
 use ferrischat_snowflake_generator::generate_snowflake;
 

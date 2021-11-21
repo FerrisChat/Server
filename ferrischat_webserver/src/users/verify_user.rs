@@ -81,7 +81,7 @@ pub async fn send_verification_email(auth: crate::Authorization) -> impl Respond
                 }
             };
             // This generates a random string that can be used to verify that the request is actually from the email owner
-            let mut token = match crate::auth::generate_random_bits() {
+            let token = match crate::auth::generate_random_bits() {
                 Some(b) => base64::encode_config(b, base64::URL_SAFE),
                 None => {
                     return HttpResponse::InternalServerError().json(InternalServerErrorJson {

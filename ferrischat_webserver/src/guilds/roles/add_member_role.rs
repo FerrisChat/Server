@@ -1,5 +1,5 @@
 use actix_web::{HttpRequest, HttpResponse, Responder};
-use ferrischat_common::types::{InternalServerErrorJson, ModelType, NotFoundJson, Role};
+use ferrischat_common::types::{InternalServerErrorJson, ModelType};
 use ferrischat_snowflake_generator::generate_snowflake;
 
 /// POST /api/v0/guilds/{guild_id}/members/{user_id}/role/{role_id}
