@@ -2,7 +2,6 @@
 #![feature(async_closure)]
 
 mod config;
-mod connection_data;
 mod events;
 mod handle_connection;
 mod init;
@@ -28,3 +27,8 @@ static USERID_CONNECTION_MAP: OnceCell<DashMap<Uuid, u128>> = OnceCell::new();
 static SUB_TO_ME: OnceCell<
     futures::channel::mpsc::Sender<(String, tokio::sync::mpsc::Sender<Option<Msg>>)>,
 > = OnceCell::new();
+
+pub enum TxRxComm {
+    Text(String),
+    Binary(Vec<u8>),
+}
