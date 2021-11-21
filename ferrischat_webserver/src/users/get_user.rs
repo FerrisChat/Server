@@ -132,7 +132,7 @@ pub async fn get_user(req: HttpRequest, auth: crate::Authorization) -> impl Resp
 
                                                     let member = Member {
                                                         user_id: x.user_id.with_scale(0).into_bigint_and_exponent().0.to_u128(),
-                                                        user: user,
+                                                        user,
                                                         guild_id: x.guild_id.with_scale(0).into_bigint_and_exponent().0.to_u128(),
                                                         guild: None,
                                                     };

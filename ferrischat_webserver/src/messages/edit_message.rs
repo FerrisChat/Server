@@ -60,7 +60,7 @@ pub async fn edit_message(
                 Message {
                     id: message_id,
                     channel_id,
-                    author_id: author_id.clone(),
+                    author_id,
                     content: resp.content,
                     edited_at: resp.edited_at,
                     embeds: vec![],

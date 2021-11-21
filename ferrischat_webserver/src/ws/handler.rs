@@ -112,8 +112,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsHandler {
                     )))),
                 };
                 */
-                ctx.pong(b"{\"code\": 10}");
-                return;
+                return ctx.pong(b"{\"code\": 10}");
             }
             WsEventType::Pong(_) => {
                 /*
@@ -122,8 +121,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsHandler {
                     .arg(&["EX", "60"])
                     .query(&mut redis_conn);
                 */
-                ctx.ping(b"{\"code\": 9}");
-                return;
+                return ctx.ping(b"{\"code\": 9}");
             }
         };
 

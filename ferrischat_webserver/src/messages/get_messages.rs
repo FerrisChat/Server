@@ -28,7 +28,7 @@ pub async fn get_message(req: HttpRequest, _: crate::Authorization) -> impl Resp
                     id: message_id,
                     content: m.content,
                     channel_id,
-                    author_id: author_id.clone(),
+                    author_id,
                     edited_at: m.edited_at,
                     embeds: vec![],
                     author: Some(User {

@@ -71,7 +71,7 @@ pub async fn get_message_history(
                                 .into_bigint_and_exponent()
                                 .0
                                 .to_u128()?,
-                            author_id: author_id.clone(),
+                            author_id,
                             author: Some(User {
                                 id: author_id,
                                 name: std::mem::take(&mut x.author_name),
@@ -123,7 +123,7 @@ pub async fn get_message_history(
                                 .into_bigint_and_exponent()
                                 .0
                                 .to_u128()?,
-                            author_id: author_id.clone(),
+                            author_id,
                             edited_at: x.edited_at,
                             embeds: vec![],
                             author: Some(User {

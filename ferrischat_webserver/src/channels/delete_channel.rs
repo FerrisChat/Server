@@ -33,7 +33,7 @@ pub async fn delete_channel(req: HttpRequest, _: crate::Authorization) -> impl R
         },
         Err(e) => {
             return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                reason: format!("DB returned an error: {}", e).to_string(),
+                reason: format!("DB returned an error: {}", e),
             })
         }
     };

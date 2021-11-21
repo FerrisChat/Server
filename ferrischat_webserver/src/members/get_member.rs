@@ -42,7 +42,7 @@ pub async fn get_member(req: HttpRequest) -> impl Responder {
                         };
                         HttpResponse::Ok().json(Member {
                             user_id: Some(member_id),
-                            user: user,
+                            user,
                             guild_id: Some(guild_id),
                             guild: None,
                         })
@@ -54,11 +54,9 @@ pub async fn get_member(req: HttpRequest) -> impl Responder {
                     }
                 }
             }
-            None => {
-                return HttpResponse::NotFound().json(NotFoundJson {
-                    message: "Member not found".to_string(),
-                })
-            }
+            None => HttpResponse::NotFound().json(NotFoundJson {
+                message: "Member not found".to_string(),
+            }),
         },
         Err(e) => {
             return HttpResponse::InternalServerError().json(InternalServerErrorJson {

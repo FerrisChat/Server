@@ -64,7 +64,7 @@ pub async fn delete_message(req: HttpRequest, _: crate::Authorization) -> impl R
     let msg_obj = Message {
         id: message_id,
         channel_id,
-        author_id: author_id.clone(),
+        author_id,
         content: message.content,
         edited_at: message.edited_at,
         embeds: vec![],

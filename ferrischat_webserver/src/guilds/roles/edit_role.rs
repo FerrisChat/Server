@@ -144,7 +144,7 @@ pub async fn edit_role(
         }
     };
 
-    let guild_id = new_role_obj.guild_id.clone();
+    let guild_id = new_role_obj.guild_id;
 
     let event = WsOutboundEvent::RoleUpdate {
         old: old_role_obj,

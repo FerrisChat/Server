@@ -67,12 +67,12 @@ pub async fn create_invite(
     let invite_obj = match resp {
         Ok(code) => Invite {
             code: code.code,
-            owner_id: owner_id,
-            guild_id: guild_id,
+            owner_id,
+            guild_id,
             created_at: now,
             uses: 0,
-            max_uses: max_uses,
-            max_age: max_age,
+            max_uses,
+            max_age,
         },
         Err(e) => {
             return HttpResponse::InternalServerError().json(InternalServerErrorJson {

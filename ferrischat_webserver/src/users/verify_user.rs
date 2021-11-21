@@ -31,7 +31,7 @@ pub async fn send_verification_email(auth: crate::Authorization) -> impl Respond
     };
     // Makes a call to the email checker to avoid sending to completely fake emails
     // TODO check if the user is verified already and send 304 Not Modified if they are
-    let mut checker_input = CheckEmailInput::new(vec![user_email.clone().into()]);
+    let mut checker_input = CheckEmailInput::new(vec![user_email.clone()]);
     checker_input.set_smtp_timeout(Duration::new(5, 0));
     let checked_email = check_email(&checker_input).await;
     if checked_email[0].syntax.is_valid_syntax {
@@ -52,7 +52,7 @@ pub async fn send_verification_email(auth: crate::Authorization) -> impl Respond
                 Ok(r) => r,
                 Err(_) => {
                     return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                        reason: format!("No SMTP server host set."),
+                        reason: "No SMTP server host set.".to_string(),
                     })
                 }
             };
@@ -64,7 +64,7 @@ pub async fn send_verification_email(auth: crate::Authorization) -> impl Respond
                 Ok(r) => r,
                 Err(_) => {
                     return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                        reason: format!("No SMTP server username set."),
+                        reason: "No SMTP server username set.".to_string(),
                     })
                 }
             };
@@ -76,7 +76,7 @@ pub async fn send_verification_email(auth: crate::Authorization) -> impl Respond
                 Ok(r) => r,
                 Err(_) => {
                     return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                        reason: format!("No SMTP server password set."),
+                        reason: "No SMTP server password set.".to_string(),
                     })
                 }
             };
@@ -101,7 +101,7 @@ pub async fn send_verification_email(auth: crate::Authorization) -> impl Respond
                 .from(format!("Ferris <{}>", username).parse().unwrap())
                 .to(user_email.parse().unwrap())
                 .subject("FerrisChat Email Verification")
-                .body(String::from(default_email))
+                .body(default_email)
             {
                 Ok(m) => m,
                 Err(e) => {
@@ -157,11 +157,11 @@ pub async fn send_verification_email(auth: crate::Authorization) -> impl Respond
                 });
             }
             HttpResponse::Ok().json(InternalServerErrorJson {
-                reason: format!("Sent verification, please check your email."),
+                reason: "Sent verification, please check your email.".to_string(),
             })
         } else {
             HttpResponse::Conflict().json(InternalServerErrorJson {
-                reason: format!("Email deemed unsafe to send to. Is it a real email?"),
+                reason: "Email deemed unsafe to send to. Is it a real email?".to_string(),
             })
         }
     } else {
@@ -194,7 +194,7 @@ pub async fn verify_email(path: web::Path<String>) -> impl Responder {
         Ok(None) => {
             // TODO use 498 rather then 404
             return HttpResponse::NotFound().json(NotFoundJson {
-                message: format!("This token has expired or was not found."),
+                message: "This token has expired or was not found.".to_string(),
             });
         }
         Err(e) => {
