@@ -15,7 +15,7 @@ pub async fn init_ws() {
         .unwrap_or_else(|_| panic!("don't call `preload_ws()` more than once"));
 
     // allow up to 250 new subscriptions to be processed
-    let (tx, rx) = futures::channel::mpsc::channel(250);
+    let (tx, rx) = tokio::sync::mpsc::channel(250);
 
     SUB_TO_ME
         .set(tx)

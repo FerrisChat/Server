@@ -30,5 +30,5 @@ static USERID_CONNECTION_MAP: OnceCell<DashMap<Uuid, u128>> = OnceCell::new();
 
 // ignore the name
 static SUB_TO_ME: OnceCell<
-    futures::channel::mpsc::Sender<(String, tokio::sync::mpsc::Sender<Option<Msg>>)>,
+    tokio::sync::mpsc::Sender<(String, tokio::sync::mpsc::Sender<Option<Msg>>)>,
 > = OnceCell::new();

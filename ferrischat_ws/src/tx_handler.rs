@@ -185,8 +185,8 @@ pub async fn tx_handler(
                 match crate::SUB_TO_ME.get() {
                     Some(s) => {
                         let user_id = *(map_val.value());
-                        let mut s = s.clone();
-                        if s.start_send((format!("*{}*", user_id), redis_tx.clone()))
+                        if s.send((format!("*{}*", user_id), redis_tx.clone()))
+                            .await
                             .is_err()
                         {
                             return (
@@ -212,7 +212,8 @@ pub async fn tx_handler(
                                         .0
                                         .to_u128()
                                 }) {
-                                    if s.start_send((format!("*{}*", guild), redis_tx.clone()))
+                                    if s.send((format!("*{}*", guild), redis_tx.clone()))
+                                        .await
                                         .is_err()
                                     {
                                         return (
