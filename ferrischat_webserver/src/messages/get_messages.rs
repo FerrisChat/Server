@@ -43,11 +43,13 @@ pub async fn get_message(req: HttpRequest, _: crate::Authorization) -> impl Resp
                 })
             }
             None => HttpResponse::NotFound().json(NotFoundJson {
-                message: "message not found".to_string(),
+                message: format!("Unknown message with id {}", message_id),
             }),
         },
         Err(e) => HttpResponse::InternalServerError().json(InternalServerErrorJson {
             reason: format!("DB returned a error: {}", e),
+            is_bug: false,
+            link: None,
         }),
     }
 }

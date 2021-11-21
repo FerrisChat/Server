@@ -3,7 +3,7 @@ use ferrischat_common::ws::WsOutboundEvent;
 
 use actix_web::{HttpRequest, HttpResponse, Responder};
 use ferrischat_common::types::{
-    InternalServerErrorJson, Invite, Member, NotFoundJson, User, UserFlags,
+    InternalServerErrorJson, Invite, Member, NotFoundJson, User, UserFlags, Json,
 };
 use sqlx::types::time::OffsetDateTime;
 
@@ -17,15 +17,23 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
                 Err(_) => {
                     return HttpResponse::BadRequest().json(InternalServerErrorJson {
                         reason: "Failed to parse invite code as String".to_string(),
+                        is_bug: true,
+                        link: Option::from(
+                            "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
+                        labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+"
+                                .to_string()),
                     })
                 }
             },
             None => {
                 return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                    reason: "code not found in match_info: this is a bug, please report it at \
-                    https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&labels=bug&\
-                    template=api_bug_report.yml&title=%5B500%5D%3A+code+not+found+in+match_info"
+                    reason: "code not found in match_info: this is a bug, please report it"
                         .to_string(),
+                    is_bug: true,
+                    link: Option::from(
+                        "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
+                        labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+"
+                            .to_string()),
                 })
             }
         }
@@ -46,13 +54,15 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
                 Some(invite) => bigdecimal_to_u128!(invite.guild_id),
                 None => {
                     return HttpResponse::NotFound().json(NotFoundJson {
-                        message: "Invite not found.".to_string(),
+                        message: format!("Unknown invite with code {}", invite_code),
                     })
                 }
             },
             Err(e) => {
                 return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                     reason: format!("DB returned an error: {}", e),
+                    is_bug: false,
+                    link: None,
                 })
             }
         }
@@ -103,7 +113,13 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
                                         }
                                     };
                                     HttpResponse::InternalServerError()
-                                        .json(InternalServerErrorJson { reason })
+                                        .json(InternalServerErrorJson {
+                                            reason,
+                                            is_bug: true,
+                                            link: Option::from(
+                                                "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
+                        labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+"
+                                                    .to_string()),})
                                 } else {
                                     HttpResponse::Gone().finish()
                                 }
@@ -111,6 +127,8 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
                             Err(e) => {
                                 HttpResponse::InternalServerError().json(InternalServerErrorJson {
                                     reason: format!("DB returned an error: {}", e),
+                                    is_bug: false,
+                                    link: None,
                                 })
                             }
                         };
@@ -156,7 +174,14 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
                                         }
                                     };
                                     HttpResponse::InternalServerError()
-                                        .json(InternalServerErrorJson { reason })
+                                        .json(InternalServerErrorJson {
+                                            reason,
+                                            is_bug: true,
+                                            link: Option::from(
+                                                "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
+                        labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+"
+                                                    .to_string()),
+                                        })
                                 } else {
                                     HttpResponse::Gone().finish()
                                 }
@@ -164,6 +189,8 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
                             Err(e) => {
                                 HttpResponse::InternalServerError().json(InternalServerErrorJson {
                                     reason: format!("DB returned an error: {}", e),
+                                    is_bug: false,
+                                    link: None,
                                 })
                             }
                         };
@@ -180,14 +207,16 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
                 match already_exists {
                     Ok(r) => {
                         if r.exists {
-                            return HttpResponse::Conflict().json(InternalServerErrorJson {
-                                reason: "user has already joined this guild".to_string(),
+                            return HttpResponse::Conflict().json(Json {
+                                message: "user has already joined this guild".to_string(),
                             });
                         }
                     }
                     Err(e) => {
                         return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                             reason: format!("DB returned an error: {}", e),
+                            is_bug: false,
+                            link: None,
                         })
                     }
                 }
@@ -225,6 +254,8 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
                                 return HttpResponse::InternalServerError().json(
                                     InternalServerErrorJson {
                                         reason: format!("DB returned an error: {}", e),
+                                        is_bug: false,
+                                        link: None,
                                     },
                                 )
                             }
@@ -235,6 +266,8 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
                     Err(e) => {
                         return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                             reason: format!("DB returned an error: {}", e),
+                            is_bug: false,
+                            link: None,
                         })
                     }
                 };
@@ -252,6 +285,8 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
                     Err(e) => {
                         return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                             reason: format!("DB returned an error: {}", e),
+                            is_bug: false,
+                            link: None,
                         })
                     }
                 }
@@ -263,6 +298,8 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
         Err(e) => {
             return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                 reason: format!("DB returned an error: {}", e),
+                is_bug: false,
+                link: None,
             })
         }
     };
@@ -277,7 +314,14 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
                 format!("Failed to serialize message to JSON format: {}", e)
             }
         };
-        return HttpResponse::InternalServerError().json(InternalServerErrorJson { reason });
+        return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+            reason,
+            is_bug: true,
+            link: Option::from(
+                "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
+                        labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+"
+                    .to_string()),
+        });
     }
 
     HttpResponse::Created().finish()

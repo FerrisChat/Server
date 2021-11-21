@@ -43,13 +43,15 @@ pub async fn edit_role(
                 },
                 None => {
                     return HttpResponse::NotFound().json(NotFoundJson {
-                        message: "Role not found".to_string(),
+                        message: format!("Unknown role with id {}", role_id),
                     })
                 }
             },
             Err(e) => {
                 return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                     reason: format!("DB returned an error: {}", e),
+                    is_bug: false,
+                    link: None,
                 })
             }
         }
@@ -66,6 +68,8 @@ pub async fn edit_role(
         {
             return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                 reason: format!("DB returned an error: {}", e),
+                is_bug: false,
+                link: None,
             });
         };
     }
@@ -81,6 +85,8 @@ pub async fn edit_role(
         {
             return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                 reason: format!("DB returned an error: {}", e),
+                is_bug: false,
+                link: None,
             });
         };
     }
@@ -96,6 +102,8 @@ pub async fn edit_role(
         {
             return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                 reason: format!("DB returned an error: {}", e),
+                is_bug: false,
+                link: None,
             });
         };
     }
@@ -111,6 +119,8 @@ pub async fn edit_role(
         {
             return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                 reason: format!("DB returned an error: {}", e),
+                is_bug: false,
+                link: None,
             });
         };
     }
@@ -132,13 +142,15 @@ pub async fn edit_role(
                 },
                 None => {
                     return HttpResponse::NotFound().json(NotFoundJson {
-                        message: "Role not found".to_string(),
+                        message: format!("Unknown role with id {}", role_id),
                     })
                 }
             },
             Err(e) => {
                 return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                     reason: format!("DB returned an error: {}", e),
+                    is_bug: false,
+                    link: None,
                 })
             }
         }
@@ -159,7 +171,14 @@ pub async fn edit_role(
                 format!("Failed to serialize message to JSON format: {}", e)
             }
         };
-        return HttpResponse::InternalServerError().json(InternalServerErrorJson { reason });
+        return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+            reason,
+            is_bug: true,
+            link: Option::from(
+                "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
+                        labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+"
+                    .to_string()),
+        });
     }
 
     HttpResponse::Ok().json(new_role_obj)

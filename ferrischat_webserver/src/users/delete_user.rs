@@ -26,11 +26,13 @@ pub async fn delete_user(req: HttpRequest, auth: crate::Authorization) -> impl R
                 message: "Deleted user".to_string(),
             }),
             None => HttpResponse::NotFound().json(NotFoundJson {
-                message: "User not found".to_string(),
+                message: format!("Unknown user with id {}", user_id),
             }),
         },
         Err(e) => HttpResponse::InternalServerError().json(InternalServerErrorJson {
             reason: format!("DB Returned a error: {}", e),
+            is_bug: false,
+            link: None,
         }),
     }
 }

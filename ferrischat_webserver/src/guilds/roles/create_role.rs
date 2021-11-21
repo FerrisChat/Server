@@ -6,7 +6,7 @@ use actix_web::web::Json;
 use actix_web::{HttpRequest, HttpResponse, Responder};
 use ferrischat_common::perms::Permissions;
 use ferrischat_common::request_json::RoleCreateJson;
-use ferrischat_common::types::{Channel, InternalServerErrorJson, ModelType, Role};
+use ferrischat_common::types::{InternalServerErrorJson, ModelType, Role};
 use ferrischat_macros::get_db_or_fail;
 use ferrischat_snowflake_generator::generate_snowflake;
 
@@ -60,6 +60,8 @@ pub async fn create_role(
         Err(e) => {
             return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                 reason: format!("DB returned a error: {}", e),
+                is_bug: false,
+                link: None,
             })
         }
     };
@@ -76,7 +78,14 @@ pub async fn create_role(
                 format!("Failed to serialize message to JSON format: {}", e)
             }
         };
-        return HttpResponse::InternalServerError().json(InternalServerErrorJson { reason });
+        return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+            reason,
+            is_bug: true,
+            link: Option::from(
+                "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
+                        labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+"
+                    .to_string()),
+        });
     }
 
     HttpResponse::Created().json(role_obj)

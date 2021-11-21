@@ -1,5 +1,5 @@
 use actix_web::{HttpRequest, HttpResponse, Responder};
-use ferrischat_common::types::{InternalServerErrorJson, ModelType, NotFoundJson, Role};
+use ferrischat_common::types::{InternalServerErrorJson, ModelType};
 use ferrischat_snowflake_generator::generate_snowflake;
 
 /// POST /api/v0/guilds/{guild_id}/members/{user_id}/role/{role_id}
@@ -26,6 +26,8 @@ pub async fn add_member_role(req: HttpRequest, _: crate::Authorization) -> impl 
         Ok(_) => HttpResponse::Ok().finish(),
         Err(e) => HttpResponse::InternalServerError().json(InternalServerErrorJson {
             reason: format!("database returned a error: {}", e),
+            is_bug: false,
+            link: None,
         }),
     };
 

@@ -21,11 +21,13 @@ pub async fn get_role(req: HttpRequest, _: crate::Authorization) -> impl Respond
                 permissions: Permissions::from_bits_truncate(role.permissions),
             }),
             None => HttpResponse::NotFound().json(NotFoundJson {
-                message: "Role Not Found".to_string(),
+                message: format!("Unknown role with id {}", role_id),
             }),
         },
         Err(e) => HttpResponse::InternalServerError().json(InternalServerErrorJson {
             reason: format!("database returned a error: {}", e),
+            is_bug: false,
+            link: None,
         }),
     }
 }

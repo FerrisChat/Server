@@ -23,13 +23,15 @@ pub async fn get_guild(
             Some(g) => g,
             None => {
                 return HttpResponse::NotFound().json(NotFoundJson {
-                    message: "Guild Not Found".to_string(),
+                    message: format!("Unknown guild with id {0}", guild_id),
                 })
             }
         },
         Err(e) => {
             return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                 reason: format!("database returned a error: {}", e),
+                is_bug: false,
+                link: None,
             })
         }
     };
@@ -60,6 +62,8 @@ pub async fn get_guild(
             Err(e) => {
                 return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                     reason: format!("database returned a error: {}", e),
+                    is_bug: false,
+                    link: None,
                 })
             }
         })
@@ -100,6 +104,8 @@ pub async fn get_guild(
             Err(e) => {
                 return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                     reason: format!("database returned a error: {}", e),
+                    is_bug: false,
+                    link: None,
                 })
             }
         })

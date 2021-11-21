@@ -20,6 +20,8 @@ pub async fn delete_bot(req: HttpRequest, auth: crate::Authorization) -> impl Re
             Err(e) => {
                 return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                     reason: format!("DB returned a error: {}", e),
+                    is_bug: false,
+                    link: None,
                 })
             }
         };
@@ -42,11 +44,13 @@ pub async fn delete_bot(req: HttpRequest, auth: crate::Authorization) -> impl Re
         Ok(r) => match r {
             Some(_) => HttpResponse::NoContent().finish(),
             None => HttpResponse::NotFound().json(NotFoundJson {
-                message: "User not found".to_string(),
+                message: format!("Unknown user with id {}", user_id),
             }),
         },
         Err(e) => HttpResponse::InternalServerError().json(InternalServerErrorJson {
             reason: format!("DB Returned a error: {}", e),
+            is_bug: false,
+            link: None,
         }),
     }
 }

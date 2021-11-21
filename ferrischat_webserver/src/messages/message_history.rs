@@ -89,6 +89,8 @@ pub async fn get_message_history(
                 Err(e) => {
                     return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                         reason: format!("database returned a error: {}", e),
+                        is_bug: false,
+                        link: None,
                     })
                 }
             }
@@ -141,6 +143,8 @@ pub async fn get_message_history(
                 Err(e) => {
                     return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                         reason: format!("database returned a error: {}", e),
+                        is_bug: false,
+                        link: None,
                     })
                 }
             }

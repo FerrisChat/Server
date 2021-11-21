@@ -1,6 +1,6 @@
 use actix_web::{web::Json, HttpResponse, Responder};
 use ferrischat_common::request_json::UserCreateJson;
-use ferrischat_common::types::{InternalServerErrorJson, ModelType, User, UserFlags};
+use ferrischat_common::types::{InternalServerErrorJson, ModelType, User, UserFlags, Json as MsgJson};
 use ferrischat_snowflake_generator::generate_snowflake;
 use rand::Rng;
 use tokio::sync::oneshot::channel;
@@ -28,6 +28,8 @@ pub async fn create_user(user_data: Json<UserCreateJson>) -> impl Responder {
                 Err(e) => {
                     return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                         reason: format!("DB returned a error: {}", e),
+                        is_bug: false,
+                        link: None,
                     })
                 }
             };
@@ -38,8 +40,8 @@ pub async fn create_user(user_data: Json<UserCreateJson>) -> impl Responder {
         match available.get(rand::thread_rng().gen_range(0..available.len())) {
             Some(d) => *d,
             None => {
-                return HttpResponse::Conflict().json(InternalServerErrorJson {
-                    reason: "This username has all possible discriminators taken.".to_string(),
+                return HttpResponse::Conflict().json(MsgJson {
+                    message: "This username has all possible discriminators taken.".to_string(),
                 })
             }
         }
@@ -51,6 +53,11 @@ pub async fn create_user(user_data: Json<UserCreateJson>) -> impl Responder {
             None => {
                 return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                     reason: "Password hasher not found".to_string(),
+                    is_bug: true,
+                    link: Option::from(
+                        "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
+                        labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+"
+                            .to_string()),
                 })
             }
         };
@@ -64,12 +71,16 @@ pub async fn create_user(user_data: Json<UserCreateJson>) -> impl Responder {
                 Err(e) => {
                     return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                         reason: format!("Failed to hash password: {}", e),
+                        is_bug: true,
+                        link: None,
                     })
                 }
             },
             Err(_) => {
                 return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                     reason: "Other end hung up connection".to_string(),
+                    is_bug: false,
+                    link: None,
                 })
             }
         }
@@ -100,17 +111,21 @@ pub async fn create_user(user_data: Json<UserCreateJson>) -> impl Responder {
         Err(e) => match e {
             sqlx::Error::Database(e) => {
                 if e.code() == Some("23505".into()) {
-                    HttpResponse::Conflict().json(InternalServerErrorJson {
-                        reason: "A user with this email already exists".to_string(),
+                    HttpResponse::Conflict().json(MsgJson {
+                        message: "A user with this email already exists".to_string(),
                     })
                 } else {
                     HttpResponse::InternalServerError().json(InternalServerErrorJson {
                         reason: format!("DB returned a error: {}", e),
+                        is_bug: false,
+                        link: None,
                     })
                 }
             }
             _ => HttpResponse::InternalServerError().json(InternalServerErrorJson {
                 reason: format!("DB returned a error: {}", e),
+                is_bug: false,
+                link: None,
             }),
         },
     }

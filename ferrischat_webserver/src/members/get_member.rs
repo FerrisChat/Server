@@ -42,7 +42,7 @@ pub async fn get_member(req: HttpRequest) -> impl Responder {
                         };
                         HttpResponse::Ok().json(Member {
                             user_id: Some(member_id),
-                            user: user,
+                            user,
                             guild_id: Some(guild_id),
                             guild: None,
                         })
@@ -50,19 +50,26 @@ pub async fn get_member(req: HttpRequest) -> impl Responder {
                     Err(e) => {
                         return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                             reason: format!("database returned an error: {}", e),
+                            is_bug: false,
+                            link: None,
                         })
                     }
                 }
             }
             None => {
                 return HttpResponse::NotFound().json(NotFoundJson {
-                    message: "Member not found".to_string(),
+                    message: format!("Unknown member with id {}", member_id),
                 })
             }
         },
         Err(e) => {
             return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                 reason: format!("database returned an error: {}", e),
+                is_bug: false,
+                link: Option::from(
+                    "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
+                        labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+"
+                        .to_string()),
             })
         }
     }

@@ -17,11 +17,13 @@ pub async fn get_channel(req: HttpRequest, _: crate::Authorization) -> impl Resp
                 guild_id: bigdecimal_to_u128!(channel.guild_id),
             }),
             None => HttpResponse::NotFound().json(NotFoundJson {
-                message: "Channel Not Found".to_string(),
+                message: format!("Unknown channel with id {}", channel_id),
             }),
         },
         Err(e) => HttpResponse::InternalServerError().json(InternalServerErrorJson {
             reason: format!("database returned a error: {}", e),
+            is_bug: false,
+            link: None,
         }),
     }
 }

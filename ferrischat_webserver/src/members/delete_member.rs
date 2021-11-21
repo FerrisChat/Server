@@ -35,13 +35,15 @@ pub async fn delete_member(req: HttpRequest, _: crate::Authorization) -> impl Re
             },
             None => {
                 return HttpResponse::NotFound().json(NotFoundJson {
-                    message: "Member not found".to_string(),
+                    message: format!("Unknown member with id {}", member_id),
                 })
             }
         },
         Err(e) => {
             return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                 reason: format!("Database responded with an error: {}", e),
+                is_bug: false,
+                link: None,
             })
         }
     };
@@ -58,7 +60,14 @@ pub async fn delete_member(req: HttpRequest, _: crate::Authorization) -> impl Re
                 format!("Failed to serialize message to JSON format: {}", e)
             }
         };
-        return HttpResponse::InternalServerError().json(InternalServerErrorJson { reason });
+        return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+            reason,
+            is_bug: true,
+            link: Option::from(
+                "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
+                        labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+"
+                    .to_string()),
+        });
     }
 
     HttpResponse::NoContent().finish()
