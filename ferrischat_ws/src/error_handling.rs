@@ -1,3 +1,5 @@
+use ferrischat_auth::VerifyTokenFailure;
+use tokio::sync::mpsc::error::SendError;
 use tokio_tungstenite::tungstenite::error::Error;
 use tokio_tungstenite::tungstenite::protocol::frame::coding::CloseCode;
 use tokio_tungstenite::tungstenite::protocol::CloseFrame;
@@ -5,6 +7,25 @@ use tokio_tungstenite::tungstenite::protocol::CloseFrame;
 pub enum WsEventHandlerError<'a> {
     CloseFrame(CloseFrame<'a>),
     Sender,
+}
+
+impl From<&VerifyTokenFailure> for WsEventHandlerError<'_> {
+    fn from(e: &VerifyTokenFailure) -> Self {
+        let msg = match e {
+            VerifyTokenFailure::InternalServerError(e) => e,
+            VerifyTokenFailure::Unauthorized(e) => e,
+        };
+        Self::CloseFrame(CloseFrame {
+            code: CloseCode::from(2003),
+            reason: format!("Token invalid: {}", msg).into(),
+        })
+    }
+}
+
+impl<T> From<&tokio::sync::mpsc::error::SendError<T>> for WsEventHandlerError<'_> {
+    fn from(_: &SendError<T>) -> Self {
+        Self::Sender
+    }
 }
 
 pub fn handle_error<'a>(e: Error) -> CloseFrame<'a> {
