@@ -1,5 +1,6 @@
 #![feature(once_cell)]
 #![feature(async_closure)]
+#![feature(box_syntax)]
 
 use std::lazy::SyncOnceCell as OnceCell;
 

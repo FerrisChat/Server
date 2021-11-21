@@ -23,7 +23,7 @@ pub async fn tx_handler(
     SplitSink<WebSocketStream<TlsStream<TcpStream>>, Message>,
 ) {
     enum TransmitType<'t> {
-        InterComm(Option<WsOutboundEvent>),
+        InterComm(Box<Option<WsOutboundEvent>>),
         Exit(Option<CloseFrame<'t>>),
         Redis(Option<Option<Msg>>),
     }
@@ -60,17 +60,17 @@ pub async fn tx_handler(
         let x = match redis_rx {
             Some(ref mut rx) => tokio::select! {
                 item = &mut closer_rx => TransmitType::Exit(item.ok().flatten()),
-                item = inter_rx.recv() => TransmitType::InterComm(item),
+                item = inter_rx.recv() => TransmitType::InterComm(box item),
                 item = rx.recv() => TransmitType::Redis(item),
             },
             None => tokio::select! {
                 item = &mut closer_rx => TransmitType::Exit(item.ok().flatten()),
-                item = inter_rx.recv() => TransmitType::InterComm(item),
+                item = inter_rx.recv() => TransmitType::InterComm(box item),
             },
         };
 
         match x {
-            TransmitType::InterComm(event) => match event {
+            TransmitType::InterComm(event) => match event.into() {
                 Some(val) => {
                     let payload = match simd_json::serde::to_string(&val) {
                         Ok(v) => v,
