@@ -9,7 +9,7 @@ use tokio_tungstenite::tungstenite::protocol::CloseFrame;
 use tokio_tungstenite::tungstenite::Message;
 
 pub async fn handle_invite_tx<'a>(
-    mut tx: &mut WsTransmit,
+    tx: &mut WsTransmit,
     db: &Pool<Postgres>,
     msg: Msg,
     bigdecimal_uid: BigDecimal,
@@ -62,6 +62,6 @@ pub async fn handle_invite_tx<'a>(
         }
     };
 
-    tx.feed(Message::Text(outbound_message)).await;
+    let _ = tx.feed(Message::Text(outbound_message)).await;
     Ok(())
 }

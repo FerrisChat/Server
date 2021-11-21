@@ -9,11 +9,11 @@ use tokio_tungstenite::tungstenite::protocol::CloseFrame;
 use tokio_tungstenite::tungstenite::Message;
 
 pub async fn handle_message_tx<'a>(
-    mut tx: &mut WsTransmit,
+    tx: &mut WsTransmit,
     db: &Pool<Postgres>,
     msg: Msg,
     bigdecimal_uid: BigDecimal,
-    channel_id: u128,
+    _: u128,
     guild_id: u128,
 ) -> Result<(), CloseFrame<'a>> {
     // FIXME: once implemented, do a query to check the user has permissions to read messages in here
@@ -55,6 +55,6 @@ pub async fn handle_message_tx<'a>(
             })
         }
     };
-    tx.feed(Message::Text(outbound_message)).await;
+    let _ = tx.feed(Message::Text(outbound_message)).await;
     Ok(())
 }

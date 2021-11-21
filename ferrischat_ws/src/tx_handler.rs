@@ -1,8 +1,5 @@
-use crate::events::{
-    handle_channel_tx, handle_guild_tx, handle_invite_tx, handle_member_tx, handle_message_tx,
-};
+use crate::events::*;
 use crate::{TxRxComm, USERID_CONNECTION_MAP};
-use ferrischat_common::ws::WsOutboundEvent;
 use ferrischat_redis::redis::Msg;
 use futures_util::stream::SplitSink;
 use futures_util::SinkExt;
@@ -74,7 +71,7 @@ pub async fn tx_handler(
         match x {
             TransmitType::InterComm(event) => match event {
                 Some(val) => {
-                    match val {
+                    let _ = match val {
                         TxRxComm::Text(d) => tx.feed(Message::Text(d)).await,
                         // the implementation is here
                         // is it used? no
@@ -93,11 +90,12 @@ pub async fn tx_handler(
                 let bigdecimal_uid = u128_to_bigdecimal!(uid);
 
                 if let Some(msg) = msg {
-                    let mut names = match msg.get_channel::<String>().ok().map(|c| c.split('_')) {
+                    let n = match msg.get_channel::<String>().ok() {
                         Some(n) => n,
                         None => continue,
                     };
-                    match names.next() {
+                    let mut names = n.split('_');
+                    let ret = match names.next() {
                         Some("channel") => {
                             if let (Some(Ok(channel_id)), Some(Ok(guild_id))) =
                                 (names.next().map(str::parse), names.next().map(str::parse))
@@ -111,6 +109,8 @@ pub async fn tx_handler(
                                     guild_id,
                                 )
                                 .await
+                            } else {
+                                continue;
                             }
                         }
                         Some("message") => {
@@ -127,30 +127,41 @@ pub async fn tx_handler(
                                     guild_id,
                                 )
                                 .await
+                            } else {
+                                continue;
                             }
                         }
                         Some("guild") => {
                             if let Some(Ok(guild_id)) = names.next().map(str::parse) {
                                 handle_guild_tx(&mut tx, db, msg, bigdecimal_uid, guild_id).await
+                            } else {
+                                continue;
                             }
                         }
                         Some("member") => {
                             if let Some(Ok(guild_id)) = names.next().map(str::parse) {
                                 handle_member_tx(&mut tx, db, msg, bigdecimal_uid, guild_id).await
+                            } else {
+                                continue;
                             }
                         }
                         Some("invite") => {
                             if let Some(Ok(guild_id)) = names.next().map(str::parse) {
                                 handle_invite_tx(&mut tx, db, msg, bigdecimal_uid, guild_id).await
+                            } else {
+                                continue;
                             }
                         }
                         Some(_) | None => continue,
+                    };
+                    if let Err(e) = ret {
+                        return (Some(e), tx);
                     }
                 }
             }
             TransmitType::Redis(None) => break None,
         }
-        tx.flush().await;
+        let _ = tx.flush().await;
 
         if redis_rx.is_none() {
             let uid_conn_map = match USERID_CONNECTION_MAP.get() {
@@ -172,7 +183,17 @@ pub async fn tx_handler(
                     Some(s) => {
                         let user_id = *(map_val.value());
                         let mut s = s.clone();
-                        s.start_send((format!("*{}*", user_id), redis_tx.clone()));
+                        if s.start_send((format!("*{}*", user_id), redis_tx.clone()))
+                            .is_err()
+                        {
+                            return (
+                                Some(CloseFrame {
+                                    code: CloseCode::from(5005),
+                                    reason: "Redis connection pool hung up connection".into(),
+                                }),
+                                tx,
+                            );
+                        }
                         let resp = sqlx::query!(
                             "SELECT guild_id FROM members WHERE user_id = $1",
                             u128_to_bigdecimal!(user_id)
@@ -188,7 +209,18 @@ pub async fn tx_handler(
                                         .0
                                         .to_u128()
                                 }) {
-                                    s.start_send((format!("*{}*", guild), redis_tx.clone()));
+                                    if s.start_send((format!("*{}*", guild), redis_tx.clone()))
+                                        .is_err()
+                                    {
+                                        return (
+                                            Some(CloseFrame {
+                                                code: CloseCode::from(5005),
+                                                reason: "Redis connection pool hung up connection"
+                                                    .into(),
+                                            }),
+                                            tx,
+                                        );
+                                    }
                                 }
                             }
                             Err(e) => {
@@ -214,7 +246,7 @@ pub async fn tx_handler(
                 };
             };
         }
-        tx.flush().await;
+        let _ = tx.flush().await;
     };
 
     (ret, tx)
