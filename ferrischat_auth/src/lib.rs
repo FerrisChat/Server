@@ -9,7 +9,7 @@ mod verify_token;
 pub use auth_struct::*;
 pub use init::init_auth;
 pub use split_token::*;
-pub use verify_token::verify_token;
+pub use verify_token::*;
 
 #[macro_use]
 extern crate ferrischat_macros;
