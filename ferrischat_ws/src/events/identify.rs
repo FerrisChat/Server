@@ -40,139 +40,115 @@ pub async fn handle_identify_rx<'a>(
             bigdecimal_user_id
         )
                 .fetch_all(db)
-                .await;
+                .await?;
 
-        match resp {
-            Ok(d) => {
-                let mut guilds = Vec::with_capacity(d.len());
-                for x in d {
-                    let id = match x
-                        .id
-                        .clone()
-                        .with_scale(0)
-                        .into_bigint_and_exponent()
-                        .0
-                        .to_u128()
-                    {
-                        Some(id) => id,
-                        None => {
-                            return Err(WsEventHandlerError::CloseFrame(CloseFrame {
-                                code: CloseCode::from(5006),
-                                reason: "Failed to parse ID as u128".into(),
-                            }))
-                        }
-                    };
+        let mut guilds = Vec::with_capacity(d.len());
+        for x in d {
+            let id = match x
+                .id
+                .clone()
+                .with_scale(0)
+                .into_bigint_and_exponent()
+                .0
+                .to_u128()
+            {
+                Some(id) => id,
+                None => {
+                    return Err(WsEventHandlerError::CloseFrame(CloseFrame {
+                        code: CloseCode::from(5006),
+                        reason: "Failed to parse ID as u128".into(),
+                    }))
+                }
+            };
 
-                    let owner_id = match x
-                        .owner_id
-                        .with_scale(0)
-                        .into_bigint_and_exponent()
-                        .0
-                        .to_u128()
-                    {
-                        Some(id) => id,
-                        None => {
-                            return Err(WsEventHandlerError::CloseFrame(CloseFrame {
-                                code: CloseCode::from(5006),
-                                reason: "Failed to parse ID as u128".into(),
-                            }))
-                        }
-                    };
+            let owner_id = match x
+                .owner_id
+                .with_scale(0)
+                .into_bigint_and_exponent()
+                .0
+                .to_u128()
+            {
+                Some(id) => id,
+                None => {
+                    return Err(WsEventHandlerError::CloseFrame(CloseFrame {
+                        code: CloseCode::from(5006),
+                        reason: "Failed to parse ID as u128".into(),
+                    }))
+                }
+            };
 
-                    let members = {
-                        let resp = sqlx::query!(
+            let members = {
+                let resp = sqlx::query!(
                                 "SELECT m.*, u.name AS name, u.discriminator AS discriminator, u.flags AS flags FROM members m \
                                 CROSS JOIN LATERAL (SELECT * FROM users u WHERE id = m.user_id) AS u WHERE guild_id = $1",
                                 x.id.clone())
-                            .fetch_all(db)
-                            .await;
+                    .fetch_all(db)
+                    .await?;
 
-                        Some(match resp {
-                            Ok(resp) => resp
-                                .iter()
-                                .filter_map(|x| {
-                                    let user_id = x.user_id
-                                                   .with_scale(0)
-                                                   .into_bigint_and_exponent()
-                                                   .0
-                                                   .to_u128()?;
-                                    Some(ferrischat_common::types::Member {
-                                        user_id: Some(user_id),
-                                        user: Some(ferrischat_common::types::User {
-                                            id: user_id,
-                                            name: x.name.clone(),
-                                            avatar: None,
-                                            guilds: None,
-                                            flags: ferrischat_common::types::UserFlags::from_bits_truncate(x.flags),
-                                            discriminator: x.discriminator,
-                                        }),
-                                        guild_id: Some(id),
-                                        guild: None,
-                                    })
-                                })
-                                .collect(),
-                            Err(e) => {
-                                return Err(WsEventHandlerError::CloseFrame(CloseFrame {
-                                    code: CloseCode::from(5000),
-                                    reason: format!("Internal database error: {}", e).into(),
-                                }))
-                            }
+                Some(
+                    resp.iter()
+                        .filter_map(|x| {
+                            let user_id = x
+                                .user_id
+                                .with_scale(0)
+                                .into_bigint_and_exponent()
+                                .0
+                                .to_u128()?;
+                            Some(ferrischat_common::types::Member {
+                                user_id: Some(user_id),
+                                user: Some(ferrischat_common::types::User {
+                                    id: user_id,
+                                    name: x.name.clone(),
+                                    avatar: None,
+                                    guilds: None,
+                                    flags: ferrischat_common::types::UserFlags::from_bits_truncate(
+                                        x.flags,
+                                    ),
+                                    discriminator: x.discriminator,
+                                }),
+                                guild_id: Some(id),
+                                guild: None,
+                            })
                         })
-                    };
+                        .collect(),
+                )
+            };
 
-                    let channels = {
-                        let resp = sqlx::query!(
-                            "SELECT * FROM channels WHERE guild_id = $1",
-                            x.id.clone()
-                        )
-                        .fetch_all(db)
-                        .await;
+            let channels = {
+                let resp = sqlx::query!("SELECT * FROM channels WHERE guild_id = $1", x.id.clone())
+                    .fetch_all(db)
+                    .await?;
 
-                        Some(match resp {
-                            Ok(resp) => resp
-                                .iter()
-                                .filter_map(|x| {
-                                    Some(ferrischat_common::types::Channel {
-                                        id: x
-                                            .id
-                                            .clone()
-                                            .with_scale(0)
-                                            .into_bigint_and_exponent()
-                                            .0
-                                            .to_u128()?,
-                                        name: x.name.clone(),
-                                        guild_id: id,
-                                    })
-                                })
-                                .collect(),
-                            Err(e) => {
-                                return Err(WsEventHandlerError::CloseFrame(CloseFrame {
-                                    code: CloseCode::from(5000),
-                                    reason: format!("Internal database error: {}", e).into(),
-                                }))
-                            }
+                Some(
+                    resp.iter()
+                        .filter_map(|x| {
+                            Some(ferrischat_common::types::Channel {
+                                id: x
+                                    .id
+                                    .clone()
+                                    .with_scale(0)
+                                    .into_bigint_and_exponent()
+                                    .0
+                                    .to_u128()?,
+                                name: x.name.clone(),
+                                guild_id: id,
+                            })
                         })
-                    };
+                        .collect(),
+                )
+            };
 
-                    guilds.push(ferrischat_common::types::Guild {
-                        id,
-                        owner_id,
-                        name: x.name.clone(),
-                        channels,
-                        flags: ferrischat_common::types::GuildFlags::empty(),
-                        members,
-                        roles: None,
-                    });
-                }
-                Some(guilds)
-            }
-            Err(e) => {
-                return Err(WsEventHandlerError::CloseFrame(CloseFrame {
-                    code: CloseCode::from(5000),
-                    reason: format!("Internal database error: {}", e).into(),
-                }))
-            }
+            guilds.push(ferrischat_common::types::Guild {
+                id,
+                owner_id,
+                name: x.name.clone(),
+                channels,
+                flags: ferrischat_common::types::GuildFlags::empty(),
+                members,
+                roles: None,
+            });
         }
+        Some(guilds)
     };
 
     let user = match res {

@@ -39,6 +39,15 @@ impl From<SplitTokenError> for WsEventHandlerError<'_> {
     }
 }
 
+impl From<sqlx::Error> for WsEventHandlerError<'_> {
+    fn from(e: sqlx::Error) -> Self {
+        WsEventHandlerError::CloseFrame(CloseFrame {
+            code: CloseCode::from(5000),
+            reason: format!("Internal database error: {}", e).into(),
+        })
+    }
+}
+
 impl<T> From<&tokio::sync::mpsc::error::SendError<T>> for WsEventHandlerError<'_> {
     fn from(_: &SendError<T>) -> Self {
         Self::Sender
