@@ -1,4 +1,4 @@
-use ferrischat_auth::VerifyTokenFailure;
+use ferrischat_auth::{SplitTokenError, VerifyTokenFailure};
 use tokio::sync::mpsc::error::SendError;
 use tokio_tungstenite::tungstenite::error::Error;
 use tokio_tungstenite::tungstenite::protocol::frame::coding::CloseCode;
@@ -14,6 +14,23 @@ impl From<&VerifyTokenFailure> for WsEventHandlerError<'_> {
         let msg = match e {
             VerifyTokenFailure::InternalServerError(e) => e,
             VerifyTokenFailure::Unauthorized(e) => e,
+        };
+        Self::CloseFrame(CloseFrame {
+            code: CloseCode::from(2003),
+            reason: format!("Token invalid: {}", msg).into(),
+        })
+    }
+}
+
+impl From<SplitTokenError> for WsEventHandlerError<'_> {
+    fn from(e: SplitTokenError) -> Self {
+        let msg = match e {
+            SplitTokenError::InvalidUtf8(e) => format!("invalid utf-8 found in token: {}", e),
+            SplitTokenError::Base64DecodeError(e) => {
+                format!("invalid base64 found in token: {}", e)
+            }
+            SplitTokenError::InvalidInteger(e) => format!("invalid integer found in token: {}", e),
+            SplitTokenError::MissingParts(e) => format!("part {} of token missing", e),
         };
         Self::CloseFrame(CloseFrame {
             code: CloseCode::from(2003),

@@ -26,15 +26,7 @@ pub async fn handle_identify_rx<'a>(
         }));
     }
 
-    let (id, secret) = match split_token(token) {
-        Ok((id, secret)) => (id, secret),
-        Err(_) => {
-            return Err(WsEventHandlerError::CloseFrame(CloseFrame {
-                code: CloseCode::from(2003),
-                reason: "Token invalid".into(),
-            }))
-        }
-    };
+    let (id, secret) = split_token(token)?;
     verify_token(id, secret).await.as_ref()?;
     let bigdecimal_user_id = u128_to_bigdecimal!(id);
 
