@@ -1,3 +1,7 @@
+use crate::events::*;
+use crate::USERID_CONNECTION_MAP;
+use ferrischat_common::ws::WsOutboundEvent;
+use ferrischat_redis::redis::Msg;
 use futures_util::stream::SplitSink;
 use futures_util::SinkExt;
 use num_traits::ToPrimitive;
@@ -9,23 +13,17 @@ use tokio_tungstenite::tungstenite::Message;
 use tokio_tungstenite::WebSocketStream;
 use uuid::Uuid;
 
-use ferrischat_redis::redis::Msg;
-
-use crate::events::*;
-use crate::inter_communication::TxRxComm;
-use crate::USERID_CONNECTION_MAP;
-
 pub async fn tx_handler(
     mut tx: SplitSink<WebSocketStream<TlsStream<TcpStream>>, Message>,
     mut closer_rx: futures::channel::oneshot::Receiver<Option<CloseFrame<'_>>>,
-    mut inter_rx: tokio::sync::mpsc::Receiver<TxRxComm>,
+    mut inter_rx: tokio::sync::mpsc::Receiver<WsOutboundEvent>,
     conn_id: Uuid,
 ) -> (
     Option<CloseFrame<'_>>,
     SplitSink<WebSocketStream<TlsStream<TcpStream>>, Message>,
 ) {
     enum TransmitType<'t> {
-        InterComm(Option<TxRxComm>),
+        InterComm(Option<WsOutboundEvent>),
         Exit(Option<CloseFrame<'t>>),
         Redis(Option<Option<Msg>>),
     }
@@ -58,7 +56,7 @@ pub async fn tx_handler(
         }
     };
 
-    let ret = loop {
+    let ret = 'outer: loop {
         let x = match redis_rx {
             Some(ref mut rx) => tokio::select! {
                 item = &mut closer_rx => TransmitType::Exit(item.ok().flatten()),
@@ -74,12 +72,16 @@ pub async fn tx_handler(
         match x {
             TransmitType::InterComm(event) => match event {
                 Some(val) => {
-                    let _ = match val {
-                        TxRxComm::Text(d) => tx.feed(Message::Text(d)).await,
-                        // the implementation is here
-                        // is it used? no
-                        TxRxComm::Binary(d) => tx.feed(Message::Binary(d)).await,
+                    let payload = match simd_json::serde::to_string(&val) {
+                        Ok(v) => v,
+                        Err(e) => {
+                            break Some(CloseFrame {
+                                code: CloseCode::from(5001),
+                                reason: format!("JSON serialization error: {}", e).into(),
+                            });
+                        }
                     };
+                    let _ = tx.feed(Message::Text(payload));
                 }
                 None => break None,
             },
@@ -158,11 +160,16 @@ pub async fn tx_handler(
                         Some(_) | None => continue,
                     };
                     if let Err(e) = ret {
-                        return (Some(e), tx);
+                        break Some(e);
                     }
                 }
             }
-            TransmitType::Redis(None) => break None,
+            TransmitType::Redis(None) => {
+                break Some(CloseFrame {
+                    code: CloseCode::from(5007),
+                    reason: "Redis failed to subscribe to channel".into(),
+                })
+            }
         }
         let _ = tx.flush().await;
 
@@ -170,13 +177,10 @@ pub async fn tx_handler(
             let uid_conn_map = match USERID_CONNECTION_MAP.get() {
                 Some(m) => m,
                 None => {
-                    return (
-                        Some(CloseFrame {
-                            code: CloseCode::from(5004),
-                            reason: "Connection map not found".into(),
-                        }),
-                        tx,
-                    );
+                    break Some(CloseFrame {
+                        code: CloseCode::from(5004),
+                        reason: "Connection map not found".into(),
+                    });
                 }
             };
             if let Some(map_val) = uid_conn_map.get(&conn_id) {
@@ -189,13 +193,10 @@ pub async fn tx_handler(
                             .await
                             .is_err()
                         {
-                            return (
-                                Some(CloseFrame {
-                                    code: CloseCode::from(5005),
-                                    reason: "Redis connection pool hung up connection".into(),
-                                }),
-                                tx,
-                            );
+                            break Some(CloseFrame {
+                                code: CloseCode::from(5005),
+                                reason: "Redis connection pool hung up connection".into(),
+                            });
                         }
                         let resp = sqlx::query!(
                             "SELECT guild_id FROM members WHERE user_id = $1",
@@ -216,36 +217,27 @@ pub async fn tx_handler(
                                         .await
                                         .is_err()
                                     {
-                                        return (
-                                            Some(CloseFrame {
-                                                code: CloseCode::from(5005),
-                                                reason: "Redis connection pool hung up connection"
-                                                    .into(),
-                                            }),
-                                            tx,
-                                        );
+                                        break 'outer Some(CloseFrame {
+                                            code: CloseCode::from(5006),
+                                            reason: "Redis connection pool hung up connection"
+                                                .into(),
+                                        });
                                     }
                                 }
                             }
                             Err(e) => {
-                                return (
-                                    Some(CloseFrame {
-                                        code: CloseCode::from(5000),
-                                        reason: format!("Internal database error: {}", e).into(),
-                                    }),
-                                    tx,
-                                )
+                                break Some(CloseFrame {
+                                    code: CloseCode::from(5000),
+                                    reason: format!("Internal database error: {}", e).into(),
+                                })
                             }
                         }
                     }
                     None => {
-                        return (
-                            Some(CloseFrame {
-                                code: CloseCode::from(5002),
-                                reason: "Redis pool not found".into(),
-                            }),
-                            tx,
-                        );
+                        break Some(CloseFrame {
+                            code: CloseCode::from(5002),
+                            reason: "Redis pool not found".into(),
+                        });
                     }
                 };
             };

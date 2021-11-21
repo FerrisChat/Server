@@ -14,7 +14,6 @@ mod error_handling;
 mod events;
 mod handle_connection;
 mod init;
-mod inter_communication;
 mod preload;
 mod redis_handler;
 mod rx_handler;

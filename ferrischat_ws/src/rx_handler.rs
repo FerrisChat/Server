@@ -1,6 +1,9 @@
 use std::sync::atomic::{AtomicBool, Ordering};
 
-use ferrischat_common::ws::WsInboundEvent;
+use crate::error_handling::handle_error;
+use crate::{error_handling::WsEventHandlerError, events::*, USERID_CONNECTION_MAP};
+use ferrischat_common::ws::{WsInboundEvent, WsOutboundEvent};
+use ferrischat_redis::REDIS_MANAGER;
 use futures_util::stream::SplitStream;
 use futures_util::StreamExt;
 use tokio::net::TcpStream;
@@ -11,12 +14,6 @@ use tokio_tungstenite::tungstenite::protocol::CloseFrame;
 use tokio_tungstenite::tungstenite::Message;
 use tokio_tungstenite::WebSocketStream;
 use uuid::Uuid;
-
-use ferrischat_redis::REDIS_MANAGER;
-
-use crate::error_handling::handle_error;
-use crate::inter_communication::TxRxComm;
-use crate::{error_handling::WsEventHandlerError, events::*, USERID_CONNECTION_MAP};
 
 fn decode_event<'a>(
     msg: Result<Message, Error>,
@@ -47,13 +44,13 @@ fn decode_event<'a>(
 
 pub async fn rx_handler(
     mut rx: SplitStream<WebSocketStream<TlsStream<TcpStream>>>,
-    inter_tx: tokio::sync::mpsc::Sender<TxRxComm>,
+    inter_tx: tokio::sync::mpsc::Sender<WsOutboundEvent>,
     closer_tx: futures::channel::oneshot::Sender<Option<CloseFrame<'_>>>,
     conn_id: Uuid,
 ) -> SplitStream<WebSocketStream<TlsStream<TcpStream>>> {
     let identify_received = AtomicBool::new(false);
 
-    let redis_conn = match REDIS_MANAGER.get() {
+    let _redis_conn = match REDIS_MANAGER.get() {
         Some(r) => r.clone(), // safe to clone cheaply according to docs
         None => {
             let _ = closer_tx.send(Some(CloseFrame {

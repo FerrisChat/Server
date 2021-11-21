@@ -1,5 +1,4 @@
 use crate::error_handling::WsEventHandlerError;
-use crate::inter_communication::TxRxComm;
 use dashmap::DashMap;
 use ferrischat_auth::{split_token, verify_token};
 use ferrischat_common::ws::WsOutboundEvent;
@@ -14,7 +13,7 @@ use uuid::Uuid;
 pub async fn handle_identify_rx<'a>(
     token: String,
     _intents: u64,
-    inter_tx: &Sender<TxRxComm>,
+    inter_tx: &Sender<WsOutboundEvent>,
     uid_conn_map: &DashMap<Uuid, u128>,
     identify_received: &AtomicBool,
     db: &Pool<Postgres>,
@@ -206,16 +205,10 @@ pub async fn handle_identify_rx<'a>(
         }
     };
 
-    let payload = match simd_json::serde::to_string(&WsOutboundEvent::IdentifyAccepted { user }) {
-        Ok(v) => v,
-        Err(e) => {
-            return Err(WsEventHandlerError::CloseFrame(CloseFrame {
-                code: CloseCode::from(5001),
-                reason: format!("JSON serialization error: {}", e).into(),
-            }))
-        }
-    };
-    if let Err(_) = inter_tx.send(TxRxComm::Text(payload)).await {
+    if let Err(_) = inter_tx
+        .send(WsOutboundEvent::IdentifyAccepted { user })
+        .await
+    {
         return Err(WsEventHandlerError::Sender);
     };
 
