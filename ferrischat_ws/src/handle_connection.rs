@@ -23,8 +23,20 @@ pub async fn handle_ws_connection(stream: tokio::net::UnixStream) -> Result<(), 
     let tx_future = tokio::spawn(tx_handler(tx, closer_rx, inter_rx, conn_id));
 
     tokio::spawn(async move {
-        let rx = rx_future.await.expect("background rx thread failed");
-        let (reason, tx) = tx_future.await.expect("background tx thread failed");
+        let rx = match rx_future.await {
+            Ok(rx) => rx,
+            Err(e) => {
+                error!("WebSocket receive future failed: {}", e);
+                return;
+            }
+        };
+        let (reason, tx) = match tx_future.await {
+            Ok(tx) => tx,
+            Err(e) => {
+                error!("WebSocket transmit future failed: {}", e);
+                return;
+            }
+        };
 
         let uid_conn_map = USERID_CONNECTION_MAP
             .get()
@@ -37,7 +49,16 @@ pub async fn handle_ws_connection(stream: tokio::net::UnixStream) -> Result<(), 
             code: CloseCode::Abnormal,
             reason: std::borrow::Cow::default(),
         });
-        stream.close(Some(f)).await.expect("failed to close stream");
+        let response = stream.close(Some(f)).await;
+        match response {
+            Ok(()) | Err(Error::ConnectionClosed) => {}
+            Err(Error::AlreadyClosed) => {
+                warn!("WebSocket connection was already closed?");
+            }
+            Err(e) => {
+                error!("failed to close WebSocket connection: {:?}", e);
+            }
+        };
     });
 
     Ok(())
