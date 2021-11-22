@@ -93,7 +93,7 @@ pub async fn delete_message(req: HttpRequest, _: crate::Authorization) -> impl R
 
     if let Err(e) = resp {
         return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-            reason: format!("DB return an error: {}", e),
+            reason: format!("DB returned an error: {}", e),
             is_bug: false,
             link: None,
         });
