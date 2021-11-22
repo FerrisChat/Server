@@ -95,9 +95,9 @@ pub async fn send_verification_email(auth: crate::Authorization) -> impl Respond
                     return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                         reason: "failed to generate random bits for token generation".to_string(),
                         is_bug: true,
-                        link: Option::from(
+                        link: Some(
                             "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
-                        labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+"
+                        labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+failed+to+generate+random+bits+for+token+generation"
                                 .to_string(),
                         ),
                     })
@@ -125,7 +125,7 @@ pub async fn send_verification_email(auth: crate::Authorization) -> impl Respond
                         e
                     ),
                         is_bug: true,
-                        link: Option::from(
+                        link: Some(
                             "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
                         labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+"
                                 .to_string(),
@@ -143,14 +143,12 @@ pub async fn send_verification_email(auth: crate::Authorization) -> impl Respond
                     Err(e) => {
                         return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                             reason: format!(
-                                "Error creating SMTP transport! Please submit a bug report with the error `{}`",
+                                "Error creating SMTP transport! Contact the administrator of this node and \
+                                let them know you got an error while creating the SMTP transport: `{}`",
                                 e
                             ),
-                            is_bug: true,
-                            link: Option::from(
-                                "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
-                        labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+"
-                                    .to_string()),
+                            is_bug: false,
+                            link: None,
                         })
                     }
                 };
@@ -159,16 +157,12 @@ pub async fn send_verification_email(auth: crate::Authorization) -> impl Respond
             if let Err(e) = mailer.send(message).await {
                 return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                     reason: format!(
-                        "Mailer failed to send correctly! Please submit a bug report \
-                    with the error `{}`",
+                        "Mailer failed to send correctly! Contact the administrator of this node and \
+                        let them know you got an error while sending the verification email: `{}`",
                         e
                     ),
-                    is_bug: true,
-                    link: Option::from(
-                        "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
-                        labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+"
-                            .to_string(),
-                    ),
+                    is_bug: false,
+                    link: None,
                 });
             }
             // writes the token to redis.
@@ -188,11 +182,11 @@ pub async fn send_verification_email(auth: crate::Authorization) -> impl Respond
                 });
             }
             HttpResponse::Ok().json(Json {
-                reason: "Sent verification, please check your email.".to_string(),
+                message: "Sent verification, please check your email.".to_string(),
             })
         } else {
             HttpResponse::Conflict().json(Json {
-                reason: "Email deemed unsafe to send to. Is it a real email?".to_string(),
+                message: "Email deemed unsafe to send to. Is it a real email?".to_string(),
             })
         }
     } else {

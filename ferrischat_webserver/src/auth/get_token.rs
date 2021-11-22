@@ -82,9 +82,9 @@ pub async fn get_token(req: HttpRequest) -> impl Responder {
                         .json(InternalServerErrorJson {
                         reason: "password verifier not found".to_string(),
                         is_bug: true,
-                        link: Option::from(
+                        link: Some(
                             "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
-                        labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+"
+                        labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+password+verifier+not+found"
                                 .to_string(),
                         ),
                     }),
@@ -95,7 +95,7 @@ pub async fn get_token(req: HttpRequest) -> impl Responder {
                             Ok(d) => d,
                             Err(e) => return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                                 reason: format!("failed to verify password: {}", e),
-                                is_bug: true,
+                                is_bug: false,
                                 link: None,
                             })
                         }
@@ -131,9 +131,9 @@ pub async fn get_token(req: HttpRequest) -> impl Responder {
             return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                 reason: "failed to generate random bits for token generation".to_string(),
                 is_bug: true,
-                link: Option::from(
+                link: Some(
                     "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
-                        labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+"
+                        labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+failed+to+generate+random+bits"
                         .to_string(),
                 ),
             })
@@ -157,9 +157,9 @@ pub async fn get_token(req: HttpRequest) -> impl Responder {
                 return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                     reason: "password hasher not found".to_string(),
                     is_bug: true,
-                    link: Option::from(
+                    link: Some(
                         "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
-                        labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+"
+                        labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+password+hasher+not+found"
                             .to_string(),
                     ),
                 })
@@ -172,9 +172,9 @@ pub async fn get_token(req: HttpRequest) -> impl Responder {
                     return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                         reason: format!("failed to hash token: {}", e),
                         is_bug: true,
-                        link: Option::from(
+                        link: Some(
                             "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
-                        labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+"
+                        labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+failed+to+hash+token"
                                 .to_string(),
                         ),
                     })

@@ -34,9 +34,9 @@ pub async fn get_bot_token(auth: crate::Authorization, req: HttpRequest) -> impl
             return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                 reason: "failed to generate random bits for token generation".to_string(),
                 is_bug: true,
-                link: Option::from(
+                link: Some(
                     "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
-                        labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+"
+                        labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+failed+to+generate+random+bits+for+token+gen"
                         .to_string(),
                 ),
             })
@@ -71,7 +71,7 @@ pub async fn get_bot_token(auth: crate::Authorization, req: HttpRequest) -> impl
                     return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                         reason: format!("failed to hash token: {}", e),
                         is_bug: true,
-                        link: Option::from(
+                        link: Some(
                             "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
                         labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+"
                                 .to_string(),

@@ -65,11 +65,11 @@ pub async fn create_channel(
         return HttpResponse::InternalServerError().json(InternalServerErrorJson {
             reason,
             is_bug: true,
-            link: Option::from(
+            link: Some(format!(
                 "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
-                        labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+"
-                    .to_string(),
-            ),
+                        labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+{}",
+                reason.replace(' ', "+")
+            )),
         });
     }
 

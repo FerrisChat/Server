@@ -61,9 +61,9 @@ pub async fn create_bot(
                 return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                     reason: "Password hasher not found".to_string(),
                     is_bug: true,
-                    link: Option::from(
+                    link: Some(
                         "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
-                        labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+"
+                        labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+password+hasher+not+found"
                             .to_string(),
                     ),
                 })
@@ -80,9 +80,9 @@ pub async fn create_bot(
                     return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                         reason: format!("Failed to hash password: {}", e),
                         is_bug: true,
-                        link: Option::from(
+                        link: Some(
                             "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
-                        labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+"
+                        labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+failed+to+hash+password"
                                 .to_string(),
                         ),
                     })
@@ -136,28 +136,10 @@ pub async fn create_bot(
             flags: UserFlags::BOT_ACCOUNT,
             discriminator: user_discrim,
         }),
-        Err(e) => match e {
-            sqlx::Error::Database(e) => {
-                if e.code() == Some("23505".into()) {
-                    HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                        reason: "A bot with this email already exists? (this is DEFINITELY a bug)"
-                            .to_string(),
-                        is_bug: true,
-                        link: None,
-                    })
-                } else {
-                    HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                        reason: format!("DB returned a error: {}", e),
-                        is_bug: false,
-                        link: None,
-                    })
-                }
-            }
-            _ => HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                reason: format!("DB returned a error: {}", e),
-                is_bug: false,
-                link: None,
-            }),
-        },
+        Err(e) => HttpResponse::InternalServerError().json(InternalServerErrorJson {
+            reason: format!("DB returned a error: {}", e),
+            is_bug: false,
+            link: None,
+        }),
     }
 }

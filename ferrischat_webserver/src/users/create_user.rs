@@ -56,9 +56,9 @@ pub async fn create_user(user_data: Json<UserCreateJson>) -> impl Responder {
                 return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                     reason: "Password hasher not found".to_string(),
                     is_bug: true,
-                    link: Option::from(
+                    link: Some(
                         "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
-                        labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+"
+                        labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+password+hasher+not+found"
                             .to_string(),
                     ),
                 })
@@ -74,7 +74,7 @@ pub async fn create_user(user_data: Json<UserCreateJson>) -> impl Responder {
                 Err(e) => {
                     return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                         reason: format!("Failed to hash password: {}", e),
-                        is_bug: true,
+                        is_bug: false,
                         link: None,
                     })
                 }
