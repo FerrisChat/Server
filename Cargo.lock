@@ -28,7 +28,7 @@ dependencies = [
 [[package]]
 name = "actix-codec"
 version = "0.4.1"
-source = "git+https://github.com/actix/actix-net#7e7df2f9316900acc258bbe56485a07c138deaf5"
+source = "git+https://github.com/actix/actix-net#3597af5c452113f417d08bb550874e0bb336fe83"
 dependencies = [
  "bitflags",
  "bytes",
@@ -44,7 +44,7 @@ dependencies = [
 [[package]]
 name = "actix-http"
 version = "3.0.0-beta.12"
-source = "git+https://github.com/actix/actix-web/#194a69153751e5d28df78ec69444daa80e93f84c"
+source = "git+https://github.com/actix/actix-web/#a2a42ec152b41655345eefacea94af0f526a6d2e"
 dependencies = [
  "actix-codec",
  "actix-rt",
@@ -156,7 +156,7 @@ dependencies = [
 [[package]]
 name = "actix-web"
 version = "4.0.0-beta.11"
-source = "git+https://github.com/actix/actix-web/#194a69153751e5d28df78ec69444daa80e93f84c"
+source = "git+https://github.com/actix/actix-web/#a2a42ec152b41655345eefacea94af0f526a6d2e"
 dependencies = [
  "actix-codec",
  "actix-http",
@@ -196,7 +196,7 @@ dependencies = [
 [[package]]
 name = "actix-web-actors"
 version = "4.0.0-beta.7"
-source = "git+https://github.com/actix/actix-web/#194a69153751e5d28df78ec69444daa80e93f84c"
+source = "git+https://github.com/actix/actix-web/#a2a42ec152b41655345eefacea94af0f526a6d2e"
 dependencies = [
  "actix",
  "actix-codec",
@@ -1857,7 +1857,7 @@ dependencies = [
  "once_cell",
  "quoted_printable",
  "regex",
- "rustls 0.20.1",
+ "rustls 0.20.2",
  "rustls-pemfile",
  "tokio",
  "tokio-rustls 0.23.1",
@@ -2736,9 +2736,9 @@ dependencies = [
 
 [[package]]
 name = "rustls"
-version = "0.20.1"
+version = "0.20.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dac4581f0fc0e0efd529d069e8189ec7b90b8e7680e21beb35141bdc45f36040"
+checksum = "d37e5e2290f3e040b594b1a9e04377c2c671f1a1cfd9bfdef82106ac1c113f84"
 dependencies = [
  "log",
  "ring",
@@ -3430,7 +3430,7 @@ version = "0.23.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4baa378e417d780beff82bf54ceb0d195193ea6a00c14e22359e7f39456b5689"
 dependencies = [
- "rustls 0.20.1",
+ "rustls 0.20.2",
  "tokio",
  "webpki 0.22.0",
 ]
