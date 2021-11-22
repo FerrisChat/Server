@@ -16,6 +16,7 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
                     Ok(invite_code) => invite_code,
                     Err(_) => return HttpResponse::BadRequest().json(BadRequestJson {
                         reason: "Failed to parse invite code as String".to_string(),
+                        location: None
                     }),
                 },
                 None => {
@@ -112,8 +113,7 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
                                             is_bug: true,
                                             link: Some(format!(
                                                 "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
-                                                labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+{}",
-                                                reason.replace(' ', "+")
+                                                labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+failed+to+fire+event",
                                             )),})
                                 } else {
                                     HttpResponse::Gone().finish()
