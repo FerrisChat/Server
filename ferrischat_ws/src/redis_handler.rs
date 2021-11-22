@@ -40,10 +40,19 @@ pub async fn redis_event_handler(
                     }
                 };
 
-                let event_channel = redis_message.get_channel_name();
+                let event_channel = match redis_message.get_channel::<String>() {
+                    Ok(c) => c,
+                    Err(e) => {
+                        error!(
+                            "failed to parse Redis message channel name as String: {}",
+                            e
+                        );
+                        continue;
+                    }
+                };
                 debug!("redis new item has channel name {}", event_channel);
 
-                if let Some(c) = event_channel_to_uuid_map.get(event_channel) {
+                if let Some(c) = event_channel_to_uuid_map.get(&event_channel) {
                     debug!(
                         channel = %event_channel,
                         "channel name was found in the channel - uuid map"
