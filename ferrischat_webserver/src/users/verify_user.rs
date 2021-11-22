@@ -19,8 +19,8 @@ pub async fn send_verification_email(auth: crate::Authorization) -> impl Respond
         "SELECT email FROM users WHERE id = $1",
         u128_to_bigdecimal!(authorized_user)
     )
-        .fetch_one(db)
-        .await
+    .fetch_one(db)
+    .await
     {
         Ok(email) => email.email,
         Err(e) => {
@@ -35,8 +35,8 @@ pub async fn send_verification_email(auth: crate::Authorization) -> impl Respond
         "SELECT verified FROM users WHERE id = $1",
         u128_to_bigdecimal!(authorized_user)
     )
-        .fetch_one(db)
-        .await
+    .fetch_one(db)
+    .await
     {
         Ok(is_verified) => {
             if is_verified.verified {
@@ -44,7 +44,7 @@ pub async fn send_verification_email(auth: crate::Authorization) -> impl Respond
                     message: "User is already verified!".to_string(),
                 });
             }
-        },
+        }
         Err(e) => {
             return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                 reason: format!("Database returned a error: {}", e),
@@ -59,8 +59,7 @@ pub async fn send_verification_email(auth: crate::Authorization) -> impl Respond
     checker_input.set_smtp_timeout(Duration::new(5, 0));
     let checked_email = check_email(&checker_input).await;
     if checked_email[0].syntax.is_valid_syntax {
-        if checked_email[0].is_reachable != Reachable::Invalid
-        {
+        if checked_email[0].is_reachable != Reachable::Invalid {
             // Get configurations, they're set in redis for speed reasons. Set them with redis-cli `set config:email:<setting> <value>`
             let mut redis = REDIS_MANAGER
                 .get()
