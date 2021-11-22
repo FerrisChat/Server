@@ -25,6 +25,7 @@ pub async fn redis_event_handler(
 
                     item = s.next() => {
                         if let Some(item) = item {
+                            debug!("Redis returned an item: processing")
                             item
                         } else {
                             continue
@@ -32,6 +33,7 @@ pub async fn redis_event_handler(
                     },
                     item = rx.recv() => {
                         if let Some(item) = item {
+                            debug!("new subscriber detected: breaking out of redis poll loop");
                             break item
                         }
                         return
@@ -48,13 +50,19 @@ pub async fn redis_event_handler(
                         continue;
                     }
                 };
+                debug!("redis new item has channel name {}", event_channel);
 
                 if let Some(c) = event_channel_to_uuid_map.get(&event_channel) {
+                    debug!(channel = event_channel, "channel name was found in the channel - uuid map");
                     for channel in c.iter() {
+                        debug!(channel = event_channel, "uuid {} is subscribed", channel);
                         if let Some(c) = uuid_to_sender_map.get(channel) {
                             if Sender::send(c, Some(redis_message.clone())).await.is_err() {
+                                debug!(channel = event_channel, uuid = channel, "failed to fire event, garbage collecting time");
                                 to_unsub.push(*channel);
                             };
+                        } else {
+                            warn!(channel = event_channel, "uuid {} has no sender attached to it", channel);
                         }
                     }
                 }
@@ -66,14 +74,24 @@ pub async fn redis_event_handler(
             let pubsub_conn = &mut pubsub_conn;
             let (channel, sender) = new_sub;
             let channel_id = Uuid::new_v4();
+            debug!(channel = channel, uuid = uuid, "new subscriber detected");
 
             if let Err(e) = pubsub_conn.psubscribe(&channel).await {
-                error!("failed to subscribe to Redis channel: {}", e);
+                error!(channel = channel, uuid = uuid, "failed to subscribe to Redis channel: {}", e);
                 // drop the sender as a way of letting the other end know subscription failed
             } else {
                 if let Some(x) = event_channel_to_uuid_map.get_mut(&channel) {
+                    debug!(
+                        channel = channel,
+                        uuid = uuid,
+                        "new subscriber is being added to existing channel set"
+                    );
                     x.push(channel_id);
                 } else {
+                    debug!(
+                        channel = channel,
+                        uuid = uuid,
+                    )
                     event_channel_to_uuid_map.insert(channel, vec![channel_id]);
                 }
 
