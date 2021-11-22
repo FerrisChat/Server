@@ -2,13 +2,11 @@
 #![feature(async_closure)]
 #![feature(box_syntax)]
 
-use std::lazy::SyncOnceCell as OnceCell;
-
 use dashmap::DashMap;
-use uuid::Uuid;
-
 use ferrischat_redis::redis::Msg;
 pub use init::*;
+use std::lazy::SyncOnceCell as OnceCell;
+use uuid::Uuid;
 
 mod config;
 mod error_handling;
@@ -19,7 +17,6 @@ mod preload;
 mod redis_handler;
 mod rx_handler;
 mod tx_handler;
-mod types;
 
 #[macro_use]
 extern crate ferrischat_macros;

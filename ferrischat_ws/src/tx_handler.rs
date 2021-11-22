@@ -82,7 +82,9 @@ pub async fn tx_handler(
                             });
                         }
                     };
-                    let _tx = tx.feed(Message::Text(payload));
+                    if let Err(e) = tx.feed(Message::Text(payload)).await {
+                        error!("failed to send message: {:?}", e);
+                    }
                 }
                 None => break None,
             },
@@ -99,6 +101,18 @@ pub async fn tx_handler(
                     Some(n) => n,
                     None => continue,
                 };
+                let outbound_message = match simd_json::serde::from_reader::<_, WsOutboundEvent>(
+                    msg.get_payload_bytes(),
+                ) {
+                    Ok(msg) => msg,
+                    Err(e) => {
+                        break Some(CloseFrame {
+                            code: CloseCode::from(5005),
+                            reason: format!("Internal JSON representation decoding failed: {}", e)
+                                .into(),
+                        })
+                    }
+                };
                 let mut names = n.split('_');
                 let ret = match names.next() {
                     Some("channel") => {
@@ -106,9 +120,8 @@ pub async fn tx_handler(
                             (names.next().map(str::parse), names.next().map(str::parse))
                         {
                             handle_channel_tx(
-                                &mut tx,
                                 db,
-                                msg,
+                                &outbound_message,
                                 bigdecimal_uid,
                                 channel_id,
                                 guild_id,
@@ -124,9 +137,8 @@ pub async fn tx_handler(
                             (names.next().map(str::parse), names.next().map(str::parse))
                         {
                             handle_message_tx(
-                                &mut tx,
                                 db,
-                                msg,
+                                &outbound_message,
                                 bigdecimal_uid,
                                 channel_id,
                                 guild_id,
@@ -138,29 +150,50 @@ pub async fn tx_handler(
                     }
                     Some("guild") => {
                         if let Some(Ok(guild_id)) = names.next().map(str::parse) {
-                            handle_guild_tx(&mut tx, db, msg, bigdecimal_uid, guild_id).await
+                            handle_guild_tx(db, &outbound_message, bigdecimal_uid, guild_id).await
                         } else {
                             continue;
                         }
                     }
                     Some("member") => {
                         if let Some(Ok(guild_id)) = names.next().map(str::parse) {
-                            handle_member_tx(&mut tx, db, msg, bigdecimal_uid, guild_id).await
+                            handle_member_tx(db, &outbound_message, bigdecimal_uid, guild_id).await
                         } else {
                             continue;
                         }
                     }
                     Some("invite") => {
                         if let Some(Ok(guild_id)) = names.next().map(str::parse) {
-                            handle_invite_tx(&mut tx, db, msg, bigdecimal_uid, guild_id).await
+                            handle_invite_tx(db, &outbound_message, bigdecimal_uid, guild_id).await
                         } else {
                             continue;
                         }
                     }
                     Some(_) | None => continue,
                 };
-                if let Err(e) = ret {
-                    break Some(e);
+                match ret {
+                    Ok(true) => {
+                        let payload = match msg.get_payload::<String>() {
+                            Ok(p) => p,
+                            Err(e) => {
+                                break Some(CloseFrame {
+                                    code: CloseCode::from(5008),
+                                    reason: format!(
+                                        "Failed to deserialize message payload into String: {}",
+                                        e
+                                    )
+                                    .into(),
+                                });
+                            }
+                        };
+                        if let Err(e) = tx.feed(Message::Text(payload)).await {
+                            warn!("Error while sending message to WebSocket client: {:?}", e);
+                        }
+                    }
+                    Ok(false) => {}
+                    Err(e) => {
+                        break Some(e);
+                    }
                 }
             }
             TransmitType::Redis(None) => {
@@ -170,7 +203,9 @@ pub async fn tx_handler(
                 })
             }
         }
-        let _fl = tx.flush().await;
+        if let Err(e) = tx.flush().await {
+            warn!("failed to flush client WebSocket: {:?}", e);
+        }
 
         if redis_rx.is_none() {
             let uid_conn_map = match USERID_CONNECTION_MAP.get() {
