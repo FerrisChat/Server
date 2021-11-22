@@ -75,7 +75,7 @@ pub async fn edit_user(
                 None => {
                     return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                         reason: "Password hasher not found".to_string(),
-                        is_bug: true,
+                        is_bug: false,
                         link: None,
                     })
                 }
@@ -90,7 +90,7 @@ pub async fn edit_user(
                     Err(e) => {
                         return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                             reason: format!("Failed to hash password: {}", e),
-                            is_bug: true,
+                            is_bug: false,
                             link: None,
                         })
                     }
