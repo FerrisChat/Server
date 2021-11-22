@@ -6,7 +6,9 @@ use actix_web::web::Json;
 
 use actix_web::{HttpRequest, HttpResponse, Responder};
 use ferrischat_common::request_json::MessageUpdateJson;
-use ferrischat_common::types::{InternalServerErrorJson, Message, NotFoundJson, User, UserFlags};
+use ferrischat_common::types::{
+    BadRequestJson, InternalServerErrorJson, Message, NotFoundJson, User, UserFlags,
+};
 
 pub async fn edit_message(
     req: HttpRequest,
@@ -20,6 +22,16 @@ pub async fn edit_message(
     let bigint_message_id = u128_to_bigdecimal!(message_id);
 
     let db = get_db_or_fail!();
+
+    let MessageUpdateJson { content } = message_info.0;
+    if let Some(ref content) = content {
+        if content.len() > 10240 {
+            return HttpResponse::BadRequest().json(BadRequestJson {
+                reason: "message content size must be fewer than 10,240 bytes".to_string(),
+                location: None,
+            });
+        }
+    }
 
     let guild_id = {
         let resp = sqlx::query!(
@@ -92,7 +104,6 @@ pub async fn edit_message(
         }
     };
 
-    let MessageUpdateJson { content } = message_info.0;
     let resp = sqlx::query!("UPDATE messages SET content = $1, edited_at = now()::timestamp without time zone WHERE channel_id = $2 AND id = $3 RETURNING *", content, bigint_channel_id, bigint_message_id)
         .fetch_optional(db)
         .await;
