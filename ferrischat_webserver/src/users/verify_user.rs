@@ -196,7 +196,7 @@ pub async fn send_verification_email(auth: crate::Authorization) -> impl Respond
     }
 }
 /// GET /v0/verify/{token}
-/// Verifies the user's email when they click the linke mailed to them.
+/// Verifies the user's email when they click the link mailed to them.
 pub async fn verify_email(path: web::Path<String>) -> impl Responder {
     // Gets the last component of the path (should be the token) and searches redis for it
     let token = path.into_inner();
