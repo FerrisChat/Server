@@ -69,16 +69,16 @@ pub async fn redis_event_handler(
 
             if let Err(e) = pubsub_conn.psubscribe(&channel).await {
                 error!("failed to subscribe to Redis channel: {}", e);
-                return; // drop the sender as a way of letting the other end know subscription failed
-            }
-
-            if let Some(x) = event_channel_to_uuid_map.get_mut(&channel) {
-                x.push(channel_id);
+                // drop the sender as a way of letting the other end know subscription failed
             } else {
-                event_channel_to_uuid_map.insert(channel, vec![channel_id]);
-            }
+                if let Some(x) = event_channel_to_uuid_map.get_mut(&channel) {
+                    x.push(channel_id);
+                } else {
+                    event_channel_to_uuid_map.insert(channel, vec![channel_id]);
+                }
 
-            assert!(uuid_to_sender_map.insert(channel_id, sender).is_none());
+                assert!(uuid_to_sender_map.insert(channel_id, sender).is_none());
+            }
         }
 
         // if any, remove nonexistent subscriptions
