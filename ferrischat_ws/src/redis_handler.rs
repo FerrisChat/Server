@@ -40,8 +40,12 @@ pub async fn redis_event_handler(
                     }
                 };
 
-                let event_channel = match redis_message.get_channel::<String>() {
-                    Ok(c) => c,
+                let event_channel = match redis_message.get_pattern::<Option<String>>() {
+                    Ok(Some(c)) => c,
+                    Ok(None) => {
+                        debug!("new event in redis did not come from a pattern, ignoring!");
+                        continue;
+                    }
                     Err(e) => {
                         error!(
                             "failed to parse Redis message channel name as String: {}",
