@@ -219,7 +219,6 @@ pub async fn verify_email(path: web::Path<String>) -> impl Responder {
             email
         }
         Ok(None) => {
-            // TODO use 498 rather then 404
             return HttpResponse::NotFound().json(NotFoundJson {
                 message: "This token has expired or was not found.".to_string(),
             });
@@ -244,6 +243,8 @@ pub async fn verify_email(path: web::Path<String>) -> impl Responder {
             link: None,
         })
     } else {
-        HttpResponse::Ok().body("Verified email. You can close this page.")
+        HttpResponse::Ok().json(Json {
+            message: "Verified email. You can close this page.".to_string(),
+        })
     }
 }
