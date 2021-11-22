@@ -6,8 +6,7 @@ use ferrischat_redis::redis::Msg;
 use futures_util::stream::SplitSink;
 use futures_util::SinkExt;
 use num_traits::ToPrimitive;
-use tokio::net::TcpStream;
-use tokio_rustls::server::TlsStream;
+use tokio::net::UnixStream;
 use tokio_tungstenite::tungstenite::protocol::frame::coding::CloseCode;
 use tokio_tungstenite::tungstenite::protocol::CloseFrame;
 use tokio_tungstenite::tungstenite::Message;
@@ -15,13 +14,13 @@ use tokio_tungstenite::WebSocketStream;
 use uuid::Uuid;
 
 pub async fn tx_handler(
-    mut tx: SplitSink<WebSocketStream<TlsStream<TcpStream>>, Message>,
+    mut tx: SplitSink<WebSocketStream<UnixStream>, Message>,
     mut closer_rx: futures::channel::oneshot::Receiver<Option<CloseFrame<'_>>>,
     mut inter_rx: tokio::sync::mpsc::Receiver<WsOutboundEvent>,
     conn_id: Uuid,
 ) -> (
     Option<CloseFrame<'_>>,
-    SplitSink<WebSocketStream<TlsStream<TcpStream>>, Message>,
+    SplitSink<WebSocketStream<UnixStream>, Message>,
 ) {
     enum TransmitType<'t> {
         InterComm(Box<Option<WsOutboundEvent>>),

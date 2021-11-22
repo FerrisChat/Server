@@ -3,19 +3,13 @@ use crate::rx_handler::rx_handler;
 use crate::tx_handler::tx_handler;
 use crate::USERID_CONNECTION_MAP;
 use futures_util::StreamExt;
-use std::net::SocketAddr;
-use tokio::net::TcpStream;
-use tokio_rustls::server::TlsStream;
 use tokio_tungstenite::accept_async_with_config;
 use tokio_tungstenite::tungstenite::protocol::frame::coding::CloseCode;
 use tokio_tungstenite::tungstenite::protocol::CloseFrame;
 use tokio_tungstenite::tungstenite::Error;
 use uuid::Uuid;
 
-pub async fn handle_ws_connection(
-    stream: TlsStream<TcpStream>,
-    _: SocketAddr,
-) -> Result<(), Error> {
+pub async fn handle_ws_connection(stream: tokio::net::UnixStream) -> Result<(), Error> {
     let s = accept_async_with_config(stream, Some(WEBSOCKET_CONFIG)).await?;
 
     let (tx, rx) = s.split();

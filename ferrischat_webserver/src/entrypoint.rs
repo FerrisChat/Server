@@ -42,7 +42,7 @@ pub async fn entrypoint() {
     load_redis().await;
     load_db().await;
     init_ws().await;
-    init_ws_server("0.0.0.0:8081").await;
+    init_ws_server().await;
 
     HttpServer::new(|| {
         App::new()

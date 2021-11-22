@@ -7,8 +7,7 @@ use ferrischat_common::ws::{WsInboundEvent, WsOutboundEvent};
 use ferrischat_redis::REDIS_MANAGER;
 use futures_util::stream::SplitStream;
 use futures_util::StreamExt;
-use tokio::net::TcpStream;
-use tokio_rustls::server::TlsStream;
+use tokio::net::UnixStream;
 use tokio_tungstenite::tungstenite::error::Error;
 use tokio_tungstenite::tungstenite::protocol::frame::coding::CloseCode;
 use tokio_tungstenite::tungstenite::protocol::CloseFrame;
@@ -42,11 +41,11 @@ fn decode_event<'a>(
 }
 
 pub async fn rx_handler(
-    mut rx: SplitStream<WebSocketStream<TlsStream<TcpStream>>>,
+    mut rx: SplitStream<WebSocketStream<UnixStream>>,
     inter_tx: tokio::sync::mpsc::Sender<WsOutboundEvent>,
     closer_tx: futures::channel::oneshot::Sender<Option<CloseFrame<'_>>>,
     conn_id: Uuid,
-) -> SplitStream<WebSocketStream<TlsStream<TcpStream>>> {
+) -> SplitStream<WebSocketStream<UnixStream>> {
     let identify_received = AtomicBool::new(false);
 
     let _redis_conn = if let Some(r) = REDIS_MANAGER.get() {
