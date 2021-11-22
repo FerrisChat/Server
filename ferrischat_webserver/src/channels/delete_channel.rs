@@ -5,7 +5,7 @@ use ferrischat_common::ws::WsOutboundEvent;
 use actix_web::{HttpRequest, HttpResponse, Responder};
 use ferrischat_common::types::{Channel, InternalServerErrorJson, NotFoundJson};
 
-/// DELETE /api/v0/channels/{channel_id}
+/// DELETE `/api/v0/channels/{channel_id}`
 pub async fn delete_channel(req: HttpRequest, _: crate::Authorization) -> impl Responder {
     let db = get_db_or_fail!();
     let channel_id = get_item_id!(req, "channel_id");
@@ -33,7 +33,7 @@ pub async fn delete_channel(req: HttpRequest, _: crate::Authorization) -> impl R
         },
         Err(e) => {
             return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                reason: format!("DB returned an error: {}", e).to_string(),
+                reason: format!("DB returned an error: {}", e),
                 is_bug: false,
                 link: None,
             })

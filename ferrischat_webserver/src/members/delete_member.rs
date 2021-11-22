@@ -4,7 +4,7 @@ use ferrischat_common::ws::WsOutboundEvent;
 use actix_web::{HttpRequest, HttpResponse, Responder};
 use ferrischat_common::types::{InternalServerErrorJson, Member, NotFoundJson};
 
-/// DELETE /api/v0/guilds/{guild_id}/members/{member_id}
+/// DELETE `/api/v0/guilds/{guild_id}/members/{member_id}`
 pub async fn delete_member(req: HttpRequest, _: crate::Authorization) -> impl Responder {
     let guild_id = {
         let raw = get_item_id!(req, "guild_id");

@@ -33,7 +33,7 @@ impl FromRequest for Authorization {
                 }
             };
 
-            let (id, secret) = match crate::split_token(token) {
+            let (id, secret) = match crate::split_token(token.as_str()) {
                 Ok(t) => t,
                 Err(e) => {
                     return Err(ErrorBadRequest(match e {

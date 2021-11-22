@@ -5,7 +5,7 @@ use ferrischat_common::ws::WsOutboundEvent;
 use actix_web::{HttpRequest, HttpResponse, Responder};
 use ferrischat_common::types::{InternalServerErrorJson, Message, NotFoundJson, User, UserFlags};
 
-/// DELETE /api/v0/guilds/{guild_id}/channels/{channel_id}/messages/{message_id}
+/// DELETE `/api/v0/guilds/{guild_id}/channels/{channel_id}/messages/{message_id}`
 pub async fn delete_message(req: HttpRequest, _: crate::Authorization) -> impl Responder {
     let message_id = get_item_id!(req, "message_id");
     let bigint_message_id = u128_to_bigdecimal!(message_id);
@@ -68,7 +68,7 @@ pub async fn delete_message(req: HttpRequest, _: crate::Authorization) -> impl R
     let msg_obj = Message {
         id: message_id,
         channel_id,
-        author_id: author_id.clone(),
+        author_id,
         content: message.content,
         edited_at: message.edited_at,
         embeds: vec![],

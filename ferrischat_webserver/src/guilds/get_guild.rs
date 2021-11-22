@@ -5,7 +5,7 @@ use ferrischat_common::types::{
 };
 use num_traits::ToPrimitive;
 
-/// GET /api/v0/guilds/{guild_id}
+/// GET `/api/v0/guilds/{guild_id}`
 pub async fn get_guild(
     req: HttpRequest,
     _: crate::Authorization,

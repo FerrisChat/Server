@@ -5,7 +5,7 @@ use ferrischat_common::types::{
 use num_traits::cast::ToPrimitive;
 use sqlx::Error;
 
-/// GET /api/v0/users/{user_id}
+/// GET `/api/v0/users/{user_id}`
 pub async fn get_user(req: HttpRequest, auth: crate::Authorization) -> impl Responder {
     // TODO add more comments
     let user_id = get_item_id!(req, "user_id");
@@ -136,7 +136,7 @@ pub async fn get_user(req: HttpRequest, auth: crate::Authorization) -> impl Resp
 
                                                     let member = Member {
                                                         user_id: x.user_id.with_scale(0).into_bigint_and_exponent().0.to_u128(),
-                                                        user: user,
+                                                        user,
                                                         guild_id: x.guild_id.with_scale(0).into_bigint_and_exponent().0.to_u128(),
                                                         guild: None,
                                                     };

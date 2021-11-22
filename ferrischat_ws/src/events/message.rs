@@ -55,6 +55,6 @@ pub async fn handle_message_tx<'a>(
             })
         }
     };
-    let _ = tx.feed(Message::Text(outbound_message)).await;
+    let _tx = tx.feed(Message::Text(outbound_message)).await;
     Ok(())
 }

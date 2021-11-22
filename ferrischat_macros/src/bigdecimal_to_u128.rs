@@ -1,5 +1,5 @@
 #[macro_export]
-/// Expands to a macro that either converts the BigDecimal passed in to a u128
+/// Expands to a macro that either converts the `BigDecimal` passed in to a u128
 /// or returns a HTTP 500 from the function.
 macro_rules! bigdecimal_to_u128 {
     ($decimal:expr) => {{

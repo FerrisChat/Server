@@ -67,7 +67,7 @@ pub async fn create_user(user_data: Json<UserCreateJson>) -> impl Responder {
         let (tx, rx) = channel();
         // if this fn errors it will be caught because tx will be dropped as well
         // resulting in a error in the match
-        let _ = hasher.send((password, tx)).await;
+        let _tx = hasher.send((password, tx)).await;
         match rx.await {
             Ok(d) => match d {
                 Ok(s) => s,

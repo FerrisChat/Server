@@ -1,3 +1,5 @@
+#![allow(clippy::wildcard_imports)]
+
 use actix_web::http::StatusCode;
 use actix_web::{web, App, HttpResponse, HttpServer};
 use ring::rand::{SecureRandom, SystemRandom};
@@ -36,11 +38,11 @@ pub async fn entrypoint() {
             .expect("failed to generate RNG");
     }
 
-    init_auth().await;
+    init_auth();
     load_redis().await;
     load_db().await;
     init_ws().await;
-    init_ws_server("0.0.0.0:8081").await;
+    init_ws_server().await;
 
     HttpServer::new(|| {
         App::new()
@@ -176,8 +178,6 @@ pub async fn entrypoint() {
             .route(expand_version!("auth"), web::post().to(get_token))
             // GET     /ws/info
             .route(expand_version!("ws/info"), web::get().to(ws_info))
-            // GET     /ws/connect
-            .route(expand_version!("ws/connect"), web::get().to(ws_connect))
             .route(
                 expand_version!("guilds/{guild_id}/roles"),
                 web::post().to(roles::create_role),
@@ -226,5 +226,5 @@ pub async fn entrypoint() {
     .expect("failed to bind to knit sock!")
     .run()
     .await
-    .expect("failed to run server")
+    .expect("failed to run server");
 }

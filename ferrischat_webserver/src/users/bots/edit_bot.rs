@@ -4,7 +4,7 @@ use actix_web::{HttpRequest, HttpResponse, Responder};
 use ferrischat_common::request_json::BotUpdateJson;
 use ferrischat_common::types::{InternalServerErrorJson, NotFoundJson, User, UserFlags};
 
-/// PATCH /api/v0/users/{user_id}/bots/{bot_id}
+/// PATCH `/api/v0/users/{user_id}/bots/{bot_id}`
 /// Edits the bot with the attached payload
 pub async fn edit_bot(
     req: HttpRequest,

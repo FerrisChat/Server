@@ -1,5 +1,14 @@
 #![feature(once_cell)]
 #![feature(async_closure)]
+#![feature(box_syntax)]
+
+use std::lazy::SyncOnceCell as OnceCell;
+
+use dashmap::DashMap;
+use uuid::Uuid;
+
+use ferrischat_redis::redis::Msg;
+pub use init::*;
 
 mod config;
 mod error_handling;
@@ -12,12 +21,6 @@ mod rx_handler;
 mod tx_handler;
 mod types;
 
-use dashmap::DashMap;
-use ferrischat_redis::redis::Msg;
-pub use init::*;
-use std::lazy::SyncOnceCell as OnceCell;
-use uuid::Uuid;
-
 #[macro_use]
 extern crate ferrischat_macros;
 #[macro_use]
@@ -27,10 +30,5 @@ static USERID_CONNECTION_MAP: OnceCell<DashMap<Uuid, u128>> = OnceCell::new();
 
 // ignore the name
 static SUB_TO_ME: OnceCell<
-    futures::channel::mpsc::Sender<(String, tokio::sync::mpsc::Sender<Option<Msg>>)>,
+    tokio::sync::mpsc::Sender<(String, tokio::sync::mpsc::Sender<Option<Msg>>)>,
 > = OnceCell::new();
-
-pub enum TxRxComm {
-    Text(String),
-    Binary(Vec<u8>),
-}

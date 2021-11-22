@@ -10,7 +10,7 @@ use ferrischat_common::types::{InternalServerErrorJson, ModelType, Role};
 use ferrischat_macros::get_db_or_fail;
 use ferrischat_snowflake_generator::generate_snowflake;
 
-/// POST /api/v0/guilds/{guild_id}/roles
+/// POST `/api/v0/guilds/{guild_id}/roles`
 pub async fn create_role(
     _: crate::Authorization,
     role_info: Json<RoleCreateJson>,
@@ -27,7 +27,7 @@ pub async fn create_role(
 
     let name = name.unwrap_or_else(|| String::from("new role"));
     let position = position.unwrap_or(0);
-    let permissions = permissions.unwrap_or(Permissions::empty());
+    let permissions = permissions.unwrap_or_else(Permissions::empty);
 
     let node_id = get_node_id!();
     let role_id = generate_snowflake::<0>(ModelType::Role as u8, node_id);

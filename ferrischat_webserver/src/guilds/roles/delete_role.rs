@@ -4,7 +4,7 @@ use ferrischat_common::perms::Permissions;
 use ferrischat_common::types::{InternalServerErrorJson, NotFoundJson, Role};
 use ferrischat_common::ws::WsOutboundEvent;
 
-/// DELETE /api/v0/guilds/{guild_id/roles/{role_id}
+/// DELETE `/api/v0/guilds/{guild_id/roles/{role_id}`
 pub async fn delete_role(req: HttpRequest, _: crate::Authorization) -> impl Responder {
     let db = get_db_or_fail!();
     let role_id = get_item_id!(req, "role_id");
@@ -38,7 +38,7 @@ pub async fn delete_role(req: HttpRequest, _: crate::Authorization) -> impl Resp
         },
         Err(e) => {
             return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                reason: format!("DB returned an error: {}", e).to_string(),
+                reason: format!("DB returned an error: {}", e),
                 is_bug: false,
                 link: None,
             })

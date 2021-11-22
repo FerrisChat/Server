@@ -1,3 +1,5 @@
+use ferrischat_auth::{SplitTokenError, VerifyTokenFailure};
+use tokio::sync::mpsc::error::SendError;
 use tokio_tungstenite::tungstenite::error::Error;
 use tokio_tungstenite::tungstenite::protocol::frame::coding::CloseCode;
 use tokio_tungstenite::tungstenite::protocol::CloseFrame;
@@ -5,6 +7,50 @@ use tokio_tungstenite::tungstenite::protocol::CloseFrame;
 pub enum WsEventHandlerError<'a> {
     CloseFrame(CloseFrame<'a>),
     Sender,
+}
+
+impl From<&VerifyTokenFailure> for WsEventHandlerError<'_> {
+    fn from(e: &VerifyTokenFailure) -> Self {
+        let msg = match e {
+            VerifyTokenFailure::Unauthorized(e) | VerifyTokenFailure::InternalServerError(e) => e,
+        };
+        Self::CloseFrame(CloseFrame {
+            code: CloseCode::from(2003),
+            reason: format!("Token invalid: {}", msg).into(),
+        })
+    }
+}
+
+impl From<SplitTokenError> for WsEventHandlerError<'_> {
+    fn from(e: SplitTokenError) -> Self {
+        let msg = match e {
+            SplitTokenError::InvalidUtf8(e) => format!("invalid utf-8 found in token: {}", e),
+            SplitTokenError::Base64DecodeError(e) => {
+                format!("invalid base64 found in token: {}", e)
+            }
+            SplitTokenError::InvalidInteger(e) => format!("invalid integer found in token: {}", e),
+            SplitTokenError::MissingParts(e) => format!("part {} of token missing", e),
+        };
+        Self::CloseFrame(CloseFrame {
+            code: CloseCode::from(2003),
+            reason: format!("Token invalid: {}", msg).into(),
+        })
+    }
+}
+
+impl From<sqlx::Error> for WsEventHandlerError<'_> {
+    fn from(e: sqlx::Error) -> Self {
+        WsEventHandlerError::CloseFrame(CloseFrame {
+            code: CloseCode::from(5000),
+            reason: format!("Internal database error: {}", e).into(),
+        })
+    }
+}
+
+impl<T> From<&tokio::sync::mpsc::error::SendError<T>> for WsEventHandlerError<'_> {
+    fn from(_: &SendError<T>) -> Self {
+        Self::Sender
+    }
 }
 
 pub fn handle_error<'a>(e: Error) -> CloseFrame<'a> {
@@ -49,6 +95,6 @@ pub fn handle_error<'a>(e: Error) -> CloseFrame<'a> {
             code: CloseCode::from(1019),
             reason: format!("HTTP format error: {:?}", fmt).into(),
         },
-        _ => unreachable!(),
+        Error::SendQueueFull(_) => unreachable!(),
     }
 }

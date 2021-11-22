@@ -8,7 +8,7 @@ use ferrischat_common::types::{
 use ferrischat_common::ws::WsOutboundEvent;
 use ferrischat_snowflake_generator::generate_snowflake;
 
-/// POST /api/v0/guilds/{guild_id}/channels/{channel_id}/messages
+/// POST `/api/v0/guilds/{guild_id}/channels/{channel_id}/messages`
 pub async fn create_message(
     auth: crate::Authorization,
     req: HttpRequest,

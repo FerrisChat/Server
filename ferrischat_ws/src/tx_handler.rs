@@ -1,11 +1,12 @@
+#[allow(clippy::wildcard_imports)]
 use crate::events::*;
-use crate::{TxRxComm, USERID_CONNECTION_MAP};
+use crate::USERID_CONNECTION_MAP;
+use ferrischat_common::ws::WsOutboundEvent;
 use ferrischat_redis::redis::Msg;
 use futures_util::stream::SplitSink;
 use futures_util::SinkExt;
 use num_traits::ToPrimitive;
-use tokio::net::TcpStream;
-use tokio_rustls::server::TlsStream;
+use tokio::net::UnixStream;
 use tokio_tungstenite::tungstenite::protocol::frame::coding::CloseCode;
 use tokio_tungstenite::tungstenite::protocol::CloseFrame;
 use tokio_tungstenite::tungstenite::Message;
@@ -13,18 +14,18 @@ use tokio_tungstenite::WebSocketStream;
 use uuid::Uuid;
 
 pub async fn tx_handler(
-    mut tx: SplitSink<WebSocketStream<TlsStream<TcpStream>>, Message>,
+    mut tx: SplitSink<WebSocketStream<UnixStream>, Message>,
     mut closer_rx: futures::channel::oneshot::Receiver<Option<CloseFrame<'_>>>,
-    mut inter_rx: tokio::sync::mpsc::Receiver<TxRxComm>,
+    mut inter_rx: tokio::sync::mpsc::Receiver<WsOutboundEvent>,
     conn_id: Uuid,
 ) -> (
     Option<CloseFrame<'_>>,
-    SplitSink<WebSocketStream<TlsStream<TcpStream>>, Message>,
+    SplitSink<WebSocketStream<UnixStream>, Message>,
 ) {
     enum TransmitType<'t> {
-        InterComm(Option<TxRxComm>),
+        InterComm(Box<Option<WsOutboundEvent>>),
         Exit(Option<CloseFrame<'t>>),
-        Redis(Option<Option<Msg>>),
+        Redis(Option<Msg>),
     }
 
     let mut redis_rx: Option<tokio::sync::mpsc::Receiver<Option<Msg>>> = None;
@@ -55,28 +56,33 @@ pub async fn tx_handler(
         }
     };
 
-    let ret = loop {
-        let x = match redis_rx {
-            Some(ref mut rx) => tokio::select! {
+    let ret = 'outer: loop {
+        let x = if let Some(ref mut rx) = redis_rx {
+            tokio::select! {
                 item = &mut closer_rx => TransmitType::Exit(item.ok().flatten()),
-                item = inter_rx.recv() => TransmitType::InterComm(item),
-                item = rx.recv() => TransmitType::Redis(item),
-            },
-            None => tokio::select! {
+                item = inter_rx.recv() => TransmitType::InterComm(box item),
+                item = rx.recv() => TransmitType::Redis(item.flatten()),
+            }
+        } else {
+            tokio::select! {
                 item = &mut closer_rx => TransmitType::Exit(item.ok().flatten()),
-                item = inter_rx.recv() => TransmitType::InterComm(item),
-            },
+                item = inter_rx.recv() => TransmitType::InterComm(box item),
+            }
         };
 
         match x {
-            TransmitType::InterComm(event) => match event {
+            TransmitType::InterComm(event) => match event.into() {
                 Some(val) => {
-                    let _ = match val {
-                        TxRxComm::Text(d) => tx.feed(Message::Text(d)).await,
-                        // the implementation is here
-                        // is it used? no
-                        TxRxComm::Binary(d) => tx.feed(Message::Binary(d)).await,
+                    let payload = match simd_json::serde::to_string(&val) {
+                        Ok(v) => v,
+                        Err(e) => {
+                            break Some(CloseFrame {
+                                code: CloseCode::from(5001),
+                                reason: format!("JSON serialization error: {}", e).into(),
+                            });
+                        }
                     };
+                    let _tx = tx.feed(Message::Text(payload));
                 }
                 None => break None,
             },
@@ -89,91 +95,91 @@ pub async fn tx_handler(
                 };
                 let bigdecimal_uid = u128_to_bigdecimal!(uid);
 
-                if let Some(msg) = msg {
-                    let n = match msg.get_channel::<String>().ok() {
-                        Some(n) => n,
-                        None => continue,
-                    };
-                    let mut names = n.split('_');
-                    let ret = match names.next() {
-                        Some("channel") => {
-                            if let (Some(Ok(channel_id)), Some(Ok(guild_id))) =
-                                (names.next().map(str::parse), names.next().map(str::parse))
-                            {
-                                handle_channel_tx(
-                                    &mut tx,
-                                    db,
-                                    msg,
-                                    bigdecimal_uid,
-                                    channel_id,
-                                    guild_id,
-                                )
-                                .await
-                            } else {
-                                continue;
-                            }
+                let n = match msg.get_channel::<String>().ok() {
+                    Some(n) => n,
+                    None => continue,
+                };
+                let mut names = n.split('_');
+                let ret = match names.next() {
+                    Some("channel") => {
+                        if let (Some(Ok(channel_id)), Some(Ok(guild_id))) =
+                            (names.next().map(str::parse), names.next().map(str::parse))
+                        {
+                            handle_channel_tx(
+                                &mut tx,
+                                db,
+                                msg,
+                                bigdecimal_uid,
+                                channel_id,
+                                guild_id,
+                            )
+                            .await
+                        } else {
+                            continue;
                         }
-                        Some("message") => {
-                            // message event format: message_{channel ID}_{guild ID}
-                            if let (Some(Ok(channel_id)), Some(Ok(guild_id))) =
-                                (names.next().map(str::parse), names.next().map(str::parse))
-                            {
-                                handle_message_tx(
-                                    &mut tx,
-                                    db,
-                                    msg,
-                                    bigdecimal_uid,
-                                    channel_id,
-                                    guild_id,
-                                )
-                                .await
-                            } else {
-                                continue;
-                            }
-                        }
-                        Some("guild") => {
-                            if let Some(Ok(guild_id)) = names.next().map(str::parse) {
-                                handle_guild_tx(&mut tx, db, msg, bigdecimal_uid, guild_id).await
-                            } else {
-                                continue;
-                            }
-                        }
-                        Some("member") => {
-                            if let Some(Ok(guild_id)) = names.next().map(str::parse) {
-                                handle_member_tx(&mut tx, db, msg, bigdecimal_uid, guild_id).await
-                            } else {
-                                continue;
-                            }
-                        }
-                        Some("invite") => {
-                            if let Some(Ok(guild_id)) = names.next().map(str::parse) {
-                                handle_invite_tx(&mut tx, db, msg, bigdecimal_uid, guild_id).await
-                            } else {
-                                continue;
-                            }
-                        }
-                        Some(_) | None => continue,
-                    };
-                    if let Err(e) = ret {
-                        return (Some(e), tx);
                     }
+                    Some("message") => {
+                        // message event format: message_{channel ID}_{guild ID}
+                        if let (Some(Ok(channel_id)), Some(Ok(guild_id))) =
+                            (names.next().map(str::parse), names.next().map(str::parse))
+                        {
+                            handle_message_tx(
+                                &mut tx,
+                                db,
+                                msg,
+                                bigdecimal_uid,
+                                channel_id,
+                                guild_id,
+                            )
+                            .await
+                        } else {
+                            continue;
+                        }
+                    }
+                    Some("guild") => {
+                        if let Some(Ok(guild_id)) = names.next().map(str::parse) {
+                            handle_guild_tx(&mut tx, db, msg, bigdecimal_uid, guild_id).await
+                        } else {
+                            continue;
+                        }
+                    }
+                    Some("member") => {
+                        if let Some(Ok(guild_id)) = names.next().map(str::parse) {
+                            handle_member_tx(&mut tx, db, msg, bigdecimal_uid, guild_id).await
+                        } else {
+                            continue;
+                        }
+                    }
+                    Some("invite") => {
+                        if let Some(Ok(guild_id)) = names.next().map(str::parse) {
+                            handle_invite_tx(&mut tx, db, msg, bigdecimal_uid, guild_id).await
+                        } else {
+                            continue;
+                        }
+                    }
+                    Some(_) | None => continue,
+                };
+                if let Err(e) = ret {
+                    break Some(e);
                 }
             }
-            TransmitType::Redis(None) => break None,
+            TransmitType::Redis(None) => {
+                break Some(CloseFrame {
+                    code: CloseCode::from(5007),
+                    reason: "Redis failed to subscribe to channel".into(),
+                })
+            }
         }
-        let _ = tx.flush().await;
+        let _fl = tx.flush().await;
 
         if redis_rx.is_none() {
             let uid_conn_map = match USERID_CONNECTION_MAP.get() {
                 Some(m) => m,
                 None => {
-                    return (
-                        Some(CloseFrame {
-                            code: CloseCode::from(5004),
-                            reason: "Connection map not found".into(),
-                        }),
-                        tx,
-                    );
+                    break Some(CloseFrame {
+                        code: CloseCode::from(5004),
+                        reason: "Connection map not found".into(),
+                    });
                 }
             };
             if let Some(map_val) = uid_conn_map.get(&conn_id) {
@@ -182,17 +188,14 @@ pub async fn tx_handler(
                 match crate::SUB_TO_ME.get() {
                     Some(s) => {
                         let user_id = *(map_val.value());
-                        let mut s = s.clone();
-                        if s.start_send((format!("*{}*", user_id), redis_tx.clone()))
+                        if s.send((format!("*{}*", user_id), redis_tx.clone()))
+                            .await
                             .is_err()
                         {
-                            return (
-                                Some(CloseFrame {
-                                    code: CloseCode::from(5005),
-                                    reason: "Redis connection pool hung up connection".into(),
-                                }),
-                                tx,
-                            );
+                            break Some(CloseFrame {
+                                code: CloseCode::from(5005),
+                                reason: "Redis connection pool hung up connection".into(),
+                            });
                         }
                         let resp = sqlx::query!(
                             "SELECT guild_id FROM members WHERE user_id = $1",
@@ -209,44 +212,36 @@ pub async fn tx_handler(
                                         .0
                                         .to_u128()
                                 }) {
-                                    if s.start_send((format!("*{}*", guild), redis_tx.clone()))
+                                    if s.send((format!("*{}*", guild), redis_tx.clone()))
+                                        .await
                                         .is_err()
                                     {
-                                        return (
-                                            Some(CloseFrame {
-                                                code: CloseCode::from(5005),
-                                                reason: "Redis connection pool hung up connection"
-                                                    .into(),
-                                            }),
-                                            tx,
-                                        );
+                                        break 'outer Some(CloseFrame {
+                                            code: CloseCode::from(5006),
+                                            reason: "Redis connection pool hung up connection"
+                                                .into(),
+                                        });
                                     }
                                 }
                             }
                             Err(e) => {
-                                return (
-                                    Some(CloseFrame {
-                                        code: CloseCode::from(5000),
-                                        reason: format!("Internal database error: {}", e).into(),
-                                    }),
-                                    tx,
-                                )
+                                break Some(CloseFrame {
+                                    code: CloseCode::from(5000),
+                                    reason: format!("Internal database error: {}", e).into(),
+                                })
                             }
                         }
                     }
                     None => {
-                        return (
-                            Some(CloseFrame {
-                                code: CloseCode::from(5002),
-                                reason: "Redis pool not found".into(),
-                            }),
-                            tx,
-                        );
+                        break Some(CloseFrame {
+                            code: CloseCode::from(5002),
+                            reason: "Redis pool not found".into(),
+                        });
                     }
                 };
             };
         }
-        let _ = tx.flush().await;
+        let _tx = tx.flush().await;
     };
 
     (ret, tx)

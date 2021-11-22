@@ -12,6 +12,11 @@ pub static REDIS_LOCATION: OnceCell<String> = OnceCell::new();
 pub static NODE_ID: OnceCell<u16> = OnceCell::new();
 static NODE_SECRET: OnceCell<String> = OnceCell::new();
 
+/// Load the Redis pool, set it into the global database pool, and return it.
+///
+/// # Panics
+/// If the global pool was already set.
+/// This will only happen if this function is called more than once.
 pub async fn load_redis() -> ConnectionManager {
     let cfg = GLOBAL_CONFIG
         .get()
@@ -19,7 +24,7 @@ pub async fn load_redis() -> ConnectionManager {
     REDIS_LOCATION
         .set(format!("{}", &cfg.redis))
         .unwrap_or_else(|_| {
-            panic!("failed to set Redis database location: did you call load_redis() twice?")
+            panic!("failed to set Redis database location: did you call load_redis() twice?");
         });
 
     let client = Client::open(
@@ -33,7 +38,7 @@ pub async fn load_redis() -> ConnectionManager {
         .await
         .expect("failed to open connection to Redis");
     REDIS_MANAGER.set(manager.clone()).unwrap_or_else(|_| {
-        panic!("failed to set Redis global static: did you call load_redis() twice?")
+        panic!("failed to set Redis global static: did you call load_redis() twice?");
     });
 
     let mut res = redis::Cmd::hkeys("node_ids")
@@ -64,7 +69,7 @@ pub async fn load_redis() -> ConnectionManager {
     let node_secret = {
         let mut ns1 = vec![];
         for _ in 0..96 {
-            ns1.push(rand::random())
+            ns1.push(rand::random());
         }
         base64::encode(ns1)
     };
@@ -75,14 +80,14 @@ pub async fn load_redis() -> ConnectionManager {
         .expect("failed to set new node ID")
         == 0
     {
-        panic!("node ID was set while calculating new node ID: perhaps you're spinning up new nodes too fast?")
+        panic!("node ID was set while calculating new node ID: perhaps you're spinning up new nodes too fast?");
     }
 
     NODE_ID
         .set(node_id)
         .unwrap_or_else(|_| panic!("failed to set node ID: did you call `load_redis()` twice?"));
     NODE_SECRET.set(node_secret.clone()).unwrap_or_else(|_| {
-        panic!("failed to set node secret: did you call `load_redis()` twice?")
+        panic!("failed to set node secret: did you call `load_redis()` twice?");
     });
 
     let mut m2 = manager.clone(); // this gets moved into the async closure
@@ -164,13 +169,17 @@ pub async fn load_redis() -> ConnectionManager {
             redis::Cmd::hdel("node_ids", node_id)
                 .query_async::<_, ()>(&mut m3)
                 .await
-                .expect("failed to delete node key from Redis on shutdown")
+                .expect("failed to delete node key from Redis on shutdown");
         };
     });
 
     manager
 }
 
+/// Load the Redis pool, change it to `PubSub`, and return it.
+///
+/// # Errors
+/// Returns whatever error Redis itself returns.
 pub async fn get_pubsub() -> RedisResult<PubSub> {
     Ok(Client::open(
         REDIS_LOCATION

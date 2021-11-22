@@ -1,15 +1,13 @@
 use crate::ws::{fire_event, WsEventError};
-use ferrischat_common::ws::WsOutboundEvent;
-
 use actix_web::web::Json;
 use actix_web::{HttpRequest, HttpResponse, Responder};
 use ferrischat_common::request_json::InviteCreateJson;
 use ferrischat_common::types::{InternalServerErrorJson, Invite};
+use ferrischat_common::ws::WsOutboundEvent;
+use ferrischat_snowflake_generator::FERRIS_EPOCH;
 use sqlx::types::time::OffsetDateTime;
 
-const FERRIS_EPOCH: i64 = 1_577_836_800;
-
-/// POST /api/v0/guilds/{guild_id}/invites
+/// POST `/api/v0/guilds/{guild_id}/invites`
 pub async fn create_invite(
     auth: crate::Authorization,
     invite_info: Json<InviteCreateJson>,
@@ -24,7 +22,8 @@ pub async fn create_invite(
     let owner_id = auth.0;
     let bigint_owner_id = u128_to_bigdecimal!(owner_id);
 
-    let now = OffsetDateTime::now_utc().unix_timestamp() - FERRIS_EPOCH;
+    let now = OffsetDateTime::now_utc().unix_timestamp()
+        - (i64::try_from(FERRIS_EPOCH).expect("failed to cast the Ferris Epoch to i64"));
     {
         let resp = sqlx::query!(
             "SELECT user_id FROM members WHERE user_id = $1 AND guild_id = $2",
@@ -69,12 +68,12 @@ pub async fn create_invite(
     let invite_obj = match resp {
         Ok(code) => Invite {
             code: code.code,
-            owner_id: owner_id,
-            guild_id: guild_id,
+            owner_id,
+            guild_id,
             created_at: now,
             uses: 0,
-            max_uses: max_uses,
-            max_age: max_age,
+            max_uses,
+            max_age,
         },
         Err(e) => {
             return HttpResponse::InternalServerError().json(InternalServerErrorJson {

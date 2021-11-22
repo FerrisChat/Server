@@ -1,5 +1,6 @@
 #![feature(once_cell)]
 #![feature(type_alias_impl_trait)]
+#![allow(clippy::module_name_repetitions)]
 
 mod auth_struct;
 mod init;
@@ -9,7 +10,7 @@ mod verify_token;
 pub use auth_struct::*;
 pub use init::init_auth;
 pub use split_token::*;
-pub use verify_token::verify_token;
+pub use verify_token::*;
 
 #[macro_use]
 extern crate ferrischat_macros;

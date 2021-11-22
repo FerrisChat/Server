@@ -7,7 +7,7 @@ use ferrischat_common::types::{
 
 use num_traits::ToPrimitive;
 
-/// GET /api/v0/channels/{channel_id}/messages
+/// GET `/api/v0/channels/{channel_id}/messages`
 pub async fn get_message_history(
     req: HttpRequest,
     _: crate::Authorization,
@@ -30,11 +30,11 @@ pub async fn get_message_history(
         });
     }
 
-    if limit >= Some(9223372036854775807) {
+    if limit >= Some(9_223_372_036_854_775_807) {
         limit = None;
     }
 
-    if offset >= Some(9223372036854775807) || offset < Some(0) {
+    if offset >= Some(9_223_372_036_854_775_807) || offset < Some(0) {
         offset = Some(0);
     }
 
@@ -71,7 +71,7 @@ pub async fn get_message_history(
                                 .into_bigint_and_exponent()
                                 .0
                                 .to_u128()?,
-                            author_id: author_id.clone(),
+                            author_id,
                             author: Some(User {
                                 id: author_id,
                                 name: std::mem::take(&mut x.author_name),
@@ -125,7 +125,7 @@ pub async fn get_message_history(
                                 .into_bigint_and_exponent()
                                 .0
                                 .to_u128()?,
-                            author_id: author_id.clone(),
+                            author_id,
                             edited_at: x.edited_at,
                             embeds: vec![],
                             author: Some(User {

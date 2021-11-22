@@ -87,9 +87,9 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
                                 let invite_obj = Invite {
                                     code: invite.code.clone(),
                                     owner_id: bigdecimal_to_u128!(invite.owner_id),
-                                    guild_id: guild_id,
+                                    guild_id,
                                     created_at: invite.created_at,
-                                    uses: uses,
+                                    uses,
                                     max_uses: invite.max_uses,
                                     max_age: invite.max_age,
                                 };
@@ -148,7 +148,7 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
                                 let invite_obj = Invite {
                                     code: invite.code.clone(),
                                     owner_id: bigdecimal_to_u128!(invite.owner_id),
-                                    guild_id: guild_id,
+                                    guild_id,
                                     created_at: invite.created_at,
                                     uses: invite.uses,
                                     max_uses: invite.max_uses,
