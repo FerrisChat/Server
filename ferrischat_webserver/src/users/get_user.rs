@@ -182,17 +182,11 @@ pub async fn get_user(req: HttpRequest, auth: crate::Authorization) -> impl Resp
             }),
         },
         Err(e) => {
-            if let Error::RowNotFound = e {
-                HttpResponse::NotFound().json(NotFoundJson {
-                    message: format!("Unknown user with id {}", user_id),
-                })
-            } else {
-                HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                    reason: format!("database returned a error: {}", e),
-                    is_bug: false,
-                    link: None,
-                })
-            }
+            HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                reason: format!("database returned a error: {}", e),
+                is_bug: false,
+                link: None,
+            })
         }
     }
 }
