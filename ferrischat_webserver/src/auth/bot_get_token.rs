@@ -16,6 +16,8 @@ pub async fn get_bot_token(auth: crate::Authorization, req: HttpRequest) -> impl
             Err(e) => {
                 return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                     reason: format!("DB returned a error: {}", e),
+                    is_bug: false,
+                    link: None,
                 })
             }
         };
@@ -31,6 +33,12 @@ pub async fn get_bot_token(auth: crate::Authorization, req: HttpRequest) -> impl
         None => {
             return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                 reason: "failed to generate random bits for token generation".to_string(),
+                is_bug: true,
+                link: Some(
+                    "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
+                        labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+failed+to+generate+random+bits+for+token+gen"
+                        .to_string(),
+                ),
             })
         }
     };
@@ -42,6 +50,8 @@ pub async fn get_bot_token(auth: crate::Authorization, req: HttpRequest) -> impl
                 if h.send((token.clone(), tx)).await.is_err() {
                     return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                         reason: "Password hasher has hung up connection".to_string(),
+                        is_bug: false,
+                        link: None,
                     });
                 };
                 rx
@@ -49,6 +59,8 @@ pub async fn get_bot_token(auth: crate::Authorization, req: HttpRequest) -> impl
             None => {
                 return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                     reason: "password hasher not found".to_string(),
+                    is_bug: false,
+                    link: None,
                 })
             }
         };
@@ -58,6 +70,12 @@ pub async fn get_bot_token(auth: crate::Authorization, req: HttpRequest) -> impl
                 Err(e) => {
                     return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                         reason: format!("failed to hash token: {}", e),
+                        is_bug: true,
+                        link: Some(
+                            "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
+                        labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+"
+                                .to_string(),
+                        ),
                     })
                 }
             },
@@ -70,7 +88,9 @@ pub async fn get_bot_token(auth: crate::Authorization, req: HttpRequest) -> impl
 
     if let Err(e) = sqlx::query!("INSERT INTO auth_tokens VALUES ($1, $2) ON CONFLICT (user_id) DO UPDATE SET auth_token = $2", bigint_user_id, hashed_token).execute(db).await {
         return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-            reason: format!("DB returned a error: {}", e)
+            reason: format!("DB returned a error: {}", e),
+            is_bug: false,
+            link: None,
         })
     };
     return HttpResponse::Ok().json(AuthResponse {

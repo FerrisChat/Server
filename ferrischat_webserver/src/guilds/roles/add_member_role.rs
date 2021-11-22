@@ -26,6 +26,8 @@ pub async fn add_member_role(req: HttpRequest, _: crate::Authorization) -> impl 
         Ok(_) => HttpResponse::Ok().finish(),
         Err(e) => HttpResponse::InternalServerError().json(InternalServerErrorJson {
             reason: format!("database returned a error: {}", e),
+            is_bug: false,
+            link: None,
         }),
     };
 

@@ -1,6 +1,8 @@
 use actix_web::{web::Json, HttpResponse, Responder};
 use ferrischat_common::request_json::BotCreateJson;
-use ferrischat_common::types::{InternalServerErrorJson, ModelType, User, UserFlags};
+use ferrischat_common::types::{
+    InternalServerErrorJson, Json as MsgJson, ModelType, User, UserFlags,
+};
 use ferrischat_snowflake_generator::generate_snowflake;
 use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
@@ -34,6 +36,8 @@ pub async fn create_bot(
                 Err(e) => {
                     return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                         reason: format!("DB returned a error: {}", e),
+                        is_bug: false,
+                        link: None,
                     })
                 }
             };
@@ -44,8 +48,8 @@ pub async fn create_bot(
         match available.get(rand::thread_rng().gen_range(0..available.len())) {
             Some(d) => *d,
             None => {
-                return HttpResponse::Conflict().json(InternalServerErrorJson {
-                    reason: "This username has all possible discriminators taken.".to_string(),
+                return HttpResponse::Conflict().json(MsgJson {
+                    message: "This username has all possible discriminators taken.".to_string(),
                 })
             }
         }
@@ -56,6 +60,12 @@ pub async fn create_bot(
             None => {
                 return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                     reason: "Password hasher not found".to_string(),
+                    is_bug: true,
+                    link: Some(
+                        "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
+                        labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+password+hasher+not+found"
+                            .to_string(),
+                    ),
                 })
             }
         };
@@ -69,12 +79,20 @@ pub async fn create_bot(
                 Err(e) => {
                     return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                         reason: format!("Failed to hash password: {}", e),
+                        is_bug: true,
+                        link: Some(
+                            "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
+                        labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+failed+to+hash+password"
+                                .to_string(),
+                        ),
                     })
                 }
             },
             Err(_) => {
                 return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                     reason: "Other end hung up connection".to_string(),
+                    is_bug: false,
+                    link: None,
                 })
             }
         }
@@ -92,6 +110,8 @@ pub async fn create_bot(
     {
         return HttpResponse::InternalServerError().json(InternalServerErrorJson {
             reason: format!("DB returned a error: {}", e),
+            is_bug: false,
+            link: None,
         });
     }
 
@@ -116,22 +136,10 @@ pub async fn create_bot(
             flags: UserFlags::BOT_ACCOUNT,
             discriminator: user_discrim,
         }),
-        Err(e) => match e {
-            sqlx::Error::Database(e) => {
-                if e.code() == Some("23505".into()) {
-                    HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                        reason: "A bot with this email already exists? (this is DEFINITELY a bug)"
-                            .to_string(),
-                    })
-                } else {
-                    HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                        reason: format!("DB returned a error: {}", e),
-                    })
-                }
-            }
-            _ => HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                reason: format!("DB returned a error: {}", e),
-            }),
-        },
+        Err(e) => HttpResponse::InternalServerError().json(InternalServerErrorJson {
+            reason: format!("DB returned a error: {}", e),
+            is_bug: false,
+            link: None,
+        }),
     }
 }

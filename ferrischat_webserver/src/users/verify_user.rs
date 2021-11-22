@@ -1,6 +1,6 @@
 use actix_web::{web, HttpResponse, Responder};
 use check_if_email_exists::{check_email, CheckEmailInput, Reachable};
-use ferrischat_common::types::{InternalServerErrorJson, NotFoundJson};
+use ferrischat_common::types::{InternalServerErrorJson, Json, NotFoundJson};
 use lettre::{
     transport::smtp::authentication::Credentials, AsyncSmtpTransport, AsyncTransport, Message,
     Tokio1Executor,
@@ -26,6 +26,8 @@ pub async fn send_verification_email(auth: crate::Authorization) -> impl Respond
         Err(e) => {
             return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                 reason: format!("Database returned a error: {}", e),
+                is_bug: false,
+                link: None,
             })
         }
     };
@@ -53,6 +55,8 @@ pub async fn send_verification_email(auth: crate::Authorization) -> impl Respond
                 Err(_) => {
                     return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                         reason: "No SMTP server host set.".to_string(),
+                        is_bug: false,
+                        link: None,
                     })
                 }
             };
@@ -65,6 +69,8 @@ pub async fn send_verification_email(auth: crate::Authorization) -> impl Respond
                 Err(_) => {
                     return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                         reason: "No SMTP server username set.".to_string(),
+                        is_bug: false,
+                        link: None,
                     })
                 }
             };
@@ -77,6 +83,8 @@ pub async fn send_verification_email(auth: crate::Authorization) -> impl Respond
                 Err(_) => {
                     return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                         reason: "No SMTP server password set.".to_string(),
+                        is_bug: false,
+                        link: None,
                     })
                 }
             };
@@ -86,6 +94,12 @@ pub async fn send_verification_email(auth: crate::Authorization) -> impl Respond
                 None => {
                     return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                         reason: "failed to generate random bits for token generation".to_string(),
+                        is_bug: true,
+                        link: Some(
+                            "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
+                        labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+failed+to+generate+random+bits+for+token+generation"
+                                .to_string(),
+                        ),
                     })
                 }
             };
@@ -107,9 +121,14 @@ pub async fn send_verification_email(auth: crate::Authorization) -> impl Respond
                 Err(e) => {
                     return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                         reason: format!(
-                            "This should not have happened. Submit a bug report on \
-                    https://github.com/ferrischat/server/issues with the error `{}`",
-                            e
+                        "This should not have happened. Submit a bug report with the error `{}`",
+                        e
+                    ),
+                        is_bug: true,
+                        link: Some(
+                            "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
+                        labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+failed+to+build+message"
+                                .to_string(),
                         ),
                     })
                 }
@@ -124,10 +143,12 @@ pub async fn send_verification_email(auth: crate::Authorization) -> impl Respond
                     Err(e) => {
                         return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                             reason: format!(
-                                "Error creating SMTP transport! Please submit a bug report on \
-                    https://github.com/ferrischat/server/issues with the error `{}`",
+                                "Error creating SMTP transport! Contact the administrator of this node and \
+                                let them know you got an error while creating the SMTP transport: `{}`",
                                 e
                             ),
+                            is_bug: false,
+                            link: None,
                         })
                     }
                 };
@@ -136,10 +157,12 @@ pub async fn send_verification_email(auth: crate::Authorization) -> impl Respond
             if let Err(e) = mailer.send(message).await {
                 return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                     reason: format!(
-                        "Mailer failed to send correctly! Please submit a bug report \
-                    on https://github.com/ferrischat/server/issues with the error `{}`",
+                        "Mailer failed to send correctly! Contact the administrator of this node and \
+                        let them know you got an error while sending the verification email: `{}`",
                         e
                     ),
+                    is_bug: false,
+                    link: None,
                 });
             }
             // writes the token to redis.
@@ -154,19 +177,21 @@ pub async fn send_verification_email(auth: crate::Authorization) -> impl Respond
             {
                 return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                     reason: format!("Redis returned a error: {}", e),
+                    is_bug: false,
+                    link: None,
                 });
             }
-            HttpResponse::Ok().json(InternalServerErrorJson {
-                reason: "Sent verification, please check your email.".to_string(),
+            HttpResponse::Ok().json(Json {
+                message: "Sent verification, please check your email.".to_string(),
             })
         } else {
-            HttpResponse::Conflict().json(InternalServerErrorJson {
-                reason: "Email deemed unsafe to send to. Is it a real email?".to_string(),
+            HttpResponse::Conflict().json(Json {
+                message: "Email deemed unsafe to send to. Is it a real email?".to_string(),
             })
         }
     } else {
-        HttpResponse::Conflict().json(InternalServerErrorJson {
-            reason: format!("Email {} is invalid.", user_email),
+        HttpResponse::Conflict().json(Json {
+            message: format!("Email {} is invalid.", user_email),
         })
     }
 }
@@ -187,6 +212,8 @@ pub async fn verify_email(path: web::Path<String>) -> impl Responder {
             if let Err(e) = redis.del::<String, i32>(redis_key).await {
                 return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                     reason: format!("Redis returned a error: {}", e),
+                    is_bug: false,
+                    link: None,
                 });
             }
             email
@@ -200,6 +227,8 @@ pub async fn verify_email(path: web::Path<String>) -> impl Responder {
         Err(e) => {
             return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                 reason: format!("Redis returned a error: {}", e),
+                is_bug: false,
+                link: None,
             });
         }
     };
@@ -211,6 +240,8 @@ pub async fn verify_email(path: web::Path<String>) -> impl Responder {
     {
         HttpResponse::InternalServerError().json(InternalServerErrorJson {
             reason: format!("Database returned a error: {}", e),
+            is_bug: false,
+            link: None,
         })
     } else {
         HttpResponse::Ok().body("Verified email. You can close this page.")

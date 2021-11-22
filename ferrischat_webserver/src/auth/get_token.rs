@@ -71,16 +71,23 @@ pub async fn get_token(req: HttpRequest) -> impl Responder {
                             return HttpResponse::InternalServerError().json(
                                 InternalServerErrorJson {
                                     reason: "Password verifier has hung up connection".to_string(),
+                                    is_bug: false,
+                                    link: None,
                                 },
                             );
                         };
                         rx
                     }
-                    None => {
-                        return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                            reason: "password verifier not found".to_string(),
-                        })
-                    }
+                    None => return HttpResponse::InternalServerError()
+                        .json(InternalServerErrorJson {
+                        reason: "password verifier not found".to_string(),
+                        is_bug: true,
+                        link: Some(
+                            "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
+                        labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+password+verifier+not+found"
+                                .to_string(),
+                        ),
+                    }),
                 };
                 match rx.await {
                     Ok(r) => {
@@ -88,6 +95,8 @@ pub async fn get_token(req: HttpRequest) -> impl Responder {
                             Ok(d) => d,
                             Err(e) => return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                                 reason: format!("failed to verify password: {}", e),
+                                is_bug: false,
+                                link: None,
                             })
                         }
                     }
@@ -104,12 +113,14 @@ pub async fn get_token(req: HttpRequest) -> impl Responder {
         }
         Ok(None) => {
             return HttpResponse::NotFound().json(NotFoundJson {
-                message: "no user with this email found".to_string(),
+                message: format!("Unknown user with email {}", user_email),
             })
         }
         Err(e) => {
             return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                 reason: format!("DB returned a error: {}", e),
+                is_bug: false,
+                link: None,
             })
         }
     };
@@ -119,6 +130,12 @@ pub async fn get_token(req: HttpRequest) -> impl Responder {
         None => {
             return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                 reason: "failed to generate random bits for token generation".to_string(),
+                is_bug: true,
+                link: Some(
+                    "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
+                        labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+failed+to+generate+random+bits"
+                        .to_string(),
+                ),
             })
         }
     };
@@ -130,6 +147,8 @@ pub async fn get_token(req: HttpRequest) -> impl Responder {
                 if h.send((token.clone(), tx)).await.is_err() {
                     return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                         reason: "Password hasher has hung up connection".to_string(),
+                        is_bug: false,
+                        link: None,
                     });
                 };
                 rx
@@ -137,6 +156,12 @@ pub async fn get_token(req: HttpRequest) -> impl Responder {
             None => {
                 return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                     reason: "password hasher not found".to_string(),
+                    is_bug: true,
+                    link: Some(
+                        "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
+                        labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+password+hasher+not+found"
+                            .to_string(),
+                    ),
                 })
             }
         };
@@ -146,6 +171,12 @@ pub async fn get_token(req: HttpRequest) -> impl Responder {
                 Err(e) => {
                     return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                         reason: format!("failed to hash token: {}", e),
+                        is_bug: true,
+                        link: Some(
+                            "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
+                        labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+failed+to+hash+token"
+                                .to_string(),
+                        ),
                     })
                 }
             },
@@ -158,7 +189,9 @@ pub async fn get_token(req: HttpRequest) -> impl Responder {
 
     if let Err(e) = sqlx::query!("INSERT INTO auth_tokens VALUES ($1, $2) ON CONFLICT (user_id) DO UPDATE SET auth_token = $2", bigint_user_id, hashed_token).execute(db).await {
         return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-            reason: format!("DB returned a error: {}", e)
+            reason: format!("DB returned a error: {}", e),
+            is_bug: false,
+            link: None,
         })
     };
 

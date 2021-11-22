@@ -50,17 +50,23 @@ pub async fn get_member(req: HttpRequest) -> impl Responder {
                     Err(e) => {
                         return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                             reason: format!("database returned an error: {}", e),
+                            is_bug: false,
+                            link: None,
                         })
                     }
                 }
             }
-            None => HttpResponse::NotFound().json(NotFoundJson {
-                message: "Member not found".to_string(),
-            }),
+            None => {
+                return HttpResponse::NotFound().json(NotFoundJson {
+                    message: format!("Unknown member with id {}", member_id),
+                })
+            }
         },
         Err(e) => {
             return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                 reason: format!("database returned an error: {}", e),
+                is_bug: false,
+                link: None,
             })
         }
     }

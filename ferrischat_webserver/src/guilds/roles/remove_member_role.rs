@@ -20,6 +20,8 @@ pub async fn remove_member_role(req: HttpRequest, _: crate::Authorization) -> im
         Ok(_r) => HttpResponse::Ok().finish(),
         Err(e) => HttpResponse::InternalServerError().json(InternalServerErrorJson {
             reason: format!("database returned a error: {}", e),
+            is_bug: false,
+            link: None,
         }),
     }
 }

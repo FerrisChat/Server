@@ -29,6 +29,8 @@ pub async fn edit_bot(
             Err(e) => {
                 return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                     reason: format!("DB returned a error: {}", e),
+                    is_bug: false,
+                    link: None,
                 })
             }
         };
@@ -50,6 +52,8 @@ pub async fn edit_bot(
         {
             return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                 reason: format!("DB returned an error: {}", e),
+                is_bug: false,
+                link: None,
             });
         }
     }
@@ -68,11 +72,13 @@ pub async fn edit_bot(
             discriminator: user.discriminator,
         }),
         Ok(None) => HttpResponse::NotFound().json(NotFoundJson {
-            message: "User not found".to_string(),
+            message: format!("Unknown user with id {}", user_id),
         }),
         Err(e) => {
             return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                 reason: format!("DB returned an error: {}", e),
+                is_bug: false,
+                link: None,
             })
         }
     }

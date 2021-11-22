@@ -93,6 +93,8 @@ pub async fn get_user(req: HttpRequest, auth: crate::Authorization) -> impl Resp
                                             Err(e) => {
                                                 return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                                                     reason: format!("database returned a error: {}", e),
+                                                    is_bug: false,
+                                                    link: None,
                                                 })
                                             }
                                         })
@@ -125,6 +127,8 @@ pub async fn get_user(req: HttpRequest, auth: crate::Authorization) -> impl Resp
                                                             Err(e) => {
                                                                 return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                                                                     reason: format!("database returned a error: {}", e),
+                                                                    is_bug: false,
+                                                                    link: None,
                                                                 })
                                                             }
                                                         }
@@ -144,6 +148,8 @@ pub async fn get_user(req: HttpRequest, auth: crate::Authorization) -> impl Resp
                                             Err(e) => {
                                                 return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                                                     reason: format!("database returned a error: {}", e),
+                                                    is_bug: false,
+                                                    link: None,
                                                 })
                                             }
                                         })
@@ -159,6 +165,8 @@ pub async fn get_user(req: HttpRequest, auth: crate::Authorization) -> impl Resp
                             return HttpResponse::InternalServerError().json(
                                 InternalServerErrorJson {
                                     reason: format!("database returned a error: {}", e),
+                                    is_bug: false,
+                                    link: None,
                                 },
                             )
                         }
@@ -170,17 +178,19 @@ pub async fn get_user(req: HttpRequest, auth: crate::Authorization) -> impl Resp
                 flags: UserFlags::from_bits_truncate(user.flags),
             }),
             None => HttpResponse::NotFound().json(NotFoundJson {
-                message: "User Not Found".to_string(),
+                message: format!("Unknown user with id {}", user_id),
             }),
         },
         Err(e) => {
             if let Error::RowNotFound = e {
                 HttpResponse::NotFound().json(NotFoundJson {
-                    message: "user not found".to_string(),
+                    message: format!("Unknown user with id {}", user_id),
                 })
             } else {
                 HttpResponse::InternalServerError().json(InternalServerErrorJson {
                     reason: format!("database returned a error: {}", e),
+                    is_bug: false,
+                    link: None,
                 })
             }
         }

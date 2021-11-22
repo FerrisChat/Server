@@ -23,6 +23,8 @@ pub async fn delete_guild(req: HttpRequest, auth: crate::Authorization) -> impl 
         Err(e) => {
             return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                 reason: format!("DB returned a error: {}", e),
+                is_bug: false,
+                link: None,
             })
         }
         Ok(r) => match r {
@@ -48,7 +50,10 @@ pub async fn delete_guild(req: HttpRequest, auth: crate::Authorization) -> impl 
             }
             None => {
                 return HttpResponse::NotFound().json(NotFoundJson {
-                    message: "guild not found".to_string(),
+                    message: format!(
+                        "Unknown guild with id {0} or owner_id {1}",
+                        guild_id, auth.0
+                    ),
                 })
             }
         },
@@ -66,7 +71,15 @@ pub async fn delete_guild(req: HttpRequest, auth: crate::Authorization) -> impl 
                 format!("Failed to serialize message to JSON format: {}", e)
             }
         };
-        return HttpResponse::InternalServerError().json(InternalServerErrorJson { reason });
+        return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+            reason,
+            is_bug: true,
+            link: Some(
+                "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
+                labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+failed+to+fire+event"
+                    .to_string(),
+            ),
+        });
     }
 
     HttpResponse::NoContent().finish()

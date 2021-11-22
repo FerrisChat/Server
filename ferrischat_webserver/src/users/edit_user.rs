@@ -41,6 +41,8 @@ pub async fn edit_user(
             Err(e) => {
                 return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                     reason: format!("DB returned an error: {}", e),
+                    is_bug: false,
+                    link: None,
                 })
             }
         }
@@ -59,6 +61,8 @@ pub async fn edit_user(
             Err(e) => {
                 return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                     reason: format!("DB returned an error: {}", e),
+                    is_bug: false,
+                    link: None,
                 })
             }
         }
@@ -71,6 +75,8 @@ pub async fn edit_user(
                 None => {
                     return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                         reason: "Password hasher not found".to_string(),
+                        is_bug: false,
+                        link: None,
                     })
                 }
             };
@@ -84,12 +90,16 @@ pub async fn edit_user(
                     Err(e) => {
                         return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                             reason: format!("Failed to hash password: {}", e),
+                            is_bug: false,
+                            link: None,
                         })
                     }
                 },
                 Err(_) => {
                     return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                         reason: "Other end hung up connection".to_string(),
+                        is_bug: false,
+                        link: None,
                     })
                 }
             }
@@ -106,6 +116,8 @@ pub async fn edit_user(
             Err(e) => {
                 return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                     reason: format!("DB returned an error: {}", e),
+                    is_bug: false,
+                    link: None,
                 })
             }
         }
@@ -126,12 +138,14 @@ pub async fn edit_user(
                 discriminator: user.discriminator,
             }),
             None => HttpResponse::NotFound().json(NotFoundJson {
-                message: "User not found".to_string(),
+                message: format!("Unknown user with id {}", user_id),
             }),
         },
         Err(e) => {
             return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                 reason: format!("DB returned an error: {}", e),
+                is_bug: false,
+                link: None,
             })
         }
     }

@@ -60,6 +60,8 @@ pub async fn create_role(
         Err(e) => {
             return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                 reason: format!("DB returned a error: {}", e),
+                is_bug: false,
+                link: None,
             })
         }
     };
@@ -76,7 +78,15 @@ pub async fn create_role(
                 format!("Failed to serialize message to JSON format: {}", e)
             }
         };
-        return HttpResponse::InternalServerError().json(InternalServerErrorJson { reason });
+        return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+            reason,
+            is_bug: true,
+            link: Some(
+                "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
+                labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+failed+to+fire+event"
+                    .to_string(),
+            ),
+        });
     }
 
     HttpResponse::Created().json(role_obj)
