@@ -91,15 +91,12 @@ pub async fn delete_message(req: HttpRequest, _: crate::Authorization) -> impl R
     .execute(db)
     .await;
 
-    match resp {
-        Ok(_) => (),
-        Err(e) => {
-            return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                reason: format!("DB return an error: {}", e),
-                is_bug: false,
-                link: None,
-            })
-        }
+    if let Err(e) = resp {
+        return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+            reason: format!("DB return an error: {}", e),
+            is_bug: false,
+            link: None,
+        });
     }
 
     let event = WsOutboundEvent::MessageDelete {
