@@ -159,6 +159,11 @@ pub async fn entrypoint() {
                 expand_version!("users/{user_id}/bots"),
                 web::post().to(create_bot),
             )
+            // GET /users/{user_id}/bots
+            .route(
+                expand_version!("users/{user_id}/bots"),
+                web::get().to(get_bots_by_user),
+            )
             // PATCH /users/{user_id}/bots/{bot_id}
             .route(
                 expand_version!("users/{user_id}/bots/{bot_id}"),
