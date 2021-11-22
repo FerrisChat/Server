@@ -6,8 +6,8 @@ use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
 use tokio::sync::oneshot::channel;
 
-/// POST /api/v0/users/{user_id}/bots
-/// Creates a FerrisChat bot with the given info
+/// POST `/api/v0/users/{user_id}/bots`
+/// Creates a `FerrisChat` bot with the given info
 pub async fn create_bot(
     auth: crate::Authorization,
     bot_data: Json<BotCreateJson>,
@@ -62,7 +62,7 @@ pub async fn create_bot(
         let (tx, rx) = channel();
         // if this fn errors it will be caught because tx will be dropped as well
         // resulting in a error in the match
-        let _ = hasher.send((password, tx)).await;
+        let _tx = hasher.send((password, tx)).await;
         match rx.await {
             Ok(d) => match d {
                 Ok(s) => s,

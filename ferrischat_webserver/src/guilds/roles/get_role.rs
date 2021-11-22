@@ -2,7 +2,7 @@ use actix_web::{HttpRequest, HttpResponse, Responder};
 use ferrischat_common::perms::Permissions;
 use ferrischat_common::types::{InternalServerErrorJson, NotFoundJson, Role};
 
-/// GET /api/v0/guilds/{guild_id/roles/{role_id}
+/// GET `/api/v0/guilds/{guild_id/roles/{role_id}`
 pub async fn get_role(req: HttpRequest, _: crate::Authorization) -> impl Responder {
     let db = get_db_or_fail!();
     let role_id = u128_to_bigdecimal!(get_item_id!(req, "role_id"));

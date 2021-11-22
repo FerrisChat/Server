@@ -1,7 +1,7 @@
 use actix_web::{HttpRequest, HttpResponse, Responder};
 use ferrischat_common::types::{InternalServerErrorJson, NotFoundJson};
 
-/// DELETE /api/v0/users/{user_id}
+/// DELETE `/api/v0/users/{user_id}`
 /// Deletes the authenticated user
 pub async fn delete_user(req: HttpRequest, auth: crate::Authorization) -> impl Responder {
     let user_id = get_item_id!(req, "user_id");

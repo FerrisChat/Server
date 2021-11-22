@@ -121,8 +121,8 @@ impl FromRequest for Authorization {
             };
             let (tx, rx) = channel();
             // if the send failed, we'll know because the receiver we wait upon below will fail instantly
-            let _ = verifier.send(((token, db_token), tx)).await;
-            let res = match rx.await {
+            let _tx = verifier.send(((token, db_token), tx)).await;
+            let valid = match rx.await {
                 Ok(r) => match r {
                     Ok(r) => r,
                     Err(e) => {
@@ -138,7 +138,7 @@ impl FromRequest for Authorization {
                     ))
                 }
             };
-            if res {
+            if valid {
                 Ok(Self(id))
             } else {
                 // we specifically do not define the boundary between no token and

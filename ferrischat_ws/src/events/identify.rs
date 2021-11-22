@@ -26,7 +26,7 @@ pub async fn handle_identify_rx<'a>(
         }));
     }
 
-    let (id, secret) = split_token(token)?;
+    let (id, secret) = split_token(token.as_str())?;
     verify_token(id, secret).await.as_ref()?;
     let bigdecimal_user_id = u128_to_bigdecimal!(id);
 

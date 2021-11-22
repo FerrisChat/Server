@@ -77,7 +77,7 @@ pub async fn edit_user(
 
             let (tx, rx) = channel();
 
-            let _ = hasher.send((password, tx)).await;
+            let _tx = hasher.send((password, tx)).await;
             match rx.await {
                 Ok(d) => match d {
                     Ok(s) => s,

@@ -53,6 +53,10 @@ impl Display for RedisConfig {
     }
 }
 
+/// Load the config specified by `path`, parse it, and set it globally.
+///
+/// # Panics
+/// If the config was already set. This will only happen if this function is called more than once.
 pub fn load_config(path: std::path::PathBuf) {
     let cfg_bytes =
         std::fs::read(path).expect("failed to load config: does it exist and is readable?");

@@ -1,7 +1,7 @@
 use actix_web::{HttpRequest, HttpResponse, Responder};
 use ferrischat_common::types::{InternalServerErrorJson, Member, NotFoundJson, User, UserFlags};
 
-/// GET /api/v0/guilds/{guild_id}/members/{member_id}
+/// GET `/api/v0/guilds/{guild_id}/members/{member_id}`
 pub async fn get_member(req: HttpRequest) -> impl Responder {
     let guild_id = get_item_id!(req, "guild_id");
     let decimal_guild_id = u128_to_bigdecimal!(guild_id);

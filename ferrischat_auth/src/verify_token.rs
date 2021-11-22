@@ -5,7 +5,16 @@ pub enum VerifyTokenFailure {
     Unauthorized(String),
 }
 
+#[allow(clippy::missing_panics_doc)]
 /// Verify a user's token.
+///
+/// # Errors
+/// Returns an error if any of the following happen:
+/// * The DB pool is not initialized.
+/// * Auth data is invalid.
+/// * The DB returns an error.
+/// * The global verifier is not found.
+/// * A verification error occurs.
 pub async fn verify_token(user_id: u128, secret: String) -> Result<(), VerifyTokenFailure> {
     let id_bigint = u128_to_bigdecimal!(user_id);
     let db = match ferrischat_db::DATABASE_POOL.get() {
@@ -49,7 +58,7 @@ pub async fn verify_token(user_id: u128, secret: String) -> Result<(), VerifyTok
     };
     let (tx, rx) = channel();
     // if the send failed, we'll know because the receiver we wait upon below will fail instantly
-    let _ = verifier.send(((secret, db_token), tx)).await;
+    let _send = verifier.send(((secret, db_token), tx)).await;
     let res = match rx.await {
         Ok(r) => match r {
             Ok(r) => r,

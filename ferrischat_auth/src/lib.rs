@@ -1,5 +1,6 @@
 #![feature(once_cell)]
 #![feature(type_alias_impl_trait)]
+#![allow(clippy::module_name_repetitions)]
 
 mod auth_struct;
 mod init;

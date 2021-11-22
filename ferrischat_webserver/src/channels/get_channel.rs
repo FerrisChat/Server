@@ -1,7 +1,7 @@
 use actix_web::{HttpRequest, HttpResponse, Responder};
 use ferrischat_common::types::{Channel, InternalServerErrorJson, NotFoundJson};
 
-/// GET /api/v0/guilds/{guild_id/channels/{channel_id}
+/// GET `/api/v0/guilds/{guild_id/channels/{channel_id}`
 pub async fn get_channel(req: HttpRequest, _: crate::Authorization) -> impl Responder {
     let db = get_db_or_fail!();
     let channel_id = u128_to_bigdecimal!(get_item_id!(req, "channel_id"));

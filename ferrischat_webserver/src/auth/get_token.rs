@@ -15,7 +15,9 @@ pub async fn get_token(req: HttpRequest) -> impl Responder {
                     reason: "`Email` header contained invalid UTF-8".to_string(),
                     location: Some(BadRequestJsonLocation {
                         line: 0,
-                        character: (e.utf8_error().valid_up_to() + 1) as u32,
+                        character: (e.utf8_error().valid_up_to() + 1)
+                            .try_into()
+                            .expect("failed to cast usize to u32 (x > u32::MAX)"),
                     }),
                 })
             }
@@ -35,7 +37,9 @@ pub async fn get_token(req: HttpRequest) -> impl Responder {
                     reason: "`Password` header contained invalid UTF-8".to_string(),
                     location: Some(BadRequestJsonLocation {
                         line: 0,
-                        character: (e.utf8_error().valid_up_to() + 1) as u32,
+                        character: (e.utf8_error().valid_up_to() + 1)
+                            .try_into()
+                            .expect("failed to cast usize to u32 (x > u32::MAX)"),
                     }),
                 })
             }

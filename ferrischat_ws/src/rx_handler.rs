@@ -1,6 +1,7 @@
 use std::sync::atomic::{AtomicBool, Ordering};
 
 use crate::error_handling::handle_error;
+#[allow(clippy::wildcard_imports)]
 use crate::{error_handling::WsEventHandlerError, events::*, USERID_CONNECTION_MAP};
 use ferrischat_common::ws::{WsInboundEvent, WsOutboundEvent};
 use ferrischat_redis::REDIS_MANAGER;
@@ -48,36 +49,33 @@ pub async fn rx_handler(
 ) -> SplitStream<WebSocketStream<TlsStream<TcpStream>>> {
     let identify_received = AtomicBool::new(false);
 
-    let _redis_conn = match REDIS_MANAGER.get() {
-        Some(r) => r.clone(), // safe to clone cheaply according to docs
-        None => {
-            let _ = closer_tx.send(Some(CloseFrame {
-                code: CloseCode::from(5002),
-                reason: "Redis pool not found".into(),
-            }));
-            return rx;
-        }
+    let _redis_conn = if let Some(r) = REDIS_MANAGER.get() {
+        r.clone()
+    } else {
+        let _tx = closer_tx.send(Some(CloseFrame {
+            code: CloseCode::from(5002),
+            reason: "Redis pool not found".into(),
+        }));
+        return rx;
     };
-    let db = match ferrischat_db::DATABASE_POOL.get() {
-        Some(db) => db,
-        None => {
-            let _ = closer_tx.send(Some(CloseFrame {
-                code: CloseCode::from(5003),
-                reason: "Database pool not found".into(),
-            }));
-            return rx;
-        }
+    let db = if let Some(db) = ferrischat_db::DATABASE_POOL.get() {
+        db
+    } else {
+        let _tx = closer_tx.send(Some(CloseFrame {
+            code: CloseCode::from(5003),
+            reason: "Database pool not found".into(),
+        }));
+        return rx;
     };
 
-    let uid_conn_map = match USERID_CONNECTION_MAP.get() {
-        Some(m) => m,
-        None => {
-            let _ = closer_tx.send(Some(CloseFrame {
-                code: CloseCode::from(5004),
-                reason: "Connection map not found".into(),
-            }));
-            return rx;
-        }
+    let uid_conn_map = if let Some(m) = USERID_CONNECTION_MAP.get() {
+        m
+    } else {
+        let _tx = closer_tx.send(Some(CloseFrame {
+            code: CloseCode::from(5004),
+            reason: "Connection map not found".into(),
+        }));
+        return rx;
     };
 
     while let Some(item) = rx.next().await {
@@ -85,21 +83,19 @@ pub async fn rx_handler(
             Ok(Some(e)) => e,
             Ok(None) => continue,
             Err(e) => {
-                let _ = closer_tx.send(e);
+                let _tx = closer_tx.send(e);
                 break;
             }
         };
 
         if !identify_received.load(Ordering::Relaxed) {
-            match data {
-                WsInboundEvent::Identify { .. } => {}
-                _ => {
-                    let _ = closer_tx.send(Some(CloseFrame {
-                        code: CloseCode::from(2004),
-                        reason: "data payload sent before identifying".into(),
-                    }));
-                    break;
-                }
+            if let WsInboundEvent::Identify { .. } = data {
+            } else {
+                let _tx = closer_tx.send(Some(CloseFrame {
+                    code: CloseCode::from(2004),
+                    reason: "data payload sent before identifying".into(),
+                }));
+                break;
             }
         }
 
@@ -124,7 +120,7 @@ pub async fn rx_handler(
             Err(WsEventHandlerError::CloseFrame(f)) => {
                 // either way we're breaking out, and a error here just means the other end hung
                 // up already, and has already returned, meaning it's just waiting on us to return
-                let _ = closer_tx.send(Some(f));
+                let _tx = closer_tx.send(Some(f));
                 break;
             }
             _ => {}

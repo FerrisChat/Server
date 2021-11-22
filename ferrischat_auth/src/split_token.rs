@@ -15,7 +15,15 @@ pub enum SplitTokenError {
     MissingParts(u8),
 }
 
-pub fn split_token(token: String) -> Result<(u128, String), SplitTokenError> {
+/// Splits a token into its constituent parts and returns it.
+///
+/// # Errors
+/// Returns an error if any of the following happen:
+/// * Invalid UTF-8 is detected
+/// * The base64 encoded data cannot be decoded
+/// * A invalid integer is detected in the data
+/// * Parts of the token are missing
+pub fn split_token(token: &str) -> Result<(u128, String), SplitTokenError> {
     let mut auth = token.split('.');
     let id = match auth.next() {
         Some(id) => match match base64::decode_config(id, base64::URL_SAFE) {

@@ -1,3 +1,4 @@
+#![allow(clippy::module_name_repetitions)]
 use crate::handle_connection::handle_ws_connection;
 use crate::redis_handler::redis_event_handler;
 use crate::{SUB_TO_ME, USERID_CONNECTION_MAP};
@@ -8,6 +9,10 @@ use tokio::net::TcpStream;
 use tokio::sync::oneshot::channel;
 use tokio_rustls::server::TlsStream;
 
+/// Initialize the `WebSocket` by starting all services it depends on.
+///
+/// # Panics
+/// This function panics if it is called more than once.
 pub async fn init_ws() {
     // plop the DashMap into the UserId connection map first thing
     USERID_CONNECTION_MAP
@@ -29,7 +34,15 @@ pub async fn init_ws() {
     ));
 }
 
-pub async fn init_ws_server<T: tokio::net::ToSocketAddrs>(addr: T) {
+#[allow(clippy::missing_panics_doc)]
+/// Initialize the `WebSocket` server.
+/// `init_ws` MUST be called before this, otherwise panics may occur due to missing dependencies.
+pub async fn init_ws_server<T: tokio::net::ToSocketAddrs + Send>(addr: T) {
+    enum DieOrResult<T> {
+        Die,
+        Result(tokio::io::Result<T>),
+    }
+
     let listener = tokio::net::TcpListener::bind(addr)
         .await
         .expect("failed to bind to address");
@@ -42,13 +55,8 @@ pub async fn init_ws_server<T: tokio::net::ToSocketAddrs>(addr: T) {
             .expect("failed to listen for ctrl+c");
         end_tx
             .send(())
-            .expect("failed to send message to listeners")
+            .expect("failed to send message to listeners");
     });
-
-    enum DieOrResult<T> {
-        Die,
-        Result(tokio::io::Result<T>),
-    }
 
     let cfg = ferrischat_config::GLOBAL_CONFIG
         .get()

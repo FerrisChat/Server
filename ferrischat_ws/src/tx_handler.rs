@@ -1,3 +1,4 @@
+#[allow(clippy::wildcard_imports)]
 use crate::events::*;
 use crate::USERID_CONNECTION_MAP;
 use ferrischat_common::ws::WsOutboundEvent;
@@ -25,7 +26,7 @@ pub async fn tx_handler(
     enum TransmitType<'t> {
         InterComm(Box<Option<WsOutboundEvent>>),
         Exit(Option<CloseFrame<'t>>),
-        Redis(Option<Option<Msg>>),
+        Redis(Option<Msg>),
     }
 
     let mut redis_rx: Option<tokio::sync::mpsc::Receiver<Option<Msg>>> = None;
@@ -57,16 +58,17 @@ pub async fn tx_handler(
     };
 
     let ret = 'outer: loop {
-        let x = match redis_rx {
-            Some(ref mut rx) => tokio::select! {
+        let x = if let Some(ref mut rx) = redis_rx {
+            tokio::select! {
                 item = &mut closer_rx => TransmitType::Exit(item.ok().flatten()),
                 item = inter_rx.recv() => TransmitType::InterComm(box item),
-                item = rx.recv() => TransmitType::Redis(item),
-            },
-            None => tokio::select! {
+                item = rx.recv() => TransmitType::Redis(item.flatten()),
+            }
+        } else {
+            tokio::select! {
                 item = &mut closer_rx => TransmitType::Exit(item.ok().flatten()),
                 item = inter_rx.recv() => TransmitType::InterComm(box item),
-            },
+            }
         };
 
         match x {
@@ -81,7 +83,7 @@ pub async fn tx_handler(
                             });
                         }
                     };
-                    let _ = tx.feed(Message::Text(payload));
+                    let _tx = tx.feed(Message::Text(payload));
                 }
                 None => break None,
             },
@@ -94,74 +96,72 @@ pub async fn tx_handler(
                 };
                 let bigdecimal_uid = u128_to_bigdecimal!(uid);
 
-                if let Some(msg) = msg {
-                    let n = match msg.get_channel::<String>().ok() {
-                        Some(n) => n,
-                        None => continue,
-                    };
-                    let mut names = n.split('_');
-                    let ret = match names.next() {
-                        Some("channel") => {
-                            if let (Some(Ok(channel_id)), Some(Ok(guild_id))) =
-                                (names.next().map(str::parse), names.next().map(str::parse))
-                            {
-                                handle_channel_tx(
-                                    &mut tx,
-                                    db,
-                                    msg,
-                                    bigdecimal_uid,
-                                    channel_id,
-                                    guild_id,
-                                )
-                                .await
-                            } else {
-                                continue;
-                            }
+                let n = match msg.get_channel::<String>().ok() {
+                    Some(n) => n,
+                    None => continue,
+                };
+                let mut names = n.split('_');
+                let ret = match names.next() {
+                    Some("channel") => {
+                        if let (Some(Ok(channel_id)), Some(Ok(guild_id))) =
+                            (names.next().map(str::parse), names.next().map(str::parse))
+                        {
+                            handle_channel_tx(
+                                &mut tx,
+                                db,
+                                msg,
+                                bigdecimal_uid,
+                                channel_id,
+                                guild_id,
+                            )
+                            .await
+                        } else {
+                            continue;
                         }
-                        Some("message") => {
-                            // message event format: message_{channel ID}_{guild ID}
-                            if let (Some(Ok(channel_id)), Some(Ok(guild_id))) =
-                                (names.next().map(str::parse), names.next().map(str::parse))
-                            {
-                                handle_message_tx(
-                                    &mut tx,
-                                    db,
-                                    msg,
-                                    bigdecimal_uid,
-                                    channel_id,
-                                    guild_id,
-                                )
-                                .await
-                            } else {
-                                continue;
-                            }
-                        }
-                        Some("guild") => {
-                            if let Some(Ok(guild_id)) = names.next().map(str::parse) {
-                                handle_guild_tx(&mut tx, db, msg, bigdecimal_uid, guild_id).await
-                            } else {
-                                continue;
-                            }
-                        }
-                        Some("member") => {
-                            if let Some(Ok(guild_id)) = names.next().map(str::parse) {
-                                handle_member_tx(&mut tx, db, msg, bigdecimal_uid, guild_id).await
-                            } else {
-                                continue;
-                            }
-                        }
-                        Some("invite") => {
-                            if let Some(Ok(guild_id)) = names.next().map(str::parse) {
-                                handle_invite_tx(&mut tx, db, msg, bigdecimal_uid, guild_id).await
-                            } else {
-                                continue;
-                            }
-                        }
-                        Some(_) | None => continue,
-                    };
-                    if let Err(e) = ret {
-                        break Some(e);
                     }
+                    Some("message") => {
+                        // message event format: message_{channel ID}_{guild ID}
+                        if let (Some(Ok(channel_id)), Some(Ok(guild_id))) =
+                            (names.next().map(str::parse), names.next().map(str::parse))
+                        {
+                            handle_message_tx(
+                                &mut tx,
+                                db,
+                                msg,
+                                bigdecimal_uid,
+                                channel_id,
+                                guild_id,
+                            )
+                            .await
+                        } else {
+                            continue;
+                        }
+                    }
+                    Some("guild") => {
+                        if let Some(Ok(guild_id)) = names.next().map(str::parse) {
+                            handle_guild_tx(&mut tx, db, msg, bigdecimal_uid, guild_id).await
+                        } else {
+                            continue;
+                        }
+                    }
+                    Some("member") => {
+                        if let Some(Ok(guild_id)) = names.next().map(str::parse) {
+                            handle_member_tx(&mut tx, db, msg, bigdecimal_uid, guild_id).await
+                        } else {
+                            continue;
+                        }
+                    }
+                    Some("invite") => {
+                        if let Some(Ok(guild_id)) = names.next().map(str::parse) {
+                            handle_invite_tx(&mut tx, db, msg, bigdecimal_uid, guild_id).await
+                        } else {
+                            continue;
+                        }
+                    }
+                    Some(_) | None => continue,
+                };
+                if let Err(e) = ret {
+                    break Some(e);
                 }
             }
             TransmitType::Redis(None) => {
@@ -171,7 +171,7 @@ pub async fn tx_handler(
                 })
             }
         }
-        let _ = tx.flush().await;
+        let _fl = tx.flush().await;
 
         if redis_rx.is_none() {
             let uid_conn_map = match USERID_CONNECTION_MAP.get() {
@@ -242,7 +242,7 @@ pub async fn tx_handler(
                 };
             };
         }
-        let _ = tx.flush().await;
+        let _tx = tx.flush().await;
     };
 
     (ret, tx)

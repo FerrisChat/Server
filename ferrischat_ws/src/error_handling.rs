@@ -12,8 +12,7 @@ pub enum WsEventHandlerError<'a> {
 impl From<&VerifyTokenFailure> for WsEventHandlerError<'_> {
     fn from(e: &VerifyTokenFailure) -> Self {
         let msg = match e {
-            VerifyTokenFailure::InternalServerError(e) => e,
-            VerifyTokenFailure::Unauthorized(e) => e,
+            VerifyTokenFailure::Unauthorized(e) | VerifyTokenFailure::InternalServerError(e) => e,
         };
         Self::CloseFrame(CloseFrame {
             code: CloseCode::from(2003),
@@ -96,6 +95,6 @@ pub fn handle_error<'a>(e: Error) -> CloseFrame<'a> {
             code: CloseCode::from(1019),
             reason: format!("HTTP format error: {:?}", fmt).into(),
         },
-        _ => unreachable!(),
+        Error::SendQueueFull(_) => unreachable!(),
     }
 }

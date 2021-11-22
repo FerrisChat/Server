@@ -8,6 +8,11 @@ use std::time::Duration;
 
 pub static DATABASE_POOL: OnceCell<Pool<Postgres>> = OnceCell::new();
 
+/// Load the Postgres pool, set it into the global database pool, and return it.
+///
+/// # Panics
+/// If the global pool was already set.
+/// This will only happen if this function is called more than once.
 pub async fn load_db() -> Pool<Postgres> {
     let cfg = GLOBAL_CONFIG
         .get()

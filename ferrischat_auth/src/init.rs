@@ -1,6 +1,6 @@
 use tokio::sync::mpsc::channel;
 
-pub async fn init_auth() {
+pub fn init_auth() {
     {
         let (tx, mut rx) = channel::<(
             String,
@@ -17,7 +17,7 @@ pub async fn init_auth() {
                 let (password, sender) = d;
 
                 let r = hasher.with_password(password).hash();
-                let _ = sender.send(r);
+                let _res = sender.send(r);
             }
         });
 
@@ -43,7 +43,7 @@ pub async fn init_auth() {
                     .with_password(password.0)
                     .with_hash(password.1)
                     .verify();
-                let _ = sender.send(r);
+                let _res = sender.send(r);
             }
         });
 

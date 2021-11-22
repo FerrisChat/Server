@@ -7,7 +7,7 @@ use ferrischat_common::types::{
 
 use num_traits::ToPrimitive;
 
-/// GET /api/v0/channels/{channel_id}/messages
+/// GET `/api/v0/channels/{channel_id}/messages`
 pub async fn get_message_history(
     req: HttpRequest,
     _: crate::Authorization,
@@ -30,11 +30,11 @@ pub async fn get_message_history(
         });
     }
 
-    if limit >= Some(9223372036854775807) {
+    if limit >= Some(9_223_372_036_854_775_807) {
         limit = None;
     }
 
-    if offset >= Some(9223372036854775807) || offset < Some(0) {
+    if offset >= Some(9_223_372_036_854_775_807) || offset < Some(0) {
         offset = Some(0);
     }
 

@@ -41,7 +41,7 @@ pub async fn handle_ws_connection(
 
         let f = reason.unwrap_or(CloseFrame {
             code: CloseCode::Abnormal,
-            reason: Default::default(),
+            reason: std::borrow::Cow::default(),
         });
         stream.close(Some(f)).await.expect("failed to close stream");
     });

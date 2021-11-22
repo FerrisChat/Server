@@ -33,9 +33,8 @@ pub async fn redis_event_handler(
                     item = rx.recv() => {
                         if let Some(item) = item {
                             break item
-                        } else {
-                            return
                         }
+                        return
                     }
                 };
 
@@ -79,13 +78,13 @@ pub async fn redis_event_handler(
                 event_channel_to_uuid_map.insert(channel, vec![channel_id]);
             }
 
-            debug_assert!(uuid_to_sender_map.insert(channel_id, sender).is_none());
+            assert!(uuid_to_sender_map.insert(channel_id, sender).is_none());
         }
 
         // if any, remove nonexistent subscriptions
         if !to_unsub.is_empty() {
             let mut positions = Vec::with_capacity(to_unsub.len());
-            for (channel, map) in event_channel_to_uuid_map.iter_mut() {
+            for (channel, map) in &mut event_channel_to_uuid_map {
                 for x in &to_unsub {
                     if let Some(pos) = map.iter().position(|n| n == x) {
                         positions.push((channel.clone(), pos));

@@ -2,6 +2,8 @@
 #![feature(type_alias_impl_trait)]
 #![feature(async_closure)]
 #![deny(unsafe_code)]
+#![allow(clippy::future_not_send)]
+#![allow(clippy::module_name_repetitions)]
 
 #[cfg(not(any(target_os = "linux", target_os = "bsd")))]
 compile_error!("the server of FerrisChat is only supported on Linux systems");
