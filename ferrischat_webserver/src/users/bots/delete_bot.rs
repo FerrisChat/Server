@@ -44,7 +44,7 @@ pub async fn delete_bot(req: HttpRequest, auth: crate::Authorization) -> impl Re
         Ok(r) => match r {
             Some(_) => HttpResponse::NoContent().finish(),
             None => HttpResponse::NotFound().json(NotFoundJson {
-                message: format!("Unknown user with id {}", user_id),
+                message: format!("Unknown bot with id {}", user_id),
             }),
         },
         Err(e) => HttpResponse::InternalServerError().json(InternalServerErrorJson {
