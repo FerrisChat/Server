@@ -28,7 +28,10 @@ async fn main() {
         .expect("unexpected missing config file path")
         .into();
     ferrischat_config::load_config(cfg_path);
-    env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
+
+    tracing_subscriber::fmt()
+        .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
+        .init();
 
     entrypoint().await;
 }
