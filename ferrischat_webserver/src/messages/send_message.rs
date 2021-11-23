@@ -85,6 +85,9 @@ pub async fn create_message(
                 guilds: None,
                 flags: UserFlags::from_bits_truncate(r.flags),
                 discriminator: r.discriminator,
+                pronouns: r
+                    .pronouns
+                    .and_then(ferrischat_common::types::Pronouns::from_i16),
             },
             Err(e) => {
                 return HttpResponse::InternalServerError().json(InternalServerErrorJson {

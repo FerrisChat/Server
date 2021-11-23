@@ -3,7 +3,6 @@ use ferrischat_common::types::{
     Channel, Guild, GuildFlags, InternalServerErrorJson, Member, NotFoundJson, User, UserFlags,
 };
 use num_traits::cast::ToPrimitive;
-use sqlx::Error;
 
 /// GET `/api/v0/users/{user_id}`
 pub async fn get_user(req: HttpRequest, auth: crate::Authorization) -> impl Responder {
@@ -122,7 +121,10 @@ pub async fn get_user(req: HttpRequest, auth: crate::Authorization) -> impl Resp
                                                                 avatar: None,
                                                                 guilds: None,
                                                                 discriminator: user.discriminator,
-                                                                flags: UserFlags::from_bits_truncate(user.flags)
+                                                                flags: UserFlags::from_bits_truncate(user.flags),
+                                                                pronouns: user
+                                                                    .pronouns
+                                                                    .and_then(ferrischat_common::types::Pronouns::from_i16),
                                                             }),
                                                             Err(e) => {
                                                                 return HttpResponse::InternalServerError().json(InternalServerErrorJson {
@@ -176,6 +178,9 @@ pub async fn get_user(req: HttpRequest, auth: crate::Authorization) -> impl Resp
                 },
                 discriminator: user.discriminator,
                 flags: UserFlags::from_bits_truncate(user.flags),
+                pronouns: user
+                    .pronouns
+                    .and_then(ferrischat_common::types::Pronouns::from_i16),
             }),
             None => HttpResponse::NotFound().json(NotFoundJson {
                 message: format!("Unknown user with id {}", user_id),

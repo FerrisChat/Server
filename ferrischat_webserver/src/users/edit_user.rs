@@ -24,6 +24,7 @@ pub async fn edit_user(
         email,
         password,
         avatar: _,
+        pronouns,
     } = user_info.0;
 
     let db = get_db_or_fail!();
@@ -36,15 +37,12 @@ pub async fn edit_user(
         )
         .execute(db)
         .await;
-        match resp {
-            Ok(_) => (),
-            Err(e) => {
-                return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                    reason: format!("DB returned an error: {}", e),
-                    is_bug: false,
-                    link: None,
-                })
-            }
+        if let Err(e) = resp {
+            return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                reason: format!("DB returned an error: {}", e),
+                is_bug: false,
+                link: None,
+            });
         }
     }
 
@@ -56,15 +54,12 @@ pub async fn edit_user(
         )
         .execute(db)
         .await;
-        match resp {
-            Ok(_) => (),
-            Err(e) => {
-                return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                    reason: format!("DB returned an error: {}", e),
-                    is_bug: false,
-                    link: None,
-                })
-            }
+        if let Err(e) = resp {
+            return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                reason: format!("DB returned an error: {}", e),
+                is_bug: false,
+                link: None,
+            });
         }
     }
 
@@ -111,15 +106,29 @@ pub async fn edit_user(
         )
         .execute(db)
         .await;
-        match resp {
-            Ok(_) => (),
-            Err(e) => {
-                return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                    reason: format!("DB returned an error: {}", e),
-                    is_bug: false,
-                    link: None,
-                })
-            }
+        if let Err(e) = resp {
+            return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                reason: format!("DB returned an error: {}", e),
+                is_bug: false,
+                link: None,
+            });
+        }
+    }
+
+    if let Some(pronouns) = pronouns {
+        let resp = sqlx::query!(
+            "UPDATE users SET pronouns = $1 WHERE id = $2",
+            pronouns as i16,
+            bigint_user_id
+        )
+        .execute(db)
+        .await;
+        if let Err(e) = resp {
+            return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                reason: format!("DB returned an error: {}", e),
+                is_bug: false,
+                link: None,
+            });
         }
     }
 
@@ -136,6 +145,9 @@ pub async fn edit_user(
                 guilds: None,
                 flags: UserFlags::from_bits_truncate(user.flags),
                 discriminator: user.discriminator,
+                pronouns: user
+                    .pronouns
+                    .and_then(ferrischat_common::types::Pronouns::from_i16),
             }),
             None => HttpResponse::NotFound().json(NotFoundJson {
                 message: format!("Unknown user with id {}", user_id),

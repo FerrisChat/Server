@@ -12,7 +12,7 @@ pub async fn get_message(req: HttpRequest, _: crate::Authorization) -> impl Resp
     let db = get_db_or_fail!();
 
     let resp = sqlx::query!(
-        "SELECT m.*, a.name AS author_name, a.flags AS author_flags, a.discriminator AS author_discriminator FROM messages m CROSS JOIN LATERAL (SELECT * FROM users WHERE id = m.author_id) AS a WHERE m.id = $1 AND m.channel_id = $2",
+        "SELECT m.*, a.name AS author_name, a.flags AS author_flags, a.discriminator AS author_discriminator, a.pronouns AS author_pronouns FROM messages m CROSS JOIN LATERAL (SELECT * FROM users WHERE id = m.author_id) AS a WHERE m.id = $1 AND m.channel_id = $2",
         bigint_message_id,
         bigint_channel_id,
     )
@@ -38,6 +38,9 @@ pub async fn get_message(req: HttpRequest, _: crate::Authorization) -> impl Resp
                         guilds: None,
                         flags: UserFlags::from_bits_truncate(m.author_flags),
                         discriminator: m.author_discriminator,
+                        pronouns: m
+                            .author_pronouns
+                            .and_then(ferrischat_common::types::Pronouns::from_i16),
                     }),
                     nonce: None,
                 })

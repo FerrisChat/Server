@@ -72,7 +72,7 @@ pub async fn get_guild(
     };
 
     let members = if params.members.unwrap_or(false) {
-        let resp = sqlx::query!("SELECT m.*, u.name AS name, u.flags AS flags, u.discriminator AS discriminator FROM members m CROSS JOIN LATERAL (SELECT * FROM users WHERE id = m.user_id) as u WHERE guild_id = $1", bigint_guild_id)
+        let resp = sqlx::query!("SELECT m.*, u.name AS name, u.flags AS flags, u.discriminator AS discriminator, u.pronouns AS pronouns FROM members m CROSS JOIN LATERAL (SELECT * FROM users WHERE id = m.user_id) as u WHERE guild_id = $1", bigint_guild_id)
             .fetch_all(db)
             .await;
         Some(match resp {
@@ -95,6 +95,9 @@ pub async fn get_guild(
                             guilds: None,
                             flags: UserFlags::from_bits_truncate(x.flags),
                             discriminator: x.discriminator,
+                            pronouns: x
+                                .pronouns
+                                .and_then(ferrischat_common::types::Pronouns::from_i16),
                         }),
                         guild_id: Some(guild_id),
                         guild: None,

@@ -76,6 +76,7 @@ pub async fn edit_bot(
             guilds: None,
             flags: UserFlags::from_bits_truncate(user.flags),
             discriminator: user.discriminator,
+            pronouns: None,
         }),
         Ok(None) => HttpResponse::NotFound().json(NotFoundJson {
             message: format!("Unknown bot with id {}", bot_id),
