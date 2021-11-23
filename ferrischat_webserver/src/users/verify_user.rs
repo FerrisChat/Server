@@ -28,19 +28,38 @@ pub async fn send_verification_email(auth: crate::Authorization) -> impl Respond
                 reason: format!("Database returned a error: {}", e),
                 is_bug: false,
                 link: None,
-            })
+            });
         }
     };
+    match sqlx::query!(
+        "SELECT verified FROM users WHERE id = $1",
+        u128_to_bigdecimal!(authorized_user)
+    )
+    .fetch_one(db)
+    .await
+    {
+        Ok(is_verified) => {
+            if is_verified.verified {
+                return HttpResponse::NotModified().json(NotFoundJson {
+                    message: "User is already verified!".to_string(),
+                });
+            }
+        }
+        Err(e) => {
+            return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                reason: format!("Database returned a error: {}", e),
+                is_bug: false,
+                link: None,
+            });
+        }
+    };
+
     // Makes a call to the email checker to avoid sending to completely fake emails
-    // TODO check if the user is verified already and send 304 Not Modified if they are
     let mut checker_input = CheckEmailInput::new(vec![user_email.clone()]);
     checker_input.set_smtp_timeout(Duration::new(5, 0));
     let checked_email = check_email(&checker_input).await;
     if checked_email[0].syntax.is_valid_syntax {
-        if checked_email[0].is_reachable == Reachable::Safe
-            || checked_email[0].is_reachable == Reachable::Risky
-            || checked_email[0].is_reachable == Reachable::Unknown
-        {
+        if checked_email[0].is_reachable != Reachable::Invalid {
             // Get configurations, they're set in redis for speed reasons. Set them with redis-cli `set config:email:<setting> <value>`
             let mut redis = REDIS_MANAGER
                 .get()
@@ -57,7 +76,7 @@ pub async fn send_verification_email(auth: crate::Authorization) -> impl Respond
                         reason: "No SMTP server host set.".to_string(),
                         is_bug: false,
                         link: None,
-                    })
+                    });
                 }
             };
             let username = match redis
@@ -71,7 +90,7 @@ pub async fn send_verification_email(auth: crate::Authorization) -> impl Respond
                         reason: "No SMTP server username set.".to_string(),
                         is_bug: false,
                         link: None,
-                    })
+                    });
                 }
             };
             let password = match redis
@@ -85,7 +104,7 @@ pub async fn send_verification_email(auth: crate::Authorization) -> impl Respond
                         reason: "No SMTP server password set.".to_string(),
                         is_bug: false,
                         link: None,
-                    })
+                    });
                 }
             };
             // This generates a random string that can be used to verify that the request is actually from the email owner
@@ -100,7 +119,7 @@ pub async fn send_verification_email(auth: crate::Authorization) -> impl Respond
                         labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+failed+to+generate+random+bits+for+token+generation"
                                 .to_string(),
                         ),
-                    })
+                    });
                 }
             };
             // Default email.
@@ -121,37 +140,40 @@ pub async fn send_verification_email(auth: crate::Authorization) -> impl Respond
                 Err(e) => {
                     return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                         reason: format!(
-                        "This should not have happened. Submit a bug report with the error `{}`",
-                        e
-                    ),
+                            "This should not have happened. Submit a bug report with the error `{}`",
+                            e
+                        ),
                         is_bug: true,
                         link: Some(
-                            "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
+                            "https://github.com/FerrisChat/Server/issues/new?assignees=randomairborne&\
                         labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+failed+to+build+message"
                                 .to_string(),
                         ),
-                    })
+                    });
                 }
             };
             // simply gets credentials for the SMTP server
             let mail_creds = Credentials::new(username.to_string(), password.to_string());
 
             // Open a remote, asynchronous connection to the mailserver
-            let mailer: AsyncSmtpTransport<Tokio1Executor> =
-                match AsyncSmtpTransport::<Tokio1Executor>::starttls_relay(host.as_str()) {
-                    Ok(m) => m.credentials(mail_creds).build(),
-                    Err(e) => {
-                        return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                            reason: format!(
-                                "Error creating SMTP transport! Contact the administrator of this node and \
+            let mailer: AsyncSmtpTransport<Tokio1Executor> = match AsyncSmtpTransport::<
+                Tokio1Executor,
+            >::starttls_relay(
+                host.as_str()
+            ) {
+                Ok(m) => m.credentials(mail_creds).build(),
+                Err(e) => {
+                    return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                        reason: format!(
+                            "Error creating SMTP transport! Contact the administrator of this node and \
                                 let them know you got an error while creating the SMTP transport: `{}`",
-                                e
-                            ),
-                            is_bug: false,
-                            link: None,
-                        })
-                    }
-                };
+                            e
+                        ),
+                        is_bug: false,
+                        link: None,
+                    });
+                }
+            };
 
             // Send the email
             if let Err(e) = mailer.send(message).await {
@@ -195,6 +217,7 @@ pub async fn send_verification_email(auth: crate::Authorization) -> impl Respond
         })
     }
 }
+
 /// GET /v0/verify/{token}
 /// Verifies the user's email when they click the link mailed to them.
 pub async fn verify_email(path: web::Path<String>) -> impl Responder {
