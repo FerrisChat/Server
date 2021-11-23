@@ -244,6 +244,9 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
                                     guilds: None,
                                     flags: UserFlags::from_bits_truncate(u.flags),
                                     discriminator: u.discriminator,
+                                    pronouns: u
+                                        .pronouns
+                                        .and_then(ferrischat_common::types::Pronouns::from_i16),
                                 }),
                                 None => None,
                             },

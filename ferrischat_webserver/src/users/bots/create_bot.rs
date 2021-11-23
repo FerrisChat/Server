@@ -135,6 +135,7 @@ pub async fn create_bot(
             guilds: None,
             flags: UserFlags::BOT_ACCOUNT,
             discriminator: user_discrim,
+            pronouns: None,
         }),
         Err(e) => HttpResponse::InternalServerError().json(InternalServerErrorJson {
             reason: format!("DB returned a error: {}", e),

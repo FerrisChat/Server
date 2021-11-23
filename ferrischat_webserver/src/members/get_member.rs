@@ -37,6 +37,9 @@ pub async fn get_member(req: HttpRequest) -> impl Responder {
                                 discriminator: u.discriminator,
                                 flags: UserFlags::from_bits_truncate(u.flags),
                                 guilds: None,
+                                pronouns: u
+                                    .pronouns
+                                    .and_then(ferrischat_common::types::Pronouns::from_i16),
                             }),
                             None => None,
                         };

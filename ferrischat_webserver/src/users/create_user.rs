@@ -17,6 +17,7 @@ pub async fn create_user(user_data: Json<UserCreateJson>) -> impl Responder {
         username,
         email,
         password,
+        pronouns,
     } = user_data.0;
     // Gets a descriminator for the user
     let user_discrim = {
@@ -89,16 +90,18 @@ pub async fn create_user(user_data: Json<UserCreateJson>) -> impl Responder {
         }
     };
 
+    let db_pronouns = pronouns.map(|p| p as i16);
     let bigint_user_id = u128_to_bigdecimal!(user_id);
     // tell the database about our new user
     match sqlx::query!(
-        "INSERT INTO users VALUES ($1, $2, $3, $4, $5, $6)",
+        "INSERT INTO users VALUES ($1, $2, $3, $4, $5, $6, false, $7)",
         bigint_user_id,
         username,
         0,
         email,
         hashed_password,
         user_discrim,
+        db_pronouns,
     )
     .execute(db)
     .await
@@ -110,6 +113,7 @@ pub async fn create_user(user_data: Json<UserCreateJson>) -> impl Responder {
             guilds: None,
             flags: UserFlags::empty(),
             discriminator: user_discrim,
+            pronouns,
         }),
         Err(e) => match e {
             sqlx::Error::Database(e) => {

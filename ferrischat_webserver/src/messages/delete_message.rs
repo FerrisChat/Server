@@ -37,7 +37,7 @@ pub async fn delete_message(req: HttpRequest, _: crate::Authorization) -> impl R
 
     let message = {
         let resp = sqlx::query!(
-            "SELECT m.*, a.name AS author_name, a.flags AS author_flags, a.discriminator AS author_discriminator FROM messages m CROSS JOIN LATERAL (SELECT * FROM users WHERE id = m.author_id) AS a WHERE m.id = $1 AND m.channel_id = $2",
+            "SELECT m.*, a.name AS author_name, a.flags AS author_flags, a.discriminator AS author_discriminator, a.pronouns AS author_pronouns FROM messages m CROSS JOIN LATERAL (SELECT * FROM users WHERE id = m.author_id) AS a WHERE m.id = $1 AND m.channel_id = $2",
             bigint_message_id,
             bigint_channel_id,
         )
@@ -79,6 +79,9 @@ pub async fn delete_message(req: HttpRequest, _: crate::Authorization) -> impl R
             guilds: None,
             flags: UserFlags::from_bits_truncate(message.author_flags),
             discriminator: message.author_discriminator,
+            pronouns: message
+                .author_pronouns
+                .and_then(ferrischat_common::types::Pronouns::from_i16),
         }),
         nonce: None,
     };

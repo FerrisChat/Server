@@ -41,7 +41,7 @@ pub async fn get_message_history(
     let messages = {
         if oldest_first == Some(true) {
             let resp = sqlx::query!(
-                "SELECT m.*, a.name AS author_name, a.flags AS author_flags, a.discriminator AS author_discriminator FROM messages m CROSS JOIN LATERAL (SELECT * FROM users WHERE id = m.author_id) as a WHERE channel_id = $1 ORDER BY id ASC LIMIT $2 OFFSET $3",
+                "SELECT m.*, a.name AS author_name, a.flags AS author_flags, a.discriminator AS author_discriminator, a.pronouns AS author_pronouns FROM messages m CROSS JOIN LATERAL (SELECT * FROM users WHERE id = m.author_id) as a WHERE channel_id = $1 ORDER BY id ASC LIMIT $2 OFFSET $3",
                 bigint_channel_id,
                 limit,
                 offset,
@@ -79,6 +79,9 @@ pub async fn get_message_history(
                                 guilds: None,
                                 flags: UserFlags::from_bits_truncate(x.author_flags),
                                 discriminator: x.author_discriminator,
+                                pronouns: x
+                                    .author_pronouns
+                                    .and_then(ferrischat_common::types::Pronouns::from_i16),
                             }),
                             edited_at: x.edited_at,
                             embeds: vec![],
@@ -96,7 +99,7 @@ pub async fn get_message_history(
             }
         } else {
             let resp = sqlx::query!(
-                "SELECT m.*, a.name AS author_name, a.flags AS author_flags, a.discriminator AS author_discriminator FROM messages m CROSS JOIN LATERAL (SELECT * FROM users WHERE id = m.author_id) as a WHERE channel_id = $1 ORDER BY id DESC LIMIT $2 OFFSET $3",
+                "SELECT m.*, a.name AS author_name, a.flags AS author_flags, a.discriminator AS author_discriminator, a.pronouns AS author_pronouns FROM messages m CROSS JOIN LATERAL (SELECT * FROM users WHERE id = m.author_id) as a WHERE channel_id = $1 ORDER BY id DESC LIMIT $2 OFFSET $3",
                 bigint_channel_id,
                 limit,
                 offset,
@@ -135,6 +138,9 @@ pub async fn get_message_history(
                                 guilds: None,
                                 flags: UserFlags::from_bits_truncate(x.author_flags),
                                 discriminator: x.author_discriminator,
+                                pronouns: x
+                                    .author_pronouns
+                                    .and_then(ferrischat_common::types::Pronouns::from_i16),
                             }),
                             nonce: None,
                         })

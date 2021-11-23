@@ -40,8 +40,11 @@ pub async fn init_ws_server() {
         Result(std::io::Result<tokio::net::UnixStream>),
     }
 
-    let listener = tokio::net::UnixListener::bind("/etc/ferrischat/cotton.sock")
-        .expect("failed to bind to cotton.sock");
+    let listener = tokio::net::UnixListener::bind(format!(
+        "{}/websocket.sock",
+        std::env::var("FERRISCHAT_HOME").unwrap_or("/etc/ferrischat/".to_string())
+    ))
+    .expect("failed to bind to socket!");
 
     let (end_tx, mut end_rx) = channel();
 

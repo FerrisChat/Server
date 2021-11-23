@@ -22,9 +22,7 @@ pub async fn delete_user(req: HttpRequest, auth: crate::Authorization) -> impl R
 
     match resp {
         Ok(r) => match r {
-            Some(_) => HttpResponse::Ok().json(NotFoundJson {
-                message: "Deleted user".to_string(),
-            }),
+            Some(_) => HttpResponse::NoContent().finish(),
             None => HttpResponse::NotFound().json(NotFoundJson {
                 message: format!("Unknown user with id {}", user_id),
             }),
