@@ -222,8 +222,11 @@ pub async fn entrypoint() {
     })
     .max_connections(250_000)
     .max_connection_rate(8192)
-    .bind_uds("/etc/ferrischat/knit.sock")
-    .expect("failed to bind to knit sock!")
+    .bind_uds(format!(
+        "{}/webserver.sock",
+        std::env::var("FERRISCHAT_HOME").unwrap_or("/etc/ferrischat/".to_string())
+    ))
+    .expect("failed to bind to unix socket!")
     .run()
     .await
     .expect("failed to run server");
