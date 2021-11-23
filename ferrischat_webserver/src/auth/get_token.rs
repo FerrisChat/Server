@@ -1,7 +1,7 @@
 use crate::auth::token_gen::generate_random_bits;
 use actix_web::{HttpRequest, HttpResponse, Responder};
 use ferrischat_common::types::{
-    AuthResponse, BadRequestJson, BadRequestJsonLocation, InternalServerErrorJson, NotFoundJson,
+    AuthResponse, BadRequestJson, BadRequestJsonLocation, InternalServerErrorJson,
 };
 use tokio::sync::oneshot::channel;
 
@@ -107,14 +107,12 @@ pub async fn get_token(req: HttpRequest) -> impl Responder {
                 }
             };
             if !(matches && (user_email == r.email)) {
-                return HttpResponse::Unauthorized().finish();
+                return HttpResponse::NotFound().finish();
             }
             r.id
         }
         Ok(None) => {
-            return HttpResponse::NotFound().json(NotFoundJson {
-                message: format!("Unknown user with email {}", user_email),
-            })
+            return HttpResponse::NotFound().finish();
         }
         Err(e) => {
             return HttpResponse::InternalServerError().json(InternalServerErrorJson {
