@@ -229,7 +229,7 @@ pub async fn entrypoint() {
     .max_connection_rate(8192)
     .bind_uds(format!(
         "{}/webserver.sock",
-        std::env::var("FERRISCHAT_HOME").unwrap_or("/etc/ferrischat/".to_string())
+        std::env::var("FERRISCHAT_HOME").unwrap_or_else(|_| "/etc/ferrischat/".to_string())
     ))
     .expect("failed to bind to unix socket!")
     .run()
