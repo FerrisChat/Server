@@ -47,5 +47,5 @@ pub async fn get_bots_by_user(auth: crate::Authorization) -> impl Responder {
             is_bug: false,
             link: None,
         }),
-    };
+    }
 }
