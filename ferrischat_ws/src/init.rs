@@ -42,7 +42,7 @@ pub async fn init_ws_server() {
 
     let listener = tokio::net::UnixListener::bind(format!(
         "{}/websocket.sock",
-        std::env::var("FERRISCHAT_HOME").unwrap_or("/etc/ferrischat/".to_string())
+        std::env::var("FERRISCHAT_HOME").unwrap_or_else(|_| "/etc/ferrischat/".to_string())
     ))
     .expect("failed to bind to socket!");
 

@@ -159,6 +159,11 @@ pub async fn entrypoint() {
                 expand_version!("users/{user_id}/bots"),
                 web::post().to(create_bot),
             )
+            // GET /users/{user_id}/bots
+            .route(
+                expand_version!("users/{user_id}/bots"),
+                web::get().to(get_bots_by_user),
+            )
             // PATCH /users/{user_id}/bots/{bot_id}
             .route(
                 expand_version!("users/{user_id}/bots/{bot_id}"),
@@ -224,7 +229,7 @@ pub async fn entrypoint() {
     .max_connection_rate(8192)
     .bind_uds(format!(
         "{}/webserver.sock",
-        std::env::var("FERRISCHAT_HOME").unwrap_or("/etc/ferrischat/".to_string())
+        std::env::var("FERRISCHAT_HOME").unwrap_or_else(|_| "/etc/ferrischat/".to_string())
     ))
     .expect("failed to bind to unix socket!")
     .run()

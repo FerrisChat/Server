@@ -59,59 +59,63 @@ pub async fn send_verification_email(auth: crate::Authorization) -> impl Respond
     checker_input.set_smtp_timeout(Duration::new(5, 0));
     let checked_email = check_email(&checker_input).await;
     if checked_email[0].syntax.is_valid_syntax {
-        if checked_email[0].is_reachable != Reachable::Invalid {
-            // Get configurations, they're set in redis for speed reasons. Set them with redis-cli `set config:email:<setting> <value>`
-            let mut redis = REDIS_MANAGER
-                .get()
-                .expect("redis not initialized: call load_redis before this")
-                .clone();
-            let host = match redis
-                // FQDN of the SMTP server
-                .get::<String, String>("config:email:host".to_string())
-                .await
-            {
-                Ok(r) => r,
-                Err(_) => {
-                    return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                        reason: "No SMTP server host set.".to_string(),
-                        is_bug: false,
-                        link: None,
-                    });
-                }
-            };
-            let username = match redis
-                // FULL SMTP username, e.g. `verification@ferris.chat`
-                .get::<String, String>("config:email:username".to_string())
-                .await
-            {
-                Ok(r) => r,
-                Err(_) => {
-                    return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                        reason: "No SMTP server username set.".to_string(),
-                        is_bug: false,
-                        link: None,
-                    });
-                }
-            };
-            let password = match redis
-                // SMTP password
-                .get::<String, String>("config:email:password".to_string())
-                .await
-            {
-                Ok(r) => r,
-                Err(_) => {
-                    return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                        reason: "No SMTP server password set.".to_string(),
-                        is_bug: false,
-                        link: None,
-                    });
-                }
-            };
-            // This generates a random string that can be used to verify that the request is actually from the email owner
-            let token = match crate::auth::generate_random_bits() {
-                Some(b) => base64::encode_config(b, base64::URL_SAFE),
-                None => {
-                    return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+        if checked_email[0].is_reachable == Reachable::Invalid {
+            return HttpResponse::Conflict().json(Json {
+                message: "Email deemed unsafe to send to. Is it a real email?".to_string(),
+            });
+        }
+        // Get configurations, they're set in redis for speed reasons. Set them with redis-cli `set config:email:<setting> <value>`
+        let mut redis = REDIS_MANAGER
+            .get()
+            .expect("redis not initialized: call load_redis before this")
+            .clone();
+        let host = match redis
+            // FQDN of the SMTP server
+            .get::<String, String>("config:email:host".to_string())
+            .await
+        {
+            Ok(r) => r,
+            Err(_) => {
+                return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                    reason: "No SMTP server host set.".to_string(),
+                    is_bug: false,
+                    link: None,
+                });
+            }
+        };
+        let username = match redis
+            // FULL SMTP username, e.g. `verification@ferris.chat`
+            .get::<String, String>("config:email:username".to_string())
+            .await
+        {
+            Ok(r) => r,
+            Err(_) => {
+                return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                    reason: "No SMTP server username set.".to_string(),
+                    is_bug: false,
+                    link: None,
+                });
+            }
+        };
+        let password = match redis
+            // SMTP password
+            .get::<String, String>("config:email:password".to_string())
+            .await
+        {
+            Ok(r) => r,
+            Err(_) => {
+                return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                    reason: "No SMTP server password set.".to_string(),
+                    is_bug: false,
+                    link: None,
+                });
+            }
+        };
+        // This generates a random string that can be used to verify that the request is actually from the email owner
+        let token = match crate::auth::generate_random_bits() {
+            Some(b) => base64::encode_config(b, base64::URL_SAFE),
+            None => {
+                return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                         reason: "failed to generate random bits for token generation".to_string(),
                         is_bug: true,
                         link: Some(
@@ -120,25 +124,25 @@ pub async fn send_verification_email(auth: crate::Authorization) -> impl Respond
                                 .to_string(),
                         ),
                     });
-                }
-            };
-            // Default email.
-            // TODO HTML rather then plaintext
-            // Also encodes the email to be URL-safe, however some work is needed on it still
-            let default_email = format!(
-                "Click here to verify your email: https://api.ferris.chat/v0/verify/{}",
-                urlencoding::encode(token.as_str()).into_owned()
-            );
-            // Builds the message with a hardcoded subject and sender full name
-            let message = match Message::builder()
-                .from(format!("Ferris <{}>", username).parse().unwrap())
-                .to(user_email.parse().unwrap())
-                .subject("FerrisChat Email Verification")
-                .body(default_email)
-            {
-                Ok(m) => m,
-                Err(e) => {
-                    return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+            }
+        };
+        // Default email.
+        // TODO HTML rather then plaintext
+        // Also encodes the email to be URL-safe, however some work is needed on it still
+        let default_email = format!(
+            "Click here to verify your email: https://api.ferris.chat/v0/verify/{}",
+            urlencoding::encode(token.as_str()).into_owned()
+        );
+        // Builds the message with a hardcoded subject and sender full name
+        let message = match Message::builder()
+            .from(format!("Ferris <{}>", username).parse().unwrap())
+            .to(user_email.parse().unwrap())
+            .subject("FerrisChat Email Verification")
+            .body(default_email)
+        {
+            Ok(m) => m,
+            Err(e) => {
+                return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                         reason: format!(
                             "This should not have happened. Submit a bug report with the error `{}`",
                             e
@@ -150,17 +154,14 @@ pub async fn send_verification_email(auth: crate::Authorization) -> impl Respond
                                 .to_string(),
                         ),
                     });
-                }
-            };
-            // simply gets credentials for the SMTP server
-            let mail_creds = Credentials::new(username.to_string(), password.to_string());
+            }
+        };
+        // simply gets credentials for the SMTP server
+        let mail_creds = Credentials::new(username.to_string(), password.to_string());
 
-            // Open a remote, asynchronous connection to the mailserver
-            let mailer: AsyncSmtpTransport<Tokio1Executor> = match AsyncSmtpTransport::<
-                Tokio1Executor,
-            >::starttls_relay(
-                host.as_str()
-            ) {
+        // Open a remote, asynchronous connection to the mailserver
+        let mailer: AsyncSmtpTransport<Tokio1Executor> =
+            match AsyncSmtpTransport::<Tokio1Executor>::starttls_relay(host.as_str()) {
                 Ok(m) => m.credentials(mail_creds).build(),
                 Err(e) => {
                     return HttpResponse::InternalServerError().json(InternalServerErrorJson {
@@ -175,42 +176,33 @@ pub async fn send_verification_email(auth: crate::Authorization) -> impl Respond
                 }
             };
 
-            // Send the email
-            if let Err(e) = mailer.send(message).await {
-                return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                    reason: format!(
-                        "Mailer failed to send correctly! Contact the administrator of this node and \
+        // Send the email
+        if let Err(e) = mailer.send(message).await {
+            return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                reason: format!(
+                    "Mailer failed to send correctly! Contact the administrator of this node and \
                         let them know you got an error while sending the verification email: `{}`",
-                        e
-                    ),
-                    is_bug: false,
-                    link: None,
-                });
-            }
-            // writes the token to redis.
-            // The reason we use the token as the key rather then the value is so we can check against it more easily later, when it's part of the URL.
-            if let Err(e) = redis
-                .set_ex::<String, String, String>(
-                    format!("email:tokens:{}", token),
-                    user_email,
-                    86400,
-                )
-                .await
-            {
-                return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                    reason: format!("Redis returned a error: {}", e),
-                    is_bug: false,
-                    link: None,
-                });
-            }
-            HttpResponse::Ok().json(Json {
-                message: "Sent verification, please check your email.".to_string(),
-            })
-        } else {
-            HttpResponse::Conflict().json(Json {
-                message: "Email deemed unsafe to send to. Is it a real email?".to_string(),
-            })
+                    e
+                ),
+                is_bug: false,
+                link: None,
+            });
         }
+        // writes the token to redis.
+        // The reason we use the token as the key rather then the value is so we can check against it more easily later, when it's part of the URL.
+        if let Err(e) = redis
+            .set_ex::<String, String, String>(format!("email:tokens:{}", token), user_email, 86400)
+            .await
+        {
+            return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                reason: format!("Redis returned a error: {}", e),
+                is_bug: false,
+                link: None,
+            });
+        }
+        HttpResponse::Ok().json(Json {
+            message: "Sent verification, please check your email.".to_string(),
+        })
     } else {
         HttpResponse::Conflict().json(Json {
             message: format!("Email {} is invalid.", user_email),
