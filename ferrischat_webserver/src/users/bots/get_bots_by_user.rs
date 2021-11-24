@@ -11,7 +11,7 @@ pub async fn get_bots_by_user(auth: crate::Authorization) -> impl Responder {
     let resp = sqlx::query!("SELECT * FROM bots WHERE owner_id = $1", bigint_user_id)
         .fetch_all(db)
         .await;
-    return match resp {
+    match resp {
         Ok(resp) => {
             let mut bots = Vec::with_capacity(resp.len());
             for x in resp {
