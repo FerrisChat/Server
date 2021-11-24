@@ -1,7 +1,7 @@
 use actix_web::{HttpRequest, HttpResponse, Responder};
 
 use ferrischat_common::types::{
-    BotsOwnedByUser, InternalServerErrorJson, NotFoundJson, User, UserFlags,
+    BotsOwnedByUser, InternalServerErrorJson, User, UserFlags,
 };
 
 /// GET `/api/v0/users/{user_id}/bots`
@@ -31,6 +31,7 @@ pub async fn get_bots_by_user(req: HttpRequest, auth: crate::Authorization) -> i
                         guilds: None,
                         discriminator: resp.discriminator,
                         flags: UserFlags::from_bits_truncate(resp.flags),
+                        pronouns: None,
                     },
                     Err(e) => {
                         return HttpResponse::InternalServerError().json(InternalServerErrorJson {
