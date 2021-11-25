@@ -3,7 +3,8 @@ use ferrischat_common::ws::WsOutboundEvent;
 
 use actix_web::{HttpRequest, HttpResponse, Responder};
 use ferrischat_common::types::{
-    BadRequestJson, InternalServerErrorJson, Invite, Json, Member, NotFoundJson, User, UserFlags,
+    BadRequestJson, Guild, GuildFlags, InternalServerErrorJson, Invite, Json, Member, NotFoundJson,
+    User, UserFlags,
 };
 use sqlx::types::time::OffsetDateTime;
 
@@ -310,6 +311,31 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
         }
     };
 
+    let guild_obj = match sqlx::query!(
+        "SELECT owner_id, name, flags FROM guilds WHERE id = $1",
+        invite.guild_id
+    )
+    .fetch_one()
+    .await
+    {
+        Ok(x) => Guild {
+            id: guild_id,
+            owner_id: bigdecimal_to_u128!(x),
+            name: name.clone(),
+            channels: None,
+            members: None,
+            roles: None,
+            flags: GuildFlags::from_bits_truncate(x.flags),
+        },
+        Err(e) => {
+            return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                reason: format!("DB returned an error: {}", e),
+                is_bug: false,
+                link: None,
+            })
+        }
+    };
+
     let event = WsOutboundEvent::MemberCreate { member: member_obj };
 
     if let Err(e) = fire_event(format!("member_{}", guild_id), &event).await {
@@ -332,5 +358,5 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
         });
     }
 
-    HttpResponse::Created().finish()
+    HttpResponse::Created().json(guild_obj)
 }
