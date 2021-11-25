@@ -321,7 +321,7 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
         Ok(x) => Guild {
             id: guild_id,
             owner_id: bigdecimal_to_u128!(x),
-            name: name.clone(),
+            name: x.name.clone(),
             channels: None,
             members: None,
             roles: None,
