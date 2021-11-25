@@ -106,6 +106,9 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
                                                 e
                                             )
                                         }
+                                        WsEventError::PoolError(e) => {
+                                            format!("`deadpool` returned an error: {}", e)
+                                        }
                                     };
                                     HttpResponse::InternalServerError()
                                         .json(InternalServerErrorJson {
@@ -167,6 +170,9 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
                                                 "Failed to serialize message to JSON format: {}",
                                                 e
                                             )
+                                        }
+                                        WsEventError::PoolError(e) => {
+                                            format!("`deadpool` returned an error: {}", e)
                                         }
                                     };
                                     HttpResponse::InternalServerError()
@@ -313,6 +319,7 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
             WsEventError::JsonError(e) => {
                 format!("Failed to serialize message to JSON format: {}", e)
             }
+            WsEventError::PoolError(e) => format!("`deadpool` returned an error: {}", e),
         };
         return HttpResponse::InternalServerError().json(InternalServerErrorJson {
             reason,

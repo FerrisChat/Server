@@ -1,12 +1,11 @@
 use actix_web::{web, HttpResponse, Responder};
 use check_if_email_exists::{check_email, CheckEmailInput, Reachable};
 use ferrischat_common::types::{InternalServerErrorJson, Json, NotFoundJson};
+use ferrischat_redis::{redis::AsyncCommands, REDIS_MANAGER};
 use lettre::{
     transport::smtp::authentication::Credentials, AsyncSmtpTransport, AsyncTransport, Message,
     Tokio1Executor,
 };
-
-use ferrischat_redis::{redis::AsyncCommands, REDIS_MANAGER};
 use tokio::time::Duration;
 
 /// POST /v0/verify
@@ -65,10 +64,21 @@ pub async fn send_verification_email(auth: crate::Authorization) -> impl Respond
             });
         }
         // Get configurations, they're set in redis for speed reasons. Set them with redis-cli `set config:email:<setting> <value>`
-        let mut redis = REDIS_MANAGER
+        let mut redis = match REDIS_MANAGER
             .get()
             .expect("redis not initialized: call load_redis before this")
-            .clone();
+            .get()
+            .await
+        {
+            Ok(p) => p,
+            Err(e) => {
+                return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                    reason: format!("`deadpool` returned an error: {}", e),
+                    is_bug: false,
+                    link: None,
+                })
+            }
+        };
         let host = match redis
             // FQDN of the SMTP server
             .get::<String, String>("config:email:host".to_string())
@@ -217,10 +227,21 @@ pub async fn verify_email(path: web::Path<String>) -> impl Responder {
     let token = path.into_inner();
     let redis_key = format!("email:tokens:{}", token);
 
-    let mut redis = REDIS_MANAGER
+    let mut redis = match REDIS_MANAGER
         .get()
         .expect("redis not initialized: call load_redis before this")
-        .clone();
+        .get()
+        .await
+    {
+        Ok(p) => p,
+        Err(e) => {
+            return HttpResponse::InternalServerError().json(InternalServerErrorJson {
+                reason: format!("`deadpool` returned an error: {}", e),
+                is_bug: false,
+                link: None,
+            })
+        }
+    };
     // r/askredis
     let email = match redis.get::<String, Option<String>>(redis_key.clone()).await {
         Ok(Some(email)) => {

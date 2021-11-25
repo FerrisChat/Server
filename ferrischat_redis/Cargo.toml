@@ -17,6 +17,8 @@ include = [
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+deadpool = { version = "0.9", features = ["rt_tokio_1", "serde"] }
+deadpool-redis = { version = "0.10", features = ["serde"] }
 redis = { version = "0.21", features = ["aio", "tokio", "tokio-comp", "connection-manager"] }
 rand = "0.8"
 base64 = "0.13"

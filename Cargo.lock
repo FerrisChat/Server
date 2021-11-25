@@ -28,7 +28,7 @@ dependencies = [
 [[package]]
 name = "actix-codec"
 version = "0.4.1"
-source = "git+https://github.com/actix/actix-net#a2437eed29fe98dcd9fd21d080c8cc3d791d0e11"
+source = "git+https://github.com/actix/actix-net#18eced7305cda1d340691580dedd817175f0425d"
 dependencies = [
  "bitflags",
  "bytes",
@@ -44,7 +44,7 @@ dependencies = [
 [[package]]
 name = "actix-http"
 version = "3.0.0-beta.13"
-source = "git+https://github.com/actix/actix-web/#9bdd334bb4687170351d6bfcbbde756eaeaffa0a"
+source = "git+https://github.com/actix/actix-web/#89c6d626569af3ca1deb22be64f111d121389476"
 dependencies = [
  "actix-codec",
  "actix-rt",
@@ -156,7 +156,7 @@ dependencies = [
 [[package]]
 name = "actix-web"
 version = "4.0.0-beta.12"
-source = "git+https://github.com/actix/actix-web/#9bdd334bb4687170351d6bfcbbde756eaeaffa0a"
+source = "git+https://github.com/actix/actix-web/#89c6d626569af3ca1deb22be64f111d121389476"
 dependencies = [
  "actix-codec",
  "actix-http",
@@ -196,7 +196,7 @@ dependencies = [
 [[package]]
 name = "actix-web-actors"
 version = "4.0.0-beta.7"
-source = "git+https://github.com/actix/actix-web/#9bdd334bb4687170351d6bfcbbde756eaeaffa0a"
+source = "git+https://github.com/actix/actix-web/#89c6d626569af3ca1deb22be64f111d121389476"
 dependencies = [
  "actix",
  "actix-codec",
@@ -990,6 +990,39 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3ee2393c4a91429dffb4bedf19f4d6abf27d8a732c8ce4980305d782e5426d57"
 
 [[package]]
+name = "deadpool"
+version = "0.9.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3bf0c5365c0925c80a838a6810a1bf38d3304ca6b4eb25829e29e33da12de786"
+dependencies = [
+ "async-trait",
+ "deadpool-runtime",
+ "num_cpus",
+ "serde",
+ "tokio",
+]
+
+[[package]]
+name = "deadpool-redis"
+version = "0.10.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1684b82a86e4777d846836ed667fede4ce02da8877071ce2a7787dc42c0a1c92"
+dependencies = [
+ "deadpool",
+ "redis",
+ "serde",
+]
+
+[[package]]
+name = "deadpool-runtime"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "eaa37046cc0f6c3cc6090fbdbf73ef0b8ef4cfcc37f6befc0020f63e8cf121e1"
+dependencies = [
+ "tokio",
+]
+
+[[package]]
 name = "derive_more"
 version = "0.99.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1216,6 +1249,8 @@ name = "ferrischat_redis"
 version = "0.1.0"
 dependencies = [
  "base64 0.13.0",
+ "deadpool",
+ "deadpool-redis",
  "ferrischat_config",
  "rand 0.8.4",
  "redis",
@@ -3235,9 +3270,9 @@ checksum = "6bdef32e8150c2a081110b42772ffe7d7c9032b606bc226c8260fd97e0976601"
 
 [[package]]
 name = "syn"
-version = "1.0.81"
+version = "1.0.82"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f2afee18b8beb5a596ecb4a2dce128c719b4ba399d34126b9e4396e3f9860966"
+checksum = "8daf5dd0bb60cbd4137b1b587d2fc0ae729bc07cf01cd70b36a1ed5ade3b9d59"
 dependencies = [
  "proc-macro2 1.0.32",
  "quote 1.0.10",
@@ -3963,9 +3998,9 @@ dependencies = [
 
 [[package]]
 name = "whoami"
-version = "1.2.0"
+version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c33ac5ee236a4efbf2c98967e12c6cc0c51d93a744159a52957ba206ae6ef5f7"
+checksum = "524b58fa5a20a2fb3014dd6358b70e6579692a56ef6fce928834e488f42f65e8"
 dependencies = [
  "wasm-bindgen",
  "web-sys",

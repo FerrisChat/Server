@@ -34,12 +34,11 @@ pub async fn create_invite(
         .await;
 
         match resp {
-            Ok(resp) => match resp {
-                Some(_) => (),
-                None => {
+            Ok(resp) => {
+                if resp.is_none() {
                     return HttpResponse::Forbidden().finish();
                 }
-            },
+            }
             Err(e) => {
                 return HttpResponse::InternalServerError().json(InternalServerErrorJson {
                     reason: format!("DB returned an error: {}", e),
@@ -95,6 +94,7 @@ pub async fn create_invite(
             WsEventError::JsonError(e) => {
                 format!("Failed to serialize message to JSON format: {}", e)
             }
+            WsEventError::PoolError(e) => format!("`deadpool` returned an error: {}", e),
         };
         return HttpResponse::InternalServerError().json(InternalServerErrorJson {
             reason,

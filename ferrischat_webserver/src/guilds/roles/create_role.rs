@@ -77,6 +77,7 @@ pub async fn create_role(
             WsEventError::JsonError(e) => {
                 format!("Failed to serialize message to JSON format: {}", e)
             }
+            WsEventError::PoolError(e) => format!("`deadpool` returned an error: {}", e),
         };
         return HttpResponse::InternalServerError().json(InternalServerErrorJson {
             reason,
