@@ -312,7 +312,7 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
     };
 
     let guild_obj = match sqlx::query!(
-        "SELECT owner_id, name, flags FROM guilds WHERE id = $1",
+        "SELECT owner_id, name FROM guilds WHERE id = $1",
         invite.guild_id
     )
     .fetch_one()
@@ -325,7 +325,7 @@ pub async fn use_invite(req: HttpRequest, auth: crate::Authorization) -> impl Re
             channels: None,
             members: None,
             roles: None,
-            flags: GuildFlags::from_bits_truncate(x.flags),
+            flags: GuildFlags::empty(),
         },
         Err(e) => {
             return HttpResponse::InternalServerError().json(InternalServerErrorJson {
