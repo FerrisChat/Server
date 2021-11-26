@@ -27,9 +27,7 @@ futures = "0.3"
 base64 = "0.13"
 tokio = { version = "1.11", features = ["full"] }
 futures-cpupool = "0.1"
-dotenv = "0.15"
 libc = "0.2"
-nix = { git = "https://github.com/nix-rust/nix" }
 http = "0.2"
 bytes = "*"
 tokio-tungstenite = "0.15"
