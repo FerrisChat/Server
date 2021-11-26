@@ -14,8 +14,10 @@ extern crate ferrischat_macros;
 mod auth;
 mod channels;
 mod entrypoint;
+mod errors;
 mod guilds;
 mod invites;
+mod json_response;
 mod members;
 mod messages;
 mod not_implemented;
@@ -27,4 +29,6 @@ pub static RNG_CORE: std::lazy::SyncOnceCell<ring::rand::SystemRandom> =
     std::lazy::SyncOnceCell::new();
 
 pub use entrypoint::*;
-pub use ferrischat_auth::Authorization;
+pub(crate) use errors::WebServerError;
+pub(crate) use ferrischat_auth::Authorization;
+pub(crate) use json_response::Json;
