@@ -36,6 +36,8 @@ async-trait = "0.1"
 http-body = "0.1"
 rand = "0.8.4"
 headers = "0.3.5"
+tokio-stream = { version = "0.1", features = ["net"] }
+hyper = "*"
 
 ferrischat_db = { path = "../ferrischat_db", version = "0.1" }
 ferrischat_common = { git = "https://github.com/FerrisChat/Common.git", version = "0.2", branch = "master" }

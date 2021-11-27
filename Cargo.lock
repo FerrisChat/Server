@@ -1288,6 +1288,7 @@ dependencies = [
  "headers",
  "http 0.2.5",
  "http-body 0.1.0",
+ "hyper",
  "lettre",
  "num-bigint",
  "num-traits",
@@ -1297,6 +1298,7 @@ dependencies = [
  "simd-json",
  "sqlx",
  "tokio",
+ "tokio-stream",
  "tokio-tungstenite",
  "urlencoding",
 ]

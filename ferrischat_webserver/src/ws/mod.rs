@@ -1,11 +1,15 @@
 mod info;
 
+pub use info::ws_info;
+
 use crate::WebServerError;
 use ferrischat_common::types::Json;
 use ferrischat_common::ws::WsOutboundEvent;
 use ferrischat_redis::deadpool_redis::PoolError;
 use ferrischat_redis::redis::{AsyncCommands, RedisError};
-pub use info::ws_info;
+
+use axum::routing::{delete, get, patch, post};
+use axum::Router;
 
 pub enum WsEventError {
     MissingRedis,
@@ -30,4 +34,10 @@ pub async fn fire_event(
         .await
         .map_err(|e| WebServerError::Redis(e))
         .map(|_| ())
+}
+
+pub fn generate_ws_route() -> axum::Router {
+    Router::new()
+        // GET    /ws/info
+        .route(expand_version!("ws/info"), get(ws_info))
 }
