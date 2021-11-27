@@ -180,15 +180,9 @@ pub async fn entrypoint() {
             delete(roles::remove_member_role),
         )
         .route(expand_version!("verify"), post(send_verification_email))
-        .route(expand_version!("verify/{token}"), get(verify_email))
-        .route(
-            expand_version!("teapot"),
-            get(async || HttpResponse::new(StatusCode::IM_A_TEAPOT)),
-        )
-        .route(
-            expand_version!("ping"),
-            get(async || HttpResponse::new(StatusCode::OK)),
-        );
+        .route(expand_version!("verify/:token"), get(verify_email))
+        .route(expand_version!("teapot"), get(async || (419, "")))
+        .route(expand_version!("ping"), get(async || (200, "")));
 
     let stream = tokio::net::UnixListener::bind(format!(
         "{}/webserver.sock",

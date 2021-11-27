@@ -1,21 +1,13 @@
 use axum::body::Full;
-use axum::extract::rejection::{
-    BodyAlreadyExtracted, HeadersAlreadyExtracted, InvalidJsonBody, JsonRejection,
-    MissingJsonContentType,
-};
-use axum::extract::{FromRequest, RequestParts};
 use axum::response::IntoResponse;
-use axum::BoxError;
 use bytes::Bytes;
 use http::{header, HeaderValue, Response, StatusCode};
-use serde::de::DeserializeOwned;
 use serde::Serialize;
-use std::collections::VecDeque;
 use std::convert::Infallible;
 
 pub struct Json<T: Serialize> {
-    obj: T,
-    code: u16,
+    pub obj: T,
+    pub code: u16,
 }
 
 impl<T> IntoResponse for Json<T>
