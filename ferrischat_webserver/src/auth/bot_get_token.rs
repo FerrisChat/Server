@@ -1,26 +1,19 @@
 use crate::auth::token_gen::generate_random_bits;
-use actix_web::{HttpRequest, HttpResponse, Responder};
+use crate::{Json, WebServerError};
+use axum::extract::Path;
 use ferrischat_common::types::{AuthResponse, InternalServerErrorJson};
 use tokio::sync::oneshot::channel;
 
-pub async fn get_bot_token(auth: crate::Authorization, req: HttpRequest) -> impl Responder {
-    let user_id = get_item_id!(req, "bot_id");
+pub async fn get_bot_token(
+    auth: crate::Authorization,
+    Path(user_id): Path<u128>,
+) -> Result<Json<T>, WebServerError<T>> {
     let bigint_user_id = u128_to_bigdecimal!(user_id);
     let db = get_db_or_fail!();
-    let bigint_owner_id =
-        match sqlx::query!("SELECT * FROM bots WHERE user_id = $1", bigint_user_id)
-            .fetch_one(db)
-            .await
-        {
-            Ok(r) => r.owner_id,
-            Err(e) => {
-                return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                    reason: format!("DB returned a error: {}", e),
-                    is_bug: false,
-                    link: None,
-                })
-            }
-        };
+    let bigint_owner_id = sqlx::query!("SELECT * FROM bots WHERE user_id = $1", bigint_user_id)
+        .fetch_one(db)
+        .await?
+        .owner_id;
 
     let owner_id = bigdecimal_to_u128!(bigint_owner_id);
 

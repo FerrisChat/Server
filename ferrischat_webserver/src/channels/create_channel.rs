@@ -2,8 +2,9 @@ use crate::ws::{fire_event, WsEventError};
 
 use ferrischat_common::ws::WsOutboundEvent;
 
-use actix_web::web::Json;
+use crate::{Json, WebServerError};
 use actix_web::{HttpRequest, HttpResponse, Responder};
+use axum::Json as JsonInput;
 use ferrischat_common::request_json::ChannelCreateJson;
 use ferrischat_common::types::{Channel, InternalServerErrorJson, ModelType};
 use ferrischat_macros::get_db_or_fail;
@@ -12,9 +13,9 @@ use ferrischat_snowflake_generator::generate_snowflake;
 /// POST `/api/v0/guilds/{guild_id/channels`
 pub async fn create_channel(
     _: crate::Authorization,
-    channel_info: Json<ChannelCreateJson>,
+    channel_info: JsonInput<ChannelCreateJson>,
     req: HttpRequest,
-) -> impl Responder {
+) -> Result<Json<T>, WebServerError<T>> {
     let db = get_db_or_fail!();
 
     let ChannelCreateJson { name } = channel_info.0;

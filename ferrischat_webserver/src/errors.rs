@@ -7,11 +7,15 @@ use sqlx::Error;
 
 pub enum WebServerError<T: Serialize> {
     Database(sqlx::Error),
+    MissingDatabase,
     Json(simd_json::Error),
     Redis(ferrischat_redis::redis::RedisError),
     MissingRedis,
     RedisPool(ferrischat_redis::deadpool_redis::PoolError),
     Http { code: u16, body: T },
+    RandomGenerationFailure,
+    MissingHasher,
+    MissingVerifier,
 }
 
 impl<T: Serialize> From<sqlx::Error> for WebServerError<T> {
@@ -55,6 +59,14 @@ impl<T: Serialize> IntoResponse for WebServerError<T> {
                     link: None,
                 },
             ),
+            WebServerError::MissingDatabase => (
+                500,
+                InternalServerErrorJson {
+                    reason: "Database pool was not found".to_string(),
+                    is_bug: false,
+                    link: None,
+                },
+            ),
             WebServerError::Json(e) => (
                 500,
                 InternalServerErrorJson {
@@ -86,6 +98,37 @@ impl<T: Serialize> IntoResponse for WebServerError<T> {
                     reason: format!("Redis pool returned an error: {}", e),
                     is_bug: false,
                     link: None,
+                },
+            ),
+            WebServerError::RandomGenerationFailure => (
+                500,
+                InternalServerErrorJson {
+                    reason: "failed to generate random bits for token generation".to_string(),
+                    is_bug: true,
+                    link: Some(
+                        "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
+                    labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+failed+to+generate+random+bits"
+                            .to_string(),
+                    ),
+                }),
+            WebServerError::MissingHasher => (
+                500,
+                InternalServerErrorJson {
+                    reason: "password hasher not found".to_string(),
+                    is_bug: false,
+                    link: None,
+                },
+            ),
+            WebServerError::MissingVerifier => (
+                500,
+                InternalServerErrorJson {
+                    reason: "password verifier not found".to_string(),
+                    is_bug: true,
+                    link: Some(
+                        "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
+                        labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+password+verifier+not+found"
+                            .to_string(),
+                    ),
                 },
             ),
         };

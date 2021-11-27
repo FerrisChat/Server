@@ -27,7 +27,7 @@ clap = "2.33"
 tracing-subscriber = { version = "0.3.2", features = ["env-filter", "tracing-log"] }
 
 [patch.crates-io]
-actix = { git = "https://github.com/actix/actix" }
+# actix = { git = "https://github.com/actix/actix" }
 actix-web = { git = "https://github.com/actix/actix-web" }
 actix-codec = { git = "https://github.com/actix/actix-net" }
 actix-http = { git = "https://github.com/actix/actix-web" }

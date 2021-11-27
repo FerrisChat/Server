@@ -21,6 +21,7 @@ mod json_response;
 mod members;
 mod messages;
 mod not_implemented;
+mod special_headers;
 mod users;
 mod ws;
 
