@@ -18,10 +18,14 @@ pub async fn create_message(
     let MessageCreateJson { content, nonce } = json.0;
 
     if content.len() > 10240 {
-        return HttpResponse::BadRequest().json(BadRequestJson {
-            reason: "message content size must be fewer than 10,240 bytes".to_string(),
-            location: None,
-        });
+        return Err((
+            400,
+            BadRequestJson {
+                reason: "message content size must be fewer than 10,240 bytes".to_string(),
+                location: None,
+            },
+        )
+            .into());
     }
 
     let bigint_channel_id = u128_to_bigdecimal!(channel_id);
