@@ -1,10 +1,7 @@
 use crate::ws::{fire_event, WsEventError};
 use axum::extract::Path;
-
 use ferrischat_common::ws::WsOutboundEvent;
-
 use crate::{Json, WebServerError};
-use actix_web::{HttpRequest, HttpResponse, Responder};
 use axum::Json as JsonInput;
 use ferrischat_common::request_json::ChannelCreateJson;
 use ferrischat_common::types::{Channel, InternalServerErrorJson, ModelType};
@@ -16,7 +13,7 @@ use serde::Serialize;
 pub async fn create_channel(
     _: crate::Authorization,
     channel_info: JsonInput<ChannelCreateJson>,
-    Path(channel_id): Path<u128>,
+    Path(guild_id): Path<u128>,
 ) -> Result<Json<Channel>, WebServerError<impl Serialize>> {
     let db = get_db_or_fail!();
 
