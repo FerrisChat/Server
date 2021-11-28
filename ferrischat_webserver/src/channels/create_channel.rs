@@ -1,9 +1,9 @@
-use crate::ws::{fire_event, WsEventError};
+use crate::ws::fire_event;
 use crate::{Json, WebServerError};
 use axum::extract::Path;
 use axum::Json as JsonInput;
 use ferrischat_common::request_json::ChannelCreateJson;
-use ferrischat_common::types::{Channel, InternalServerErrorJson, ModelType};
+use ferrischat_common::types::{Channel, ModelType};
 use ferrischat_common::ws::WsOutboundEvent;
 use ferrischat_macros::get_db_or_fail;
 use ferrischat_snowflake_generator::generate_snowflake;

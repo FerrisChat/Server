@@ -8,7 +8,7 @@ use ferrischat_common::ws::WsOutboundEvent;
 use ferrischat_redis::deadpool_redis::PoolError;
 use ferrischat_redis::redis::{AsyncCommands, RedisError};
 
-use axum::routing::{delete, get, patch, post};
+use axum::routing::get;
 use axum::Router;
 
 pub enum WsEventError {

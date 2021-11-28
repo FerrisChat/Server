@@ -1,4 +1,4 @@
-use actix_web::{web::Json, HttpResponse, Responder};
+use axum::Json;
 use ferrischat_common::request_json::UserCreateJson;
 use ferrischat_common::types::{
     InternalServerErrorJson, Json as MsgJson, ModelType, User, UserFlags,
@@ -19,7 +19,7 @@ pub async fn create_user(user_data: Json<UserCreateJson>) -> impl Responder {
         password,
         pronouns,
     } = user_data.0;
-    // Gets a descriminator for the user
+    // Gets a discriminator for the user
     let user_discrim = {
         // Makes sure the name doesn't already exist
         let existing: Vec<i16> =

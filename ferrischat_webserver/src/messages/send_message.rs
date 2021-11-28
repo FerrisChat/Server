@@ -1,10 +1,8 @@
-use crate::ws::{fire_event, WsEventError};
+use crate::ws::fire_event;
 use crate::WebServerError;
 use axum::extract::{Json, Path};
 use ferrischat_common::request_json::MessageCreateJson;
-use ferrischat_common::types::{
-    BadRequestJson, InternalServerErrorJson, Message, ModelType, User, UserFlags,
-};
+use ferrischat_common::types::{BadRequestJson, Message, ModelType, User, UserFlags};
 use ferrischat_common::ws::WsOutboundEvent;
 use ferrischat_snowflake_generator::generate_snowflake;
 use serde::Serialize;

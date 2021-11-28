@@ -8,7 +8,7 @@ pub use delete_channel::*;
 pub use edit_channel::*;
 pub use get_channel::*;
 
-use axum::routing::{delete, get, patch, post};
+use axum::routing::{get, post};
 use axum::Router;
 
 pub fn generate_channels_routes() -> axum::Router {

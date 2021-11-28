@@ -8,7 +8,7 @@ pub use get_guild_invites::*;
 pub use get_invite::*;
 pub use use_invite::*;
 
-use axum::routing::{delete, get, patch, post};
+use axum::routing::{get, post};
 use axum::Router;
 
 pub fn generate_invites_routes() -> axum::Router {

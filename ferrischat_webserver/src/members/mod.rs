@@ -6,7 +6,7 @@ mod get_member;
 pub use delete_member::*;
 pub use get_member::*;
 
-use axum::routing::{delete, get, patch, post};
+use axum::routing::get;
 use axum::Router;
 
 pub fn generate_members_routes() -> axum::Router {

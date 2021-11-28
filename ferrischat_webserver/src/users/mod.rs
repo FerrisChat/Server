@@ -12,7 +12,7 @@ pub use edit_user::*;
 pub use get_user::*;
 pub use verify_user::*;
 
-use axum::routing::{delete, get, patch, post};
+use axum::routing::{get, patch, post};
 use axum::Router;
 
 pub fn generate_users_route() -> axum::Router {

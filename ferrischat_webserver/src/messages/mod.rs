@@ -10,7 +10,7 @@ pub use get_messages::*;
 pub use message_history::*;
 pub use send_message::*;
 
-use axum::routing::{delete, get, patch, post};
+use axum::routing::{get, post};
 use axum::Router;
 
 pub fn generate_messages_route() -> axum::Router {

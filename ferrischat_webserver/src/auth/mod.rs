@@ -10,7 +10,7 @@ pub use get_token::*;
 pub use init_rng::*;
 pub use token_gen::*;
 
-use axum::routing::{delete, get, patch, post};
+use axum::routing::post;
 use axum::Router;
 
 pub fn generate_auth_routes() -> axum::Router {
