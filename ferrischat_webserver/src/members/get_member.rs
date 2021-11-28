@@ -1,12 +1,13 @@
 use crate::WebServerError;
 use axum::extract::Path;
-use ferrischat_common::types::{
-    Member, User, UserFlags,
-};
+use ferrischat_common::types::{Member, User, UserFlags};
 use serde::Serialize;
 
 /// GET `/api/v0/guilds/{guild_id}/members/{member_id}`
-pub async fn get_member(Path((guild_id, member_id)): Path<(u128, u128)>, auth: crate::Authorization) -> Result<crate::Json<Member>, WebServerError<impl Serialize>> {
+pub async fn get_member(
+    Path((guild_id, member_id)): Path<(u128, u128)>,
+    auth: crate::Authorization,
+) -> Result<crate::Json<Member>, WebServerError<impl Serialize>> {
     let bigint_guild_id = u128_to_bigdecimal!(guild_id);
     let bigint_member_id = u128_to_bigdecimal!(member_id);
 
