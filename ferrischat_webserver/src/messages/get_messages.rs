@@ -1,58 +1,48 @@
-use actix_web::{HttpRequest, HttpResponse, Responder};
-use ferrischat_common::types::{InternalServerErrorJson, Message, NotFoundJson, User, UserFlags};
+use crate::WebServerError;
+use axum::extract::Path;
+use ferrischat_common::types::{
+    Message, User, UserFlags,
+};
+use serde::Serialize;
 
 /// GET `/api/v0/guilds/{guild_id}/channels/{channel_id}/messages/{message_id}`
-pub async fn get_message(req: HttpRequest, _: crate::Authorization) -> impl Responder {
-    let message_id = get_item_id!(req, "message_id");
+pub async fn get_message(Path((channel_id, message_id)): Path<(u128, u128)>, auth: crate::Authorization) -> Result<crate::Json<Message>, WebServerError<impl Serialize>> {
     let bigint_message_id = u128_to_bigdecimal!(message_id);
-
-    let channel_id = get_item_id!(req, "channel_id");
     let bigint_channel_id = u128_to_bigdecimal!(channel_id);
 
     let db = get_db_or_fail!();
 
-    let resp = sqlx::query!(
-        "SELECT m.*, a.name AS author_name, a.flags AS author_flags, a.discriminator AS author_discriminator, a.pronouns AS author_pronouns FROM messages m CROSS JOIN LATERAL (SELECT * FROM users WHERE id = m.author_id) AS a WHERE m.id = $1 AND m.channel_id = $2",
+    let m = sqlx::query!(
+        "SELECT m.*, a.pronouns AS author_pronouns, a.avatar AS author_avatar, a.name AS author_name, a.flags AS author_flags, a.discriminator AS author_discriminator FROM messages m CROSS JOIN LATERAL (SELECT * FROM users WHERE id = m.author_id) AS a WHERE m.id = $1 AND m.channel_id = $2",
         bigint_message_id,
         bigint_channel_id,
     )
-    .fetch_optional(db)
-    .await;
+        .fetch_optional(db)
+        .await
+        .map_err(|e| WebServerError::Database(e));
 
-    match resp {
-        Ok(r) => match r {
-            Some(m) => {
-                let author_id = bigdecimal_to_u128!(m.author_id);
-
-                HttpResponse::Ok().json(Message {
-                    id: message_id,
-                    content: m.content,
-                    channel_id,
-                    author_id,
-                    edited_at: m.edited_at,
-                    embeds: vec![],
-                    author: Some(User {
-                        id: author_id,
-                        name: m.author_name,
-                        avatar: None,
-                        guilds: None,
-                        flags: UserFlags::from_bits_truncate(m.author_flags),
-                        discriminator: m.author_discriminator,
-                        pronouns: m
-                            .author_pronouns
-                            .and_then(ferrischat_common::types::Pronouns::from_i16),
-                    }),
-                    nonce: None,
-                })
-            }
-            None => HttpResponse::NotFound().json(NotFoundJson {
-                message: format!("Unknown message with id {}", message_id),
-            }),
-        },
-        Err(e) => HttpResponse::InternalServerError().json(InternalServerErrorJson {
-            reason: format!("DB returned a error: {}", e),
-            is_bug: false,
-            link: None,
+    let author_id = bigdecimal_to_u128!(m.author_id);
+    let msg_obj = Message {
+        id: message_id,
+        content: m.content,
+        channel_id,
+        author_id: author_id.clone(),
+        edited_at: m.edited_at,
+        embeds: vec![],
+        author: Some(User {
+            id: author_id,
+            name: m.author_name,
+            avatar: m.avatar,
+            guilds: None,
+            flags: UserFlags::from_bits_truncate(m.author_flags),
+            discriminator: m.author_discriminator,
+            pronouns: m.pronouns,
         }),
-    }
+        nonce: None,
+    };
+
+    Ok(crate::Json {
+        obj: msg_obj,
+        code: 200,
+    })
 }
