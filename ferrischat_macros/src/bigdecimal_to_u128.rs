@@ -3,6 +3,7 @@
 /// or returns a HTTP 500 from the function.
 macro_rules! bigdecimal_to_u128 {
     ($decimal:expr) => {{
+        use ferrischat_common::types::InternalServerErrorJson;
         use num_traits::cast::ToPrimitive;
         $decimal
             .with_scale(0)
