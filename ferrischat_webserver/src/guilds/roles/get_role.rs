@@ -13,8 +13,7 @@ pub async fn get_role(
     Ok(
         sqlx::query!("SELECT * FROM roles where id = $1", bigint_role_id)
             .fetch_optional(get_db_or_fail!())
-            .await
-            .map_err(|e| WebServerError::Database(e))?
+            .await?
             .map(|r| crate::Json {
                 obj: Role {
                     id: role_id,

@@ -17,8 +17,7 @@ pub async fn get_message(
             bigint_channel_id
         )
             .fetch_optional(get_db_or_fail!())
-            .await
-            .map_err(|e| WebServerError::Database(e))?
+            .await?
             .map(|m| crate::Json {
                 obj: Message {
                     id: message_id,

@@ -19,8 +19,7 @@ pub async fn get_member(
         bigint_guild_id
     )
         .fetch_optional(db)
-        .await
-        .map_err(|e| WebServerError::Database(e))?
+        .await?
         .ok_or_else(|| {
             (
                 404,
@@ -33,8 +32,7 @@ pub async fn get_member(
 
     let user = sqlx::query!("SELECT * FROM users WHERE id = $1", bigint_member_id)
         .fetch_optional(db)
-        .await
-        .map_err(|e| WebServerError::Database(e))?
+        .await?
         .map(|u| User {
             id: member_id,
             name: u.name,

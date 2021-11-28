@@ -10,8 +10,7 @@ pub async fn get_invite(
 ) -> Result<crate::Json<Invite>, WebServerError<impl Serialize>> {
     Ok(sqlx::query!("SELECT * FROM invites WHERE code = $1", code)
         .fetch_optional(get_db_or_fail!())
-        .await
-        .map_err(|e| WebServerError::Database(e))?
+        .await?
         .map(|r| crate::Json {
             obj: Invite {
                 code: code.to_string(),

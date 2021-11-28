@@ -13,8 +13,7 @@ pub async fn get_channel(
         u128_to_bigdecimal!(channel_id)
     )
         .fetch_optional(get_db_or_fail!())
-        .await
-        .map_err(|e| WebServerError::Database(e))?
+        .await?
         .map(|c| crate::Json {
             obj: Channel {
                 id: channel_id,
