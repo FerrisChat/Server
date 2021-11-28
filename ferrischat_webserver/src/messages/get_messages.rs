@@ -19,7 +19,7 @@ pub async fn get_message(Path((channel_id, message_id)): Path<(u128, u128)>, aut
     )
         .fetch_optional(db)
         .await
-        .map_err(|e| WebServerError::Database(e));
+        .map_err(|e| WebServerError::Database(e))?;
 
     let author_id = bigdecimal_to_u128!(m.author_id);
     let msg_obj = Message {
