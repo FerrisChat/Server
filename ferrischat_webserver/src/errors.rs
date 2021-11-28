@@ -52,14 +52,36 @@ impl<T: Serialize> IntoResponse for WebServerError<T> {
 
     fn into_response(self) -> Response<Self::Body> {
         let (code, body) = match self {
-            WebServerError::Database(e) => (
-                500,
-                InternalServerErrorJson {
-                    reason: format!("Database returned an error: {:?}", e),
-                    is_bug: false,
-                    link: None,
-                },
-            ),
+            WebServerError::Database(e) => {
+                if let sqlx::Error::Database(e) = e {
+                    if e.code() == "23505".into() {
+                        (
+                            409,
+                            ferrischat_common::types::Json {
+                                message: "This object is a duplicate.".to_string()
+                            },
+                        )
+                    } else {
+                        (
+                            500,
+                            InternalServerErrorJson {
+                                reason: format!("Database returned an error: {:?}", e),
+                                is_bug: false,
+                                link: None,
+                            },
+                        )
+                    }
+                } else {
+                    (
+                        500,
+                        InternalServerErrorJson {
+                            reason: format!("Database returned an error: {:?}", e),
+                            is_bug: false,
+                            link: None,
+                        },
+                    )
+                }
+            }
             WebServerError::MissingDatabase => (
                 500,
                 InternalServerErrorJson {
