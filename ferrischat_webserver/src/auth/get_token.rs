@@ -78,22 +78,23 @@ pub async fn get_token(
         .map(|b| base64::encode_config(b, base64::URL_SAFE))
         .ok_or(WebServerError::RandomGenerationFailure)?;
 
-    let h = ferrischat_auth::GLOBAL_HASHER
-        .get()
-        .ok_or(WebServerError::MissingHasher)?;
-
     let (tx, rx) = channel();
-    h.send((token.clone(), tx)).await.map_err(|_| {
-        (
-            500,
-            InternalServerErrorJson {
-                reason: "Password hasher has hung up connection".to_string(),
-                is_bug: false,
-                link: None,
-            },
-        )
-            .into()
-    })?;
+    ferrischat_auth::GLOBAL_HASHER
+        .get()
+        .ok_or(WebServerError::MissingHasher)?
+        .send((token.clone(), tx))
+        .await
+        .map_err(|_| {
+            (
+                500,
+                InternalServerErrorJson {
+                    reason: "Password hasher has hung up connection".to_string(),
+                    is_bug: false,
+                    link: None,
+                },
+            )
+                .into()
+        })?;
 
     let hashed_token = rx.await
                          .unwrap_or_else(|e| {
