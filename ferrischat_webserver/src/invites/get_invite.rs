@@ -5,7 +5,7 @@ use serde::Serialize;
 
 /// GET api/v0/invites/{code}
 pub async fn get_invite(
-    Path(code): Path<u128>,
+    Path(code): Path<String>,
     _: crate::Authorization,
 ) -> Result<crate::Json<Invite>, WebServerError<impl Serialize>> {
     sqlx::query!("SELECT * FROM invites WHERE code = $1", code)

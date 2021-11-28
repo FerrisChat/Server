@@ -1,6 +1,6 @@
 use crate::WebServerError;
 use axum::extract::Path;
-use ferrischat_common::types::{Member, User, UserFlags};
+use ferrischat_common::types::{Member, NotFoundJson, User, UserFlags};
 use serde::Serialize;
 
 /// GET `/api/v0/guilds/{guild_id}/members/{member_id}`
@@ -15,31 +15,41 @@ pub async fn get_member(
 
     let member_resp = sqlx::query!(
         "SELECT * FROM members WHERE user_id = $1 AND guild_id = $2",
-        decimal_member_id,
-        decimal_guild_id
+        bigint_member_id,
+        bigint_guild_id
     )
         .fetch_optional(db)
         .await
-        .map_err(|e| WebServerError::Database(e))?;
+        .map_err(|e| WebServerError::Database(e))?
+        .ok_or_else(|| {
+            (
+                404,
+                NotFoundJson {
+                    message: format!("Unknown member with ID {}", member_id),
+                },
+            )
+                .into()
+        })?;
 
-    let user_resp = sqlx::query!("SELECT * FROM users WHERE id = $1", decimal_member_id)
+    let user = sqlx::query!("SELECT * FROM users WHERE id = $1", bigint_member_id)
         .fetch_optional(db)
         .await
-        .map_err(|e| WebServerError::Database(e))?;
-
-    let user_obj = Some(User {
-        id: member_id,
-        name: user_resp.name,
-        avatar: user_resp.avatar,
-        discriminator: user_resp.discriminator,
-        flags: UserFlags::from_bits_truncate(user_resp.flags),
-        guilds: None,
-        pronouns: user_resp.pronouns,
-    });
+        .map_err(|e| WebServerError::Database(e))?
+        .map(|u| User {
+            id: member_id,
+            name: u.name,
+            avatar: u.avatar,
+            discriminator: u.discriminator,
+            flags: UserFlags::from_bits_truncate(u.flags),
+            guilds: None,
+            pronouns: u
+                .pronouns
+                .and_then(ferrischat_common::types::Pronouns::from_i16),
+        });
 
     let member_obj = Member {
         user_id: Some(member_id),
-        user: user_obj,
+        user,
         guild_id: Some(guild_id),
         guild: None,
     };
