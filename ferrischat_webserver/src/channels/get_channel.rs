@@ -1,29 +1,33 @@
-use actix_web::{HttpRequest, HttpResponse, Responder};
-use ferrischat_common::types::{Channel, InternalServerErrorJson, NotFoundJson};
+use crate::WebServerError;
+use axum::extract::Path;
+use ferrischat_common::types::{Channel, NotFoundJson};
+use serde::Serialize;
 
 /// GET `/api/v0/guilds/{guild_id/channels/{channel_id}`
-pub async fn get_channel(req: HttpRequest, _: crate::Authorization) -> impl Responder {
-    let db = get_db_or_fail!();
-    let channel_id = u128_to_bigdecimal!(get_item_id!(req, "channel_id"));
-    let resp = sqlx::query!("SELECT * FROM channels WHERE id = $1", channel_id)
-        .fetch_optional(db)
-        .await;
-
-    match resp {
-        Ok(resp) => match resp {
-            Some(channel) => HttpResponse::Ok().json(Channel {
-                id: bigdecimal_to_u128!(channel.id),
-                name: channel.name,
-                guild_id: bigdecimal_to_u128!(channel.guild_id),
-            }),
-            None => HttpResponse::NotFound().json(NotFoundJson {
-                message: format!("Unknown channel with id {}", channel_id),
-            }),
-        },
-        Err(e) => HttpResponse::InternalServerError().json(InternalServerErrorJson {
-            reason: format!("database returned a error: {}", e),
-            is_bug: false,
-            link: None,
-        }),
-    }
+pub async fn get_channel(
+    Path(channel_id): Path<u128>,
+    _: crate::Authorization,
+) -> Result<crate::Json<Channel>, WebServerError<impl Serialize>> {
+    let bigint_channel_id = u128_to_bigdecimal!(channel_id);
+    sqlx::query!("SELECT * FROM channels WHERE id = $1", bigint_channel_id)
+        .fetch_optional(get_db_or_fail!())
+        .await
+        .map_err(|e| WebServerError::Database(e))?
+        .ok_or_else(|| {
+            (
+                404,
+                NotFoundJson {
+                    message: format!("Unknown channel with ID {}", channel_id),
+                },
+            )
+                .into()
+        })?
+        .map(|c| crate::Json {
+            obj: Channel {
+                id: channel_id,
+                name: c.name,
+                guild_id: bigdecimal_to_u128!(c.guild_id),
+            },
+            code: 200,
+        })
 }
