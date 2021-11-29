@@ -18,17 +18,17 @@ pub async fn get_member(
         bigint_member_id,
         bigint_guild_id
     )
-        .fetch_optional(db)
-        .await?
-        .ok_or_else(|| {
-            (
-                404,
-                NotFoundJson {
-                    message: format!("Unknown member with ID {}", member_id),
-                },
-            )
-                .into()
-        })?;
+    .fetch_optional(db)
+    .await?
+    .ok_or_else(|| {
+        (
+            404,
+            NotFoundJson {
+                message: format!("Unknown member with ID {}", member_id),
+            },
+        )
+            .into()
+    })?;
 
     let user = sqlx::query!("SELECT * FROM users WHERE id = $1", bigint_member_id)
         .fetch_optional(db)

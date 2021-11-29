@@ -33,9 +33,13 @@ pub async fn edit_channel(
             )
         })?;
 
-    let new_channel_resp = sqlx::query!("UPDATE channels SET name = $1 WHERE id= $2 RETURNING *", name, bigint_channel_id)
-        .fetch_optional(db)
-        .await?;
+    let new_channel_resp = sqlx::query!(
+        "UPDATE channels SET name = $1 WHERE id= $2 RETURNING *",
+        name,
+        bigint_channel_id
+    )
+    .fetch_optional(db)
+    .await?;
     let new_channel_obj = Channel {
         id: channel_id,
         name: new_channel_resp.name,
@@ -51,7 +55,7 @@ pub async fn edit_channel(
         format!("channel_{}_{}", channel_id, new_channel_obj.guild_id),
         &event,
     )
-        .await?;
+    .await?;
 
     Ok(Json {
         obj: new_channel_obj,
