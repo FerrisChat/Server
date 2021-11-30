@@ -9,7 +9,7 @@ pub use delete_guild::*;
 pub use edit_guild::*;
 pub use get_guild::*;
 
-use axum::routing::{delete, get, patch, post};
+use axum::routing::{delete, get, post};
 use axum::Router;
 
 pub fn generate_guilds_routes() -> axum::Router {

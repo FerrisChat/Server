@@ -1,5 +1,5 @@
 use crate::WebServerError;
-use axum::extract::{Json, Path};
+use axum::extract::Path;
 
 use ferrischat_common::types::{Channel, Guild, GuildFlags, Member, NotFoundJson, User, UserFlags};
 
@@ -9,11 +9,10 @@ use serde::Serialize;
 /// GET `/api/v0/users/{user_id}`
 pub async fn get_user(
     Path(user_id): Path<u128>,
-    auth: crate::Authorization,
+    crate::Authorization(authorized_user): crate::Authorization,
 ) -> Result<crate::Json<User>, WebServerError<impl Serialize>> {
     let db = get_db_or_fail!();
     let bigint_user_id = u128_to_bigdecimal!(user_id);
-    let authorized_user = auth.0;
 
     let user = sqlx::query!("SELECT * FROM users WHERE id = $1", bigint_user_id)
         .fetch_optional(db)
