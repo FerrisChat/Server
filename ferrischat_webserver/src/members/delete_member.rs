@@ -1,7 +1,7 @@
-use crate::ws::{fire_event, WsEventError};
+use crate::ws::fire_event;
 use crate::WebServerError;
 use axum::extract::Path;
-use ferrischat_common::types::{InternalServerErrorJson, Member, NotFoundJson};
+use ferrischat_common::types::{Member, NotFoundJson};
 use ferrischat_common::ws::WsOutboundEvent;
 use serde::Serialize;
 
@@ -9,14 +9,16 @@ use serde::Serialize;
 pub async fn delete_member(
     Path((guild_id, member_id)): Path<(u128, u128)>,
     _: crate::Authorization,
-) -> Result<crate::Json<impl Serialize>, WebServerError<impl Serialize>> {
+) -> Result<http::StatusCode, WebServerError<impl Serialize>> {
     let bigint_guild_id = u128_to_bigdecimal!(guild_id);
     let bigint_member_id = u128_to_bigdecimal!(member_id);
 
     let db = get_db_or_fail!();
 
     let owner_id_matches: bool = sqlx::query!(
-        r#"SELECT EXISTS(SELECT owner_id FROM guilds WHERE id = $1 AND owner_id = $2) AS "exists!""#
+        r#"SELECT EXISTS(SELECT owner_id FROM guilds WHERE id = $1 AND owner_id = $2) AS "exists!""#,
+        bigint_guild_id,
+        bigint_owner_id
     )
     .fetch_one(db)
     .await?
@@ -56,5 +58,5 @@ pub async fn delete_member(
     let event = WsOutboundEvent::MemberDelete { member: member_obj };
 
     fire_event(format!("member_{}", guild_id), &event).await?;
-    HttpResponse::NoContent().finish()
+    Ok(http::StatusCode::NO_CONTENT)
 }

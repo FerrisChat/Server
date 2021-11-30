@@ -1,9 +1,7 @@
-use crate::ws::{fire_event, WsEventError};
+use crate::ws::fire_event;
 use crate::WebServerError;
 use axum::extract::Path;
-use ferrischat_common::types::{
-    BadRequestJson, InternalServerErrorJson, Invite, Json, Member, NotFoundJson, User, UserFlags,
-};
+use ferrischat_common::types::{Invite, Member, NotFoundJson, User, UserFlags};
 use ferrischat_common::ws::WsOutboundEvent;
 use serde::Serialize;
 use sqlx::types::time::OffsetDateTime;
