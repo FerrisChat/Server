@@ -1,9 +1,7 @@
 use crate::WebServerError;
 use axum::extract::{Json, Path};
 
-use ferrischat_common::types::{
-    Channel, Guild, GuildFlags, InternalServerErrorJson, Member, NotFoundJson, User, UserFlags,
-};
+use ferrischat_common::types::{Channel, Guild, GuildFlags, Member, NotFoundJson, User, UserFlags};
 
 use num_traits::cast::ToPrimitive;
 use serde::Serialize;
