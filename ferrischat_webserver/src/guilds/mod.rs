@@ -29,13 +29,9 @@ pub fn generate_guilds_routes() -> axum::Router {
             post(roles::create_role),
         )
         // DELETE /guilds/:guild_id/roles/:role_id
-        .route(
-            expand_version!("guilds/:guild_id/roles/:role_id"),
-            delete(roles::delete_role).patch(roles::edit_role),
-        )
         // PATCH  /guilds/:guild_id/roles/:role_id
         .route(
             expand_version!("guilds/:guild_id/roles/:role_id"),
-            patch(roles::edit_role),
+            delete(roles::delete_role).patch(roles::edit_role),
         )
 }

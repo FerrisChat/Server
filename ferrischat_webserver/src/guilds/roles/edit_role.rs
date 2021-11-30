@@ -9,7 +9,7 @@ use ferrischat_common::ws::WsOutboundEvent;
 use serde::Serialize;
 
 pub async fn edit_role(
-    Path(role_id): Path<u128>,
+    Path((guild_id, role_id)): Path<(u128, u128)>,
     Json(RoleUpdateJson {
         name,
         color,
