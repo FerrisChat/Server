@@ -134,7 +134,7 @@ pub async fn use_invite(
         member: member_obj.clone(),
     };
 
-    fire_event(format!("member_{}", guild_id), &event).await?;
+    fire_event(format!("member_add_{}", user_id), &event).await?;
     Ok(crate::Json {
         obj: member_obj,
         code: 201,
