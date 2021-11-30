@@ -1,10 +1,8 @@
 use crate::ws::fire_event;
-use axum::extract::Path;
-
-use ferrischat_common::ws::WsOutboundEvent;
-
 use crate::WebServerError;
+use axum::extract::Path;
 use ferrischat_common::types::{Channel, NotFoundJson};
+use ferrischat_common::ws::WsOutboundEvent;
 use serde::Serialize;
 
 /// DELETE `/api/v0/channels/{channel_id}`
