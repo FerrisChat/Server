@@ -1,76 +1,60 @@
 use crate::ws::{fire_event, WsEventError};
-use ferrischat_common::ws::WsOutboundEvent;
-
-use actix_web::{HttpRequest, HttpResponse, Responder};
+use crate::WebServerError;
+use axum::extract::Path;
 use ferrischat_common::types::{InternalServerErrorJson, Member, NotFoundJson};
+use ferrischat_common::ws::WsOutboundEvent;
+use serde::Serialize;
 
 /// DELETE `/api/v0/guilds/{guild_id}/members/{member_id}`
-pub async fn delete_member(req: HttpRequest, _: crate::Authorization) -> impl Responder {
-    let guild_id = {
-        let raw = get_item_id!(req, "guild_id");
-        u128_to_bigdecimal!(raw)
-    };
-    let member_id = {
-        let raw = get_item_id!(req, "member_id");
-        u128_to_bigdecimal!(raw)
-    };
+pub async fn delete_member(
+    Path((guild_id, member_id)): Path<(u128, u128)>,
+    _: crate::Authorization,
+) -> Result<crate::Json<impl Serialize>, WebServerError<impl Serialize>> {
+    let bigint_guild_id = u128_to_bigdecimal!(guild_id);
+    let bigint_member_id = u128_to_bigdecimal!(member_id);
 
     let db = get_db_or_fail!();
 
-    let resp = sqlx::query!(
-        "DELETE FROM members WHERE user_id = $1 AND guild_id = $2 RETURNING *",
-        member_id,
-        guild_id
+    let owner_id_matches: bool = sqlx::query!(
+        r#"SELECT EXISTS(SELECT owner_id FROM guilds WHERE id = $1 AND owner_id = $2) AS "exists!""#
     )
-    .fetch_optional(db)
-    .await;
-
-    let member_obj = match resp {
-        Ok(r) => match r {
-            Some(_) => Member {
-                user_id: Some(bigdecimal_to_u128!(member_id)),
-                user: None,
-                guild_id: Some(bigdecimal_to_u128!(guild_id)),
-                guild: None,
+    .fetch_one(db)
+    .await?
+    .exists;
+    if owner_id_matches {
+        return Err((
+            409,
+            ferrischat_common::types::Json {
+                message: "the guild owner cannot be removed from a guild".to_string(),
             },
-            None => {
-                return HttpResponse::NotFound().json(NotFoundJson {
-                    message: format!("Unknown member with id {}", member_id),
-                })
-            }
-        },
-        Err(e) => {
-            return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                reason: format!("Database responded with an error: {}", e),
-                is_bug: false,
-                link: None,
-            })
-        }
-    };
-
-    let event = WsOutboundEvent::MemberDelete {
-        member: member_obj.clone(),
-    };
-
-    if let Err(e) = fire_event(format!("member_{}", guild_id), &event).await {
-        let reason = match e {
-            WsEventError::MissingRedis => "Redis pool missing".to_string(),
-            WsEventError::RedisError(e) => format!("Redis returned an error: {}", e),
-            WsEventError::JsonError(e) => {
-                format!("Failed to serialize message to JSON format: {}", e)
-            }
-            WsEventError::PoolError(e) => format!("`deadpool` returned an error: {}", e),
-        };
-        return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-            reason,
-            is_bug: true,
-            link: Some(
-                "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
-                labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+failed+to+fire+event"
-                    .to_string(),
-            ),
-        });
+        )
+            .into());
     }
 
+    let member_obj = sqlx::query!(
+        "DELETE FROM members WHERE user_id = $1 AND guild_id = $2 RETURNING *",
+        bigint_member_id,
+        bigint_guild_id
+    )
+    .fetch_optional(db)
+    .await?
+    .map(|_| Member {
+        user_id: Some(member_id),
+        user: None,
+        guild_id: Some(guild_id),
+        guild: None,
+    })
+    .ok_or_else(|| {
+        (
+            404,
+            NotFoundJson {
+                message: format!("Unknown member with ID {} in {}", member_id, guild_id),
+            },
+        )
+    })?;
+
+    let event = WsOutboundEvent::MemberDelete { member: member_obj };
+
+    fire_event(format!("member_{}", guild_id), &event).await?;
     HttpResponse::NoContent().finish()
 }
