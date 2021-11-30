@@ -10,7 +10,7 @@ use serde::Serialize;
 pub async fn get_user(
     Path(user_id): Path<u128>,
     auth: crate::Authorization,
-) -> Result<Json<User>, WebServerError<impl Serialize>> {
+) -> Result<crate::Json<User>, WebServerError<impl Serialize>> {
     let db = get_db_or_fail!();
     let bigint_user_id = u128_to_bigdecimal!(user_id);
     let authorized_user = auth.0;
