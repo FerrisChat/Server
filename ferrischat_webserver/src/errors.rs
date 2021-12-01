@@ -2,6 +2,7 @@ use axum::http::Response;
 use axum::response::IntoResponse;
 use ferrischat_common::types::InternalServerErrorJson;
 use ferrischat_redis::deadpool_redis::redis::RedisError;
+use ferrischat_redis::deadpool_redis::PoolError;
 use serde::Serialize;
 use sqlx::Error;
 
@@ -9,14 +10,20 @@ pub enum WebServerError<T: Serialize> {
     Database(sqlx::Error),
     MissingDatabase,
     Json(simd_json::Error),
-    Redis(ferrischat_redis::redis::RedisError),
+    Redis(RedisError),
     MissingRedis,
-    RedisPool(ferrischat_redis::deadpool_redis::PoolError),
+    RedisPool(PoolError),
     Http { code: u16, body: T },
     RandomGenerationFailure,
     MissingHasher,
     MissingVerifier,
     MissingNodeId,
+}
+
+impl<T: Serialize> From<PoolError> for WebServerError<T> {
+    fn from(e: PoolError) -> Self {
+        Self::RedisPool(e)
+    }
 }
 
 impl<T: Serialize> From<sqlx::Error> for WebServerError<T> {
@@ -31,7 +38,7 @@ impl<T: Serialize> From<simd_json::Error> for WebServerError<T> {
     }
 }
 
-impl<T: Serialize> From<ferrischat_redis::redis::RedisError> for WebServerError<T> {
+impl<T: Serialize> From<RedisError> for WebServerError<T> {
     fn from(e: RedisError) -> Self {
         Self::Redis(e)
     }
