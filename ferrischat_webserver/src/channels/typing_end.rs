@@ -9,9 +9,9 @@ use serde::Serialize;
 pub async fn typing_end(
     Path(channel_id): Path<u128>,
     crate::Authorization(authorized_user): crate::Authorization,
-) -> Result<http: StatusCode, WebServerError<impl Serialize>> {
+) -> Result<http::StatusCode, WebServerError<impl Serialize>> {
     let db = get_db_or_fail!();
-    let bigint_user_id = u128_to_bigdecimal!(auth.0);
+    let bigint_user_id = u128_to_bigdecimal!(authorized_user);
 
     let user = sqlx::query!("SELECT * FROM users WHERE id = $1", bigint_user_id)
         .fetch_optional(db)
@@ -20,7 +20,7 @@ pub async fn typing_end(
             (
                 404,
                 NotFoundJson {
-                    message: format!("Unknown user with ID {}", auth.0),
+                    message: format!("Unknown user with ID {}", authorized_user),
                 },
             )
         })?;
@@ -38,8 +38,8 @@ pub async fn typing_end(
         })?;
 
     let user_obj = User {
-        id: auth.0,
-        username: user.username,
+        id: authorized_user,
+        name: user.name,
         avatar: None,
         guilds: None,
         discriminator: user.discriminator,
