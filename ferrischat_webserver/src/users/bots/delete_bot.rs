@@ -1,56 +1,47 @@
-use actix_web::{HttpRequest, HttpResponse, Responder};
-use ferrischat_common::types::{InternalServerErrorJson, NotFoundJson};
+use crate::WebServerError;
+use axum::extract::Path;
+use ferrischat_common::types::NotFoundJson;
+use serde::Serialize;
 
 /// DELETE `/api/v0/users/{user_id}/bots/{bot_id}`
 /// Deletes the bot
-pub async fn delete_bot(req: HttpRequest, auth: crate::Authorization) -> impl Responder {
-    let user_id = get_item_id!(req, "bot_id");
-    let bigdecimal_user_id = u128_to_bigdecimal!(user_id);
-
+pub async fn delete_bot(
+    Path((user_id, bot_id)): Path<(u128, u128)>,
+    auth: crate::Authorization,
+) -> Result<http::StatusCode, WebServerError<impl Serialize>> {
     let bigint_user_id = u128_to_bigdecimal!(user_id);
 
     let db = get_db_or_fail!();
 
-    let owner_id_resp =
-        match sqlx::query!("SELECT * FROM bots WHERE user_id = $1", bigdecimal_user_id,)
-            .fetch_one(db)
-            .await
-        {
-            Ok(r) => r,
-            Err(e) => {
-                return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                    reason: format!("DB returned a error: {}", e),
-                    is_bug: false,
-                    link: None,
-                })
-            }
-        };
+    let owner_id = bigdecimal_to_u128!(
+        sqlx::query!("SELECT * FROM bots WHERE user_id = $1", bigint_user_id)
+            .fetch_optional(db)
+            .await?
+            .ok_or_else(|| {
+                (
+                    404,
+                    NotFoundJson {
+                        message: format!("Unknown bot with ID {}", bot_id),
+                    },
+                )
+                    .into()
+            })?
+            .owner_id
+    );
 
-    let u128_owner_id = bigdecimal_to_u128!(owner_id_resp.owner_id);
-
-    if u128_owner_id != auth.0 {
-        return HttpResponse::Forbidden().finish();
+    if owner_id != auth.0 {
+        return Err((
+            403,
+            ferrischat_common::types::Json {
+                message: "you are not the owner of this bot".to_string(),
+            },
+        )
+            .into());
     }
 
-    // Drop the user.
-    let resp = sqlx::query!(
-        "DELETE FROM users WHERE id = $1 RETURNING (id)",
-        bigint_user_id
-    )
-    .fetch_optional(db)
-    .await;
+    sqlx::query!("DELETE FROM users WHERE id = $1", bigint_user_id)
+        .execute(db)
+        .await?;
 
-    match resp {
-        Ok(r) => match r {
-            Some(_) => HttpResponse::NoContent().finish(),
-            None => HttpResponse::NotFound().json(NotFoundJson {
-                message: format!("Unknown bot with id {}", user_id),
-            }),
-        },
-        Err(e) => HttpResponse::InternalServerError().json(InternalServerErrorJson {
-            reason: format!("DB Returned a error: {}", e),
-            is_bug: false,
-            link: None,
-        }),
-    }
+    Ok(http::StatusCode::NO_CONTENT)
 }
