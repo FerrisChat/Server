@@ -1,9 +1,8 @@
 use axum::http::Response;
 use axum::response::IntoResponse;
-use ferrischat_common::types::{ErrorJson, InternalServerErrorJson};
+use ferrischat_common::types::ErrorJson;
 use ferrischat_redis::deadpool_redis::redis::RedisError;
 use ferrischat_redis::deadpool_redis::PoolError;
-use serde::Serialize;
 use sqlx::Error;
 
 pub enum WebServerError {
