@@ -15,15 +15,11 @@ pub async fn delete_member(
 
     let db = get_db_or_fail!();
 
-    let owner_id_matches: bool = sqlx::query!(
-        r#"SELECT EXISTS(SELECT owner_id FROM guilds WHERE id = $1 AND owner_id = $2) AS "exists!""#,
-        bigint_guild_id,
-        bigint_owner_id
-    )
-    .fetch_one(db)
-    .await?
-    .exists;
-    if owner_id_matches {
+    let owner_id = sqlx::query!("SELECT owner_id FROM guilds WHERE id = $1", bigint_guild_id)
+        .fetch_one(db)
+        .await?
+        .owner_id;
+    if owner_id == bigint_member_id {
         return Err((
             409,
             ferrischat_common::types::Json {
@@ -53,6 +49,7 @@ pub async fn delete_member(
                 message: format!("Unknown member with ID {} in {}", member_id, guild_id),
             },
         )
+            .into()
     })?;
 
     let event = WsOutboundEvent::MemberDelete { member: member_obj };
