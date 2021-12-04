@@ -2,7 +2,7 @@ use crate::ws::fire_event;
 use crate::{Json, WebServerError};
 use axum::extract::Path;
 use ferrischat_common::request_json::ChannelUpdateJson;
-use ferrischat_common::types::{Channel, NotFoundJson};
+use ferrischat_common::types::{Channel, ErrorJson};
 use ferrischat_common::ws::WsOutboundEvent;
 use serde::Serialize;
 
@@ -27,9 +27,9 @@ pub async fn edit_channel(
         .ok_or_else(|| {
             (
                 404,
-                NotFoundJson {
-                    message: format!("Unknown channel with ID {}", channel_id),
-                },
+                ErrorJson::new_404(
+                    format!("Unknown channel with ID {}", channel_id),
+                ),
             )
         })?;
 

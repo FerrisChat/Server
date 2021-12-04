@@ -1,6 +1,6 @@
 use crate::WebServerError;
 use axum::extract::Path;
-use ferrischat_common::types::{Json, ModelType};
+use ferrischat_common::types::{ModelType};
 use ferrischat_snowflake_generator::generate_snowflake;
 use serde::Serialize;
 

@@ -1,7 +1,7 @@
 use crate::auth::token_gen::generate_random_bits;
 use crate::{Json, WebServerError};
 use axum::extract::Path;
-use ferrischat_common::types::{AuthResponse, InternalServerErrorJson, NotFoundJson};
+use ferrischat_common::types::{AuthResponse, ErrorJson};
 use futures::TryFutureExt;
 use serde::Serialize;
 use tokio::sync::oneshot::channel;
@@ -19,9 +19,9 @@ pub async fn get_bot_token(
         .ok_or_else(|| {
             (
                 404,
-                NotFoundJson {
-                    message: format!("Unknown bot with ID {}", bot_id),
-                },
+                ErrorJson::new_404(
+                    format!("Unknown bot where ID = {}", bot_id)
+                ),
             )
         })?;
 
@@ -29,9 +29,9 @@ pub async fn get_bot_token(
 
     if owner_id != auth.0 {
         Ok(crate::Json {
-            obj: ferrischat_common::types::Json {
-                message: "you are not the owner of this bot".to_string(),
-            },
+            obj: ErrorJson::new_403(
+                "Forbidden".to_string(),
+            ),
             code: 403,
         })
     }
@@ -49,11 +49,11 @@ pub async fn get_bot_token(
         .map_err(|_| {
             (
                 500,
-                InternalServerErrorJson {
-                    reason: "Password hasher has hung up connection".to_string(),
-                    is_bug: false,
-                    link: None,
-                },
+                ErrorJson::new_500(
+                    "Password hasher has hung up connection".to_string(),
+                    false,
+                    None,
+                ),
             )
                 .into()
         })?;
@@ -68,15 +68,15 @@ pub async fn get_bot_token(
         .map_err(|e| {
             (
                 500,
-                InternalServerErrorJson {
-                    reason: format!("failed to hash token: {}", e),
-                    is_bug: true,
-                    link: Some(
+                ErrorJson::new_500(
+                    format!("failed to hash token: {}", e),
+                    true,
+                    Some(
                         "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
                                          labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+failed+to+hash+token"
                             .to_string(),
                     ),
-                },
+                ),
             )
                 .into()
         })?;

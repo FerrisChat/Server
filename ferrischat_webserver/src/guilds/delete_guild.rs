@@ -1,7 +1,7 @@
 use crate::ws::fire_event;
 use crate::WebServerError;
 use axum::extract::Path;
-use ferrischat_common::types::{Guild, GuildFlags, Member, NotFoundJson};
+use ferrischat_common::types::{Guild, GuildFlags, Member, ErrorJson};
 use ferrischat_common::ws::WsOutboundEvent;
 use serde::Serialize;
 
@@ -20,17 +20,17 @@ pub async fn delete_guild(
         .ok_or_else(|| {
             (
                 404,
-                NotFoundJson {
-                    message: format!("Unknown guild with ID {}", guild_id),
-                },
+                ErrorJson::new_404(
+                    format!("Unknown guild with ID {}", guild_id),
+                ),
             )
         })?;
     if auth.0 != owner_id {
         return Err((
             403,
-            ferrischat_common::types::Json {
-                message: "you are not the owner of this guild".to_string(),
-            },
+            ErrorJson::new_403(
+                "Forbidden".to_string(),
+            ),
         )
             .into());
     }

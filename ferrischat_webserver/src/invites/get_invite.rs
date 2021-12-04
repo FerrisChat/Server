@@ -1,6 +1,6 @@
 use crate::WebServerError;
 use axum::extract::Path;
-use ferrischat_common::types::{Invite, NotFoundJson};
+use ferrischat_common::types::{Invite, ErrorJson};
 use serde::Serialize;
 
 /// GET api/v0/invites/{code}
@@ -26,9 +26,9 @@ pub async fn get_invite(
         .ok_or_else(|| {
             (
                 404,
-                NotFoundJson {
-                    message: format!("Unknown invite with code {}", code),
-                },
+                ErrorJson::new_404(
+                    format!("Unknown invite with code {}", code),
+                ),
             )
                 .into()
         })?)

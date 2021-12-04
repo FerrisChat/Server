@@ -3,7 +3,7 @@ use crate::WebServerError;
 use axum::extract::Path;
 use axum::Json;
 use ferrischat_common::request_json::GuildUpdateJson;
-use ferrischat_common::types::{Guild, GuildFlags, NotFoundJson};
+use ferrischat_common::types::{Guild, GuildFlags, ErrorJson};
 use ferrischat_common::ws::WsOutboundEvent;
 use serde::Serialize;
 
@@ -31,9 +31,9 @@ pub async fn edit_guild(
         .ok_or_else(|| {
             (
                 404,
-                NotFoundJson {
-                    message: format!("Unknown guild with ID {}", guild_id),
-                },
+                ErrorJson::new_404(
+                    format!("Unknown guild with ID {}", guild_id),
+                ),
             )
         })?;
 
@@ -43,9 +43,9 @@ pub async fn edit_guild(
             name,
             bigint_guild_id
         )
-        .execute(db)
-        .await?
-    }
+            .execute(db)
+            .await?
+    };
 
     let new_guild_obj: Guild = sqlx::query!("SELECT * FROM guilds WHERE id = $1", bigint_guild_id)
         .fetch_optional(db)
@@ -62,9 +62,9 @@ pub async fn edit_guild(
         .ok_or_else(|| {
             (
                 404,
-                NotFoundJson {
-                    message: format!("Unknown guild with ID {}", guild_id),
-                },
+                ErrorJson::new_404(
+                    format!("Unknown guild with ID {}", guild_id),
+                ),
             )
         })?;
 

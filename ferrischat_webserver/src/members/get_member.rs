@@ -1,6 +1,6 @@
 use crate::WebServerError;
 use axum::extract::Path;
-use ferrischat_common::types::{Member, NotFoundJson, User, UserFlags};
+use ferrischat_common::types::{Member, ErrorJson, User, UserFlags};
 use serde::Serialize;
 
 /// GET `/api/v0/guilds/{guild_id}/members/{member_id}`
@@ -23,9 +23,9 @@ pub async fn get_member(
     .ok_or_else(|| {
         (
             404,
-            NotFoundJson {
-                message: format!("Unknown member with ID {}", member_id),
-            },
+            ErrorJson::new_404(
+                format!("Unknown member with ID {}", member_id),
+            ),
         )
             .into()
     })?;

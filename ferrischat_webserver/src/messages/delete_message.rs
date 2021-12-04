@@ -1,7 +1,7 @@
 use crate::ws::fire_event;
 use crate::WebServerError;
 use axum::extract::Path;
-use ferrischat_common::types::{Message, NotFoundJson, User, UserFlags};
+use ferrischat_common::types::{Message, ErrorJson, User, UserFlags};
 use ferrischat_common::ws::WsOutboundEvent;
 use serde::Serialize;
 
@@ -25,9 +25,9 @@ pub async fn delete_message(
     .ok_or_else(|| {
         (
             404,
-            NotFoundJson {
-                message: format!("Unknown channel with ID {}", channel_id),
-            },
+            ErrorJson::new_404(
+                format!("Unknown channel with ID {}", channel_id),
+            ),
         )
             .into()
     })?);
@@ -56,9 +56,9 @@ WHERE m.id = $1
     .ok_or_else(|| {
         (
             404,
-            NotFoundJson {
-                message: format!("Unknown message with ID {}", message_id),
-            },
+            ErrorJson::new_404(
+                format!("Unknown message with ID {}", message_id),
+            ),
         )
             .into()
     })?;

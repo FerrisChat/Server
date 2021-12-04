@@ -1,6 +1,6 @@
 use crate::WebServerError;
 use axum::extract::Path;
-use ferrischat_common::types::{Message, NotFoundJson, User, UserFlags};
+use ferrischat_common::types::{Message, ErrorJson, User, UserFlags};
 use serde::Serialize;
 
 /// GET `/api/v0/guilds/{guild_id}/channels/{channel_id}/messages/{message_id}`
@@ -43,9 +43,9 @@ pub async fn get_message(
             .ok_or_else(|| {
                 (
                     404,
-                    NotFoundJson {
-                        message: format!("Unknown message with ID {}", message_id),
-                    },
+                    ErrorJson::new_404(
+                        format!("Unknown message with ID {}", message_id),
+                    ),
                 )
                     .into()
             })?

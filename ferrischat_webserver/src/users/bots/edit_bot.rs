@@ -2,7 +2,7 @@ use crate::WebServerError;
 use axum::extract::Path;
 use axum::Json;
 use ferrischat_common::request_json::BotUpdateJson;
-use ferrischat_common::types::{NotFoundJson, User, UserFlags};
+use ferrischat_common::types::{ErrorJson, User, UserFlags};
 use serde::Serialize;
 use sqlx::types::BigDecimal;
 
@@ -26,9 +26,9 @@ pub async fn edit_bot(
     .ok_or_else(|| {
         (
             404,
-            NotFoundJson {
-                message: format!("Unknown bot with ID {}", bot_id),
-            },
+            ErrorJson::new_404(
+                format!("Unknown bot with ID {}", bot_id),
+            ),
         )
             .into()
     })?
@@ -39,9 +39,9 @@ pub async fn edit_bot(
     if owner_id != auth.0 {
         return Err((
             403,
-            ferrischat_common::types::Json {
-                message: "you are not the owner of this bot".to_string(),
-            },
+            ErrorJson::new_403(
+                "you are not the owner of this bot".to_string(),
+            ),
         )
             .into());
     }
@@ -71,9 +71,9 @@ pub async fn edit_bot(
         .ok_or_else(|| {
             (
                 404,
-                NotFoundJson {
-                    message: format!("Unknown bot with ID {}", bot_id),
-                },
+                ErrorJson::new_404(
+                    format!("Unknown bot with ID {}", bot_id),
+                ),
             )
                 .into()
         })?

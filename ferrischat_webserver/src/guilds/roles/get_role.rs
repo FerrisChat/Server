@@ -1,7 +1,7 @@
 use crate::WebServerError;
 use axum::extract::Path;
 use ferrischat_common::perms::Permissions;
-use ferrischat_common::types::{NotFoundJson, Role};
+use ferrischat_common::types::{ErrorJson, Role};
 use serde::Serialize;
 
 /// GET `/api/v0/guilds/{guild_id/roles/{role_id}`
@@ -28,9 +28,9 @@ pub async fn get_role(
             .ok_or_else(|| {
                 (
                     404,
-                    NotFoundJson {
-                        message: format!("Unknown role with ID {}", role_id),
-                    },
+                    ErrorJson::new_404(
+                        format!("Unknown role with ID {}", role_id),
+                    ),
                 )
                     .into()
             })?,

@@ -2,7 +2,7 @@ use crate::auth::generate_random_bits;
 use crate::WebServerError;
 use axum::extract::Path;
 use check_if_email_exists::{check_email, CheckEmailInput, Reachable};
-use ferrischat_common::types::{InternalServerErrorJson, Json, NotFoundJson};
+use ferrischat_common::types::ErrorJson;
 use ferrischat_redis::{redis::AsyncCommands, REDIS_MANAGER};
 use lettre::{
     transport::smtp::authentication::Credentials, AsyncSmtpTransport, AsyncTransport, Message,
@@ -36,9 +36,9 @@ pub async fn send_verification_email(
     {
         return Err((
             409,
-            ferrischat_common::types::Json {
-                message: "User is already verified!".to_string(),
-            },
+            ErrorJson::new_409(
+                "User is already verified!".to_string(),
+            ),
         )
             .into());
     }
@@ -48,21 +48,21 @@ pub async fn send_verification_email(
     checker_input.set_smtp_timeout(Duration::new(5, 0));
     let checked_email =
         check_email(&checker_input).await.get(0).ok_or_else(|| {
-            (500, InternalServerErrorJson {
-                reason: "zero emails checked".to_string(),
-                is_bug: true,
-                link: Some(
+            (500, ErrorJson::new_500(
+                "zero emails checked".to_string(),
+                true,
+                Some(
                     "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&labels=bug\
             &template=api_bug_report.yml&title=%5B500%5D%3A+zero+emails+checked".to_string(),
                 ),
-            }).into()
+            )).into()
         })?;
     if !checked_email.syntax.is_valid_syntax {
         return Err((
             409,
-            Json {
-                message: format!("Email {} is invalid.", user_email),
-            },
+            ErrorJson::new_409(
+                format!("Email {} is invalid.", user_email),
+            ),
         )
             .into());
     }
@@ -70,9 +70,9 @@ pub async fn send_verification_email(
     if checked_email.is_reachable == Reachable::Invalid {
         return Err((
             409,
-            Json {
-                message: "Email deemed unsafe to send to. Is it a real email?".to_string(),
-            },
+            ErrorJson::new_409(
+                "Email deemed unsafe to send to. Is it a real email?".to_string(),
+            ),
         )
             .into());
     }
@@ -132,9 +132,9 @@ pub async fn send_verification_email(
         .set_ex::<String, String, String>(format!("email:tokens:{}", token), user_email, 86400)
         .await?;
 
-    Ok(Json {
-        message: "Sent verification, please check your email.".to_string(),
-    })
+    Ok(ErrorJson::new_404(
+        "Sent verification, please check your email.".to_string(),
+    ))
 }
 
 /// GET /v0/verify/{token}
@@ -156,9 +156,9 @@ pub async fn verify_email(Path(token): Path<String>) -> Result<crate::Json<Json>
         .ok_or_else(|| {
             (
                 404,
-                NotFoundJson {
-                    message: "This token has expired or was not found.".to_string(),
-                },
+                ErrorJson::new_404(
+                    "This token has expired or was not found.".to_string(),
+                ),
             )
                 .into()
         })?;
@@ -168,9 +168,9 @@ pub async fn verify_email(Path(token): Path<String>) -> Result<crate::Json<Json>
         .execute(db)
         .await?;
     Ok(crate::Json {
-        obj: Json {
-            message: "Verified email. You can close this page.".to_string(),
-        },
+        obj: ErrorJson::new_404(
+            "Verified email. You can close this page.".to_string(),
+        ),
         code: 200,
     })
 }

@@ -20,9 +20,9 @@ pub async fn typing_start(
         .ok_or_else(|| {
             (
                 404,
-                NotFoundJson {
-                    message: format!("Unknown user with ID {}", authorized_user),
-                },
+                ErrorJson::new_404(
+                    format!("Unknown user with ID {}", authorized_user),
+                ),
             )
         })?;
 
@@ -32,9 +32,9 @@ pub async fn typing_start(
         .ok_or_else(|| {
             (
                 404,
-                NotFoundJson {
-                    message: format!("Unknown channel with ID {}", channel_id),
-                },
+                ErrorJson::new_404(
+                    format!("Unknown channel with ID {}", channel_id),
+                ),
             )
         })?;
 

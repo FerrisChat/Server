@@ -3,7 +3,6 @@ mod info;
 pub use info::ws_info;
 
 use crate::WebServerError;
-use ferrischat_common::types::Json;
 use ferrischat_common::ws::WsOutboundEvent;
 use ferrischat_redis::deadpool_redis::PoolError;
 use ferrischat_redis::redis::{AsyncCommands, RedisError};

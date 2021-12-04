@@ -1,7 +1,7 @@
 use crate::ws::fire_event;
 use crate::WebServerError;
 use axum::extract::Path;
-use ferrischat_common::types::{Channel, NotFoundJson, Pronouns, User, UserFlags};
+use ferrischat_common::types::{Channel, ErrorJson, Pronouns, User, UserFlags};
 use ferrischat_common::ws::WsOutboundEvent;
 use serde::Serialize;
 
@@ -20,9 +20,9 @@ pub async fn typing_end(
         .ok_or_else(|| {
             (
                 404,
-                NotFoundJson {
-                    message: format!("Unknown user with ID {}", authorized_user),
-                },
+                ErrorJson::new_404(
+                    format!("Unknown user with ID {}", authorized_user),
+                ),
             )
         })?;
 
@@ -32,9 +32,9 @@ pub async fn typing_end(
         .ok_or_else(|| {
             (
                 404,
-                NotFoundJson {
-                    message: format!("Unknown channel with ID {}", channel_id),
-                },
+                ErrorJson::new_404(
+                    format!("Unknown channel with ID {}", channel_id),
+                ),
             )
         })?;
 
@@ -60,7 +60,7 @@ pub async fn typing_end(
         user: user_obj,
     };
 
-    fire_event(format!("typing_{}", guild_id), event).await?;
+    fire_event(format!("typing_{}", guild_id), &event).await?;
 
     Ok(http::StatusCode::NO_CONTENT)
 }

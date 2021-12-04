@@ -1,7 +1,7 @@
 use crate::WebServerError;
 use axum::extract::Path;
 
-use ferrischat_common::types::{Channel, Guild, GuildFlags, Member, NotFoundJson, User, UserFlags};
+use ferrischat_common::types::{Channel, Guild, GuildFlags, Member, ErrorJson, User, UserFlags};
 
 use num_traits::cast::ToPrimitive;
 use serde::Serialize;
@@ -20,9 +20,9 @@ pub async fn get_user(
         .ok_or_else(|| {
             (
                 404,
-                NotFoundJson {
-                    message: format!("Unknown user with ID {}", user_id),
-                },
+                ErrorJson::new_404(
+                    format!("Unknown user with ID {}", user_id),
+                ),
             )
         })?;
 

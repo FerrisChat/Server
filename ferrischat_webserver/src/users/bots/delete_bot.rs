@@ -1,6 +1,6 @@
 use crate::WebServerError;
 use axum::extract::Path;
-use ferrischat_common::types::NotFoundJson;
+use ferrischat_common::types::ErrorJson;
 use serde::Serialize;
 
 /// DELETE `/api/v0/users/{user_id}/bots/{bot_id}`
@@ -20,9 +20,9 @@ pub async fn delete_bot(
             .ok_or_else(|| {
                 (
                     404,
-                    NotFoundJson {
-                        message: format!("Unknown bot with ID {}", bot_id),
-                    },
+                    ErrorJson::new_404(
+                        format!("Unknown bot with ID {}", bot_id),
+                    ),
                 )
                     .into()
             })?
@@ -32,9 +32,9 @@ pub async fn delete_bot(
     if owner_id != auth.0 {
         return Err((
             403,
-            ferrischat_common::types::Json {
-                message: "you are not the owner of this bot".to_string(),
-            },
+            ErrorJson::new_403(
+                "you are not the owner of this bot".to_string(),
+            ),
         )
             .into());
     }

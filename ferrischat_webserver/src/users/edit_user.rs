@@ -1,9 +1,7 @@
 use crate::WebServerError;
 use axum::extract::{Json, Path};
-
 use ferrischat_common::request_json::UserUpdateJson;
-use ferrischat_common::types::{InternalServerErrorJson, NotFoundJson, User, UserFlags};
-
+use ferrischat_common::types::{ErrorJson, User, UserFlags};
 use serde::Serialize;
 use tokio::sync::oneshot::channel;
 
@@ -23,9 +21,9 @@ pub async fn edit_user(
     if user_id != auth.0 {
         return Err((
             403,
-            Json {
-                message: "this account is not yours".to_string(),
-            },
+            ErrorJson::new_403(
+                "this account is not yours".to_string(),
+            ),
         )
             .into());
     }
@@ -64,11 +62,11 @@ pub async fn edit_user(
                 .map_err(|_| {
                     (
                         500,
-                        InternalServerErrorJson {
-                            reason: "Password hasher has hung up connection".to_string(),
-                            is_bug: false,
-                            link: None,
-                        },
+                        ErrorJson::new_500(
+                            "Password hasher has hung up connection".to_string(),
+                            false,
+                            None,
+                        ),
                     )
                         .into()
                 })?;
@@ -82,15 +80,15 @@ pub async fn edit_user(
             .map_err(|e| {
                 (
                     500,
-                    InternalServerErrorJson {
-                        reason: format!("failed to hash token: {}", e),
-                        is_bug: true,
-                        link: Some(
+                    ErrorJson::new_500(
+                        format!("failed to hash token: {}", e),
+                        true,
+                        Some(
                             "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
                              labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+failed+to+hash+token"
                                 .to_string(),
                         ),
-                    },
+                    ),
                 )
                     .into()
             })?
@@ -120,9 +118,9 @@ pub async fn edit_user(
         .ok_or_else(|| {
             (
                 404,
-                NotFoundJson {
-                    message: format!("unknown user with id {}", user_id),
-                },
+                ErrorJson::new_404(
+                    format!("unknown user with id {}", user_id),
+                ),
             )
         })?;
 

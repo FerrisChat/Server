@@ -1,6 +1,6 @@
 use crate::WebServerError;
 use axum::extract::Path;
-use ferrischat_common::types::{Json, NotFoundJson};
+use ferrischat_common::types::ErrorJson;
 use serde::Serialize;
 
 /// DELETE `/api/v0/users/{user_id}`
@@ -12,9 +12,9 @@ pub async fn delete_user(
     if user_id != auth.0 {
         return Err((
             403,
-            Json {
-                message: "this account is not yours".to_string(),
-            },
+            ErrorJson::new_403(
+                "this account is not yours".to_string(),
+            ),
         )
             .into());
     }
@@ -32,9 +32,9 @@ pub async fn delete_user(
     .ok_or_else(|| {
         (
             404,
-            NotFoundJson {
-                message: "account not found".to_string(),
-            },
+            ErrorJson::new_404(
+                "account not found".to_string(),
+            ),
         )
     })?;
 

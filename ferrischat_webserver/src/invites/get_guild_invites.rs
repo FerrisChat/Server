@@ -1,6 +1,6 @@
 use crate::WebServerError;
 use axum::extract::Path;
-use ferrischat_common::types::Invite;
+use ferrischat_common::types::{Invite, ErrorJson};
 use serde::Serialize;
 
 /// GET `/api/v0/guilds/{guild_id}/invites`
@@ -23,9 +23,9 @@ pub async fn get_guild_invites(
     {
         return Err((
             403,
-            ferrischat_common::types::Json {
-                message: "you are not a member of this guild".to_string(),
-            },
+            ErrorJson::new_403(
+                "you are not a member of this guild".to_string(),
+            ),
         )
             .into());
     }

@@ -1,7 +1,7 @@
 use crate::WebServerError;
 use axum::extract::{Path, Query};
 use ferrischat_common::request_json::GetMessageHistoryParams;
-use ferrischat_common::types::{BadRequestJson, Message, MessageHistory, User, UserFlags};
+use ferrischat_common::types::{ErrorJson, Message, MessageHistory, User, UserFlags};
 use serde::Serialize;
 
 /// GET `/api/v0/channels/{channel_id}/messages`
@@ -22,10 +22,9 @@ pub async fn get_message_history(
     if limit < Some(0) {
         return Err((
             400,
-            BadRequestJson {
-                reason: "limit must be > 0".to_string(),
-                location: None,
-            },
+            ErrorJson::new_400(
+                "limit must be > 0".to_string(),
+            ),
         )
             .into());
     }

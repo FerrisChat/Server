@@ -4,7 +4,7 @@ use axum::extract::Path;
 use axum::Json;
 use ferrischat_common::perms::Permissions;
 use ferrischat_common::request_json::RoleUpdateJson;
-use ferrischat_common::types::{NotFoundJson, Role};
+use ferrischat_common::types::{ErrorJson, Role};
 use ferrischat_common::ws::WsOutboundEvent;
 use serde::Serialize;
 
@@ -36,9 +36,9 @@ pub async fn edit_role(
         .ok_or_else(|| {
             (
                 404,
-                NotFoundJson {
-                    message: format!("Unknown role with ID {}", role_id),
-                },
+                ErrorJson::new_404(
+                    format!("Unknown role with ID {}", role_id),
+                ),
             )
         })?;
 
@@ -48,9 +48,9 @@ pub async fn edit_role(
             name,
             bigint_role_id
         )
-        .execute(db)
-        .await?
-    }
+            .execute(db)
+            .await?
+    };
 
     if let Some(color) = color {
         sqlx::query!(
@@ -96,9 +96,9 @@ pub async fn edit_role(
         .ok_or_else(|| {
             (
                 404,
-                NotFoundJson {
-                    message: format!("Unknown role with ID {}", role_id),
-                },
+                ErrorJson::new_404(
+                    format!("Unknown role with ID {}", role_id),
+                ),
             )
         })?;
 
@@ -110,8 +110,8 @@ pub async fn edit_role(
     };
 
     fire_event(format!("role_{}_{}", role_id, guild_id), &event).await?;
-    crate::Json {
+    Ok(crate::Json {
         obj: new_role_obj,
         code: 200,
-    }
+    })
 }

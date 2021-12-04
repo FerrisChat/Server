@@ -3,7 +3,7 @@ use crate::WebServerError;
 use axum::extract::Path;
 use axum::Json;
 use ferrischat_common::request_json::MessageUpdateJson;
-use ferrischat_common::types::{BadRequestJson, Message, NotFoundJson, User, UserFlags};
+use ferrischat_common::types::{ErrorJson, Message, User, UserFlags};
 use ferrischat_common::ws::WsOutboundEvent;
 use serde::Serialize;
 
@@ -21,10 +21,9 @@ pub async fn edit_message(
         if content.len() > 10240 {
             return Err((
                 400,
-                BadRequestJson {
-                    reason: "message content size must be fewer than 10,240 bytes".to_string(),
-                    location: None,
-                },
+                ErrorJson::new_400(
+                    "message content size must be fewer than 10,240 bytes".to_string(),
+                ),
             )
                 .into());
         }
@@ -47,9 +46,9 @@ pub async fn edit_message(
         .await?.ok_or_else(|| {
         (
             404,
-            NotFoundJson {
-                message: format!("Unknown guild with ID {}", guild_id),
-            },
+            ErrorJson::new_404(
+                format!("Unknown guild with ID {}", guild_id),
+            ),
         )
     })?;
 
@@ -58,9 +57,9 @@ pub async fn edit_message(
         if author_id != auth.0 {
             return (
                 403,
-                ferrischat_common::types::Json {
-                    message: "this user is not the author of the message".to_string(),
-                },
+                ErrorJson::new_403(
+                    "this user is not the author of the message".to_string(),
+                ),
             )
                 .into();
         }
@@ -104,9 +103,9 @@ pub async fn edit_message(
         })
         .ok_or_else(|| (
             404,
-            NotFoundJson {
-                message: format!("Unknown message with ID {}", message_id)
-            }
+            ErrorJson::new_404(
+                format!("Unknown message with ID {}", message_id)
+            )
         ))?;
 
     let event = WsOutboundEvent::MessageUpdate {

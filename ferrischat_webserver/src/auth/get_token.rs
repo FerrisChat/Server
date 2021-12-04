@@ -2,7 +2,7 @@ use crate::auth::token_gen::generate_random_bits;
 use crate::special_headers::{Email, Password};
 use crate::{Json, WebServerError};
 use axum::extract::TypedHeader;
-use ferrischat_common::types::{AuthResponse, InternalServerErrorJson, NotFoundJson};
+use ferrischat_common::types::{AuthResponse, ErrorJson};
 use serde::Serialize;
 use sqlx::types::BigDecimal;
 use tokio::sync::oneshot::channel;
@@ -25,9 +25,9 @@ pub async fn get_token(
     .ok_or_else(|| {
         (
             404,
-            NotFoundJson {
-                message: "user not found".to_string(),
-            },
+            ErrorJson::new_404(
+                format!("Unknown user with email {}", user_email),
+            ),
         )
             .into()
     })?;
@@ -40,11 +40,11 @@ pub async fn get_token(
         let db_password = std::mem::take(&mut r.password);
         v.send(((user_password, db_password), tx))
             .await
-            .map_err(|_| InternalServerErrorJson {
-                reason: "Password verifier has hung up connection".to_string(),
-                is_bug: false,
-                link: None,
-            })?;
+            .map_err(|_| ErrorJson::new_500(
+                "Password verifier has hung up connection".to_string(),
+                false,
+                None,
+            ))?;
         rx.await
             .unwrap_or_else(|e| {
                 unreachable!(
@@ -55,11 +55,11 @@ pub async fn get_token(
             .map_err(|e| {
                 (
                     500,
-                    InternalServerErrorJson {
-                        reason: format!("failed to verify password: {}", e),
-                        is_bug: false,
-                        link: None,
-                    },
+                    ErrorJson::new_500(
+                        format!("failed to verify password: {}", e),
+                        false,
+                        None,
+                    ),
                 )
                     .into()
             })?
@@ -67,9 +67,9 @@ pub async fn get_token(
     if !(matches && (user_email == r.email)) {
         return Err((
             404,
-            NotFoundJson {
-                message: "user not found".to_string(),
-            },
+            ErrorJson::new_404(
+                format!("Your credentials are not correct"),
+            ),
         )
             .into());
     }
@@ -87,11 +87,11 @@ pub async fn get_token(
         .map_err(|_| {
             (
                 500,
-                InternalServerErrorJson {
-                    reason: "Password hasher has hung up connection".to_string(),
-                    is_bug: false,
-                    link: None,
-                },
+                ErrorJson::new_500(
+                    "Password hasher has hung up connection".to_string(),
+                    false,
+                    None,
+                ),
             )
                 .into()
         })?;
@@ -106,15 +106,15 @@ pub async fn get_token(
                          .map_err(|e| {
                              (
                                  500,
-                                 InternalServerErrorJson {
-                                     reason: format!("failed to hash token: {}", e),
-                                     is_bug: true,
-                                     link: Some(
+                                 ErrorJson::new_500(
+                                     format!("failed to hash token: {}", e),
+                                     true,
+                                     Some(
                                          "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
                                          labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+failed+to+hash+token"
                                              .to_string(),
                                      ),
-                                 },
+                                 ),
                              )
                                  .into()
                          })?;

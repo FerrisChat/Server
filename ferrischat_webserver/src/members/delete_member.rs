@@ -1,7 +1,7 @@
 use crate::ws::fire_event;
 use crate::WebServerError;
 use axum::extract::Path;
-use ferrischat_common::types::{Member, NotFoundJson};
+use ferrischat_common::types::{Member, ErrorJson};
 use ferrischat_common::ws::WsOutboundEvent;
 use serde::Serialize;
 
@@ -22,9 +22,9 @@ pub async fn delete_member(
     if owner_id == bigint_member_id {
         return Err((
             409,
-            ferrischat_common::types::Json {
-                message: "the guild owner cannot be removed from a guild".to_string(),
-            },
+            ErrorJson::new_409(
+                "the guild owner cannot be removed from a guild".to_string(),
+            ),
         )
             .into());
     }
@@ -45,9 +45,9 @@ pub async fn delete_member(
     .ok_or_else(|| {
         (
             404,
-            NotFoundJson {
-                message: format!("Unknown member with ID {} in {}", member_id, guild_id),
-            },
+            ErrorJson::new_404(
+                format!("Unknown member with ID {} in {}", member_id, guild_id),
+            ),
         )
             .into()
     })?;

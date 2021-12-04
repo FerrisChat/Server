@@ -2,7 +2,7 @@ use crate::ws::fire_event;
 use crate::WebServerError;
 use axum::extract::{Json, Path};
 use ferrischat_common::request_json::MessageCreateJson;
-use ferrischat_common::types::{BadRequestJson, Message, ModelType, User, UserFlags};
+use ferrischat_common::types::{ErrorJson, Message, ModelType, User, UserFlags};
 use ferrischat_common::ws::WsOutboundEvent;
 use ferrischat_snowflake_generator::generate_snowflake;
 use serde::Serialize;
@@ -18,10 +18,9 @@ pub async fn create_message(
     if content.len() > 10240 {
         return Err((
             400,
-            BadRequestJson {
-                reason: "message content size must be fewer than 10,240 bytes".to_string(),
-                location: None,
-            },
+            ErrorJson::new_400(
+                "message content size must be fewer than 10,240 bytes".to_string(),
+            ),
         )
             .into());
     }

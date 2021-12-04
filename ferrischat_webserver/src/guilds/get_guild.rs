@@ -1,7 +1,7 @@
 use crate::WebServerError;
 use axum::extract::{Path, Query};
 use ferrischat_common::request_json::GetGuildUrlParams;
-use ferrischat_common::types::{Channel, Guild, GuildFlags, Member, NotFoundJson, User, UserFlags};
+use ferrischat_common::types::{Channel, Guild, GuildFlags, Member, ErrorJson, User, UserFlags};
 use num_traits::ToPrimitive;
 use serde::Serialize;
 
@@ -20,9 +20,9 @@ pub async fn get_guild(
         .ok_or_else(|| {
             (
                 404,
-                NotFoundJson {
-                    message: format!("Unknown guild with ID {}", guild_id),
-                },
+                ErrorJson::new_404(
+                    format!("Unknown guild with ID {}", guild_id),
+                ),
             )
         })?;
 

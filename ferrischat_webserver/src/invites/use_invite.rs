@@ -1,7 +1,7 @@
 use crate::ws::fire_event;
 use crate::WebServerError;
 use axum::extract::Path;
-use ferrischat_common::types::{Invite, Member, NotFoundJson, User, UserFlags};
+use ferrischat_common::types::{Invite, Member, ErrorJson, User, UserFlags};
 use ferrischat_common::ws::WsOutboundEvent;
 use serde::Serialize;
 use sqlx::types::time::OffsetDateTime;
@@ -24,9 +24,9 @@ pub async fn use_invite(
         .ok_or_else(|| {
             (
                 404,
-                NotFoundJson {
-                    message: format!("Unknown invite with code {}", invite_code),
-                },
+                ErrorJson::new_404(
+                    format!("Unknown invite with code {}", invite_code),
+                ),
             )
         })?;
 
@@ -67,9 +67,9 @@ pub async fn use_invite(
 
         return Err((
             410,
-            ferrischat_common::types::Json {
-                message: "this invite just disappeared".to_string(),
-            },
+            ErrorJson::new_400(
+                "this invite just disappeared".to_string(),
+            ),
         )
             .into());
     }
@@ -85,9 +85,9 @@ pub async fn use_invite(
     {
         return Err((
             409,
-            ferrischat_common::types::Json {
-                message: "user has already joined this guild".to_string(),
-            },
+            ErrorJson::new_409(
+                "user has already joined this guild".to_string(),
+            ),
         )
             .into());
     };

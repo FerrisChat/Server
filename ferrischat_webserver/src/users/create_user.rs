@@ -2,7 +2,7 @@ use crate::WebServerError;
 use axum::Json;
 use ferrischat_common::request_json::UserCreateJson;
 use ferrischat_common::types::{
-    InternalServerErrorJson, Json as MsgJson, ModelType, User, UserFlags,
+    ErrorJson, ModelType, User, UserFlags,
 };
 use ferrischat_snowflake_generator::generate_snowflake;
 use rand::Rng;
@@ -41,9 +41,9 @@ pub async fn create_user(
             .ok_or_else(
                 (
                     409,
-                    MsgJson {
-                        message: "This username has all possible discriminators taken.".to_string(),
-                    },
+                    ErrorJson::new_409(
+                        "This username has all possible discriminators taken.".to_string(),
+                    ),
                 )
                     .into,
             )?
@@ -59,11 +59,11 @@ pub async fn create_user(
             .map_err(|_| {
                 (
                     500,
-                    InternalServerErrorJson {
-                        reason: "Password hasher has hung up connection".to_string(),
-                        is_bug: false,
-                        link: None,
-                    },
+                    ErrorJson::new_500(
+                        "Password hasher has hung up connection".to_string(),
+                        false,
+                        None,
+                    ),
                 )
                     .into()
             })?;
@@ -77,15 +77,15 @@ pub async fn create_user(
           .map_err(|e| {
               (
                   500,
-                  InternalServerErrorJson {
-                      reason: format!("failed to hash token: {}", e),
-                      is_bug: true,
-                      link: Some(
+                  ErrorJson::new_500(
+                      format!("failed to hash token: {}", e),
+                      true,
+                      Some(
                           "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
                                          labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+failed+to+hash+token"
                               .to_string(),
                       ),
-                  },
+                  ),
               )
                   .into()
           })?
