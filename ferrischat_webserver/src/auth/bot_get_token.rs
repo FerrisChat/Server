@@ -29,8 +29,8 @@ pub async fn get_bot_token(
 
     if owner_id != auth.0 {
         Ok(crate::Json {
-            obj: NotFoundJson {
-                message: "You can't do that!".to_string(),
+            obj: ferrischat_common::types::Json {
+                message: "you are not the owner of this bot".to_string(),
             },
             code: 403,
         })
