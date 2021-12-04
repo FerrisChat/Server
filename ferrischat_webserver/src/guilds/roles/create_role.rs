@@ -17,7 +17,7 @@ pub async fn create_role(
     _: crate::Authorization,
     role_info: Json<RoleCreateJson>,
     Path(guild_id): Path<u128>,
-) -> Result<crate::Json<Role>, WebServerError<impl Serialize>> {
+) -> Result<crate::Json<Role>, WebServerError> {
     let db = get_db_or_fail!();
 
     let RoleCreateJson {

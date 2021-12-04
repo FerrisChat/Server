@@ -9,7 +9,7 @@ use tokio::sync::oneshot::channel;
 pub async fn get_bot_token(
     auth: crate::Authorization,
     Path(bot_id): Path<u128>,
-) -> Result<Json<AuthResponse>, WebServerError<impl Serialize>> {
+) -> Result<Json<AuthResponse>, WebServerError> {
     let db = get_db_or_fail!();
     let bigint_bot_id = u128_to_bigdecimal!(bot_id);
 

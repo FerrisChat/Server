@@ -9,7 +9,7 @@ use serde::Serialize;
 pub async fn delete_member(
     Path((guild_id, member_id)): Path<(u128, u128)>,
     _: crate::Authorization,
-) -> Result<http::StatusCode, WebServerError<impl Serialize>> {
+) -> Result<http::StatusCode, WebServerError> {
     let bigint_guild_id = u128_to_bigdecimal!(guild_id);
     let bigint_member_id = u128_to_bigdecimal!(member_id);
 

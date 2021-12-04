@@ -10,7 +10,7 @@ pub async fn get_guild(
     _: crate::Authorization,
     Path(guild_id): Path<u128>,
     Query(params): Query<GetGuildUrlParams>,
-) -> Result<crate::Json<Guild>, WebServerError<impl Serialize>> {
+) -> Result<crate::Json<Guild>, WebServerError> {
     let db = get_db_or_fail!();
     let bigint_guild_id = u128_to_bigdecimal!(guild_id);
 

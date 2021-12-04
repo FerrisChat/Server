@@ -8,7 +8,7 @@ use serde::Serialize;
 pub async fn get_role(
     Path(role_id): Path<u128>,
     _: crate::Authorization,
-) -> Result<crate::Json<Role>, WebServerError<impl Serialize>> {
+) -> Result<crate::Json<Role>, WebServerError> {
     let bigint_role_id = u128_to_bigdecimal!(role_id);
     Ok(
         sqlx::query!("SELECT * FROM roles where id = $1", bigint_role_id)

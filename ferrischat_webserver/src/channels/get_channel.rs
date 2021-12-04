@@ -7,7 +7,7 @@ use serde::Serialize;
 pub async fn get_channel(
     Path(channel_id): Path<u128>,
     _: crate::Authorization,
-) -> Result<crate::Json<Channel>, WebServerError<impl Serialize>> {
+) -> Result<crate::Json<Channel>, WebServerError> {
     Ok(sqlx::query!(
         "SELECT * FROM channels WHERE id = $1",
         u128_to_bigdecimal!(channel_id)

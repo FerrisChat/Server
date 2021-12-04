@@ -7,7 +7,7 @@ use serde::Serialize;
 pub async fn get_guild_invites(
     Path(guild_id): Path<u128>,
     crate::Authorization(authorized_user): crate::Authorization,
-) -> Result<crate::Json<Vec<Invite>>, WebServerError<impl Serialize>> {
+) -> Result<crate::Json<Vec<Invite>>, WebServerError> {
     let db = get_db_or_fail!();
     let bigint_guild_id = u128_to_bigdecimal!(guild_id);
     let bigint_authed_user = u128_to_bigdecimal!(authorized_user);

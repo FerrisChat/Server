@@ -7,7 +7,7 @@ use serde::Serialize;
 pub async fn remove_member_role(
     Path((guild_id, user_id, role_id)): Path<(u128, u128, u128)>,
     _: crate::Authorization,
-) -> Result<StatusCode, WebServerError<impl Serialize>> {
+) -> Result<StatusCode, WebServerError> {
     let db = get_db_or_fail!();
     let guild_id = u128_to_bigdecimal!(guild_id);
     let user_id = u128_to_bigdecimal!(user_id);

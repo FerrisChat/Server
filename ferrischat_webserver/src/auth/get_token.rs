@@ -10,7 +10,7 @@ use tokio::sync::oneshot::channel;
 pub async fn get_token(
     TypedHeader(email): TypedHeader<Email>,
     TypedHeader(password): TypedHeader<Password>,
-) -> Result<Json<AuthResponse>, WebServerError<impl Serialize>> {
+) -> Result<Json<AuthResponse>, WebServerError> {
     let user_email = email.into_inner();
     let user_password = password.into_inner();
 

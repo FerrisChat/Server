@@ -9,7 +9,7 @@ use serde::Serialize;
 pub async fn delete_message(
     Path((channel_id, message_id)): Path<(u128, u128)>,
     _: crate::Authorization,
-) -> Result<http::StatusCode, WebServerError<impl Serialize>> {
+) -> Result<http::StatusCode, WebServerError> {
     let bigint_message_id = u128_to_bigdecimal!(message_id);
     let bigint_channel_id = u128_to_bigdecimal!(channel_id);
 

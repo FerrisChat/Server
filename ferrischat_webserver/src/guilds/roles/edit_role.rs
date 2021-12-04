@@ -17,7 +17,7 @@ pub async fn edit_role(
         permissions,
     }): Json<RoleUpdateJson>,
     _: crate::Authorization,
-) -> Result<crate::Json<Role>, WebServerError<impl Serialize>> {
+) -> Result<crate::Json<Role>, WebServerError> {
     let bigint_role_id = u128_to_bigdecimal!(role_id);
 
     let db = get_db_or_fail!();

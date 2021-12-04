@@ -8,7 +8,7 @@ use serde::Serialize;
 pub async fn delete_bot(
     Path((user_id, bot_id)): Path<(u128, u128)>,
     auth: crate::Authorization,
-) -> Result<http::StatusCode, WebServerError<impl Serialize>> {
+) -> Result<http::StatusCode, WebServerError> {
     let bigint_user_id = u128_to_bigdecimal!(user_id);
 
     let db = get_db_or_fail!();

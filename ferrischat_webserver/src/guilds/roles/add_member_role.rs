@@ -8,7 +8,7 @@ use serde::Serialize;
 pub async fn add_member_role(
     Path((guild_id, user_id, role_id)): Path<(u128, u128, u128)>,
     _: crate::Authorization,
-) -> Result<crate::Json<Json>, WebServerError<impl Serialize>> {
+) -> Result<crate::Json<Json>, WebServerError> {
     let db = get_db_or_fail!();
 
     let guild_id = u128_to_bigdecimal!(guild_id);

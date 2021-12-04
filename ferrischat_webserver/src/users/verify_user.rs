@@ -16,7 +16,7 @@ use tokio::time::Duration;
 /// Requires only an authorization token.
 pub async fn send_verification_email(
     crate::Authorization(authorized_user): crate::Authorization,
-) -> impl Responder {
+) -> Result<crate::Json<Json>, WebServerError> {
     let db = get_db_or_fail!();
     let bigint_user_id = u128_to_bigdecimal!(authorized_user);
 
@@ -140,9 +140,7 @@ pub async fn send_verification_email(
 
 /// GET /v0/verify/{token}
 /// Verifies the user's email when they click the link mailed to them.
-pub async fn verify_email(
-    Path(token): Path<String>,
-) -> Result<crate::Json<Json>, WebServerError<impl Serialize>> {
+pub async fn verify_email(Path(token): Path<String>) -> Result<crate::Json<Json>, WebServerError> {
     let db = get_db_or_fail!();
 
     let redis_key = format!("email:tokens:{}", token);

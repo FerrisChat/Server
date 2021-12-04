@@ -19,7 +19,7 @@ pub async fn edit_user(
         ..
     }): Json<UserUpdateJson>,
     auth: crate::Authorization,
-) -> Result<crate::Json<User>, WebServerError<impl Serialize>> {
+) -> Result<crate::Json<User>, WebServerError> {
     if user_id != auth.0 {
         return Err((
             403,

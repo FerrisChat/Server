@@ -11,7 +11,7 @@ pub async fn edit_guild(
     Path(guild_id): Path<u128>,
     Json(GuildUpdateJson { name }): Json<GuildUpdateJson>,
     _: crate::Authorization,
-) -> Result<crate::Json<Guild>, WebServerError<impl Serialize>> {
+) -> Result<crate::Json<Guild>, WebServerError> {
     let db = get_db_or_fail!();
 
     let bigint_guild_id = u128_to_bigdecimal!(guild_id);

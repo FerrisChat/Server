@@ -13,7 +13,7 @@ pub async fn get_message_history(
         oldest_first,
         mut offset,
     }): Query<GetMessageHistoryParams>,
-) -> Result<crate::Json<MessageHistory>, WebServerError<impl Serialize>> {
+) -> Result<crate::Json<MessageHistory>, WebServerError> {
     let bigint_channel_id = u128_to_bigdecimal!(channel_id);
     let db = get_db_or_fail!();
 

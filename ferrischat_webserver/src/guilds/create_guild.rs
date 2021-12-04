@@ -11,7 +11,7 @@ use serde::Serialize;
 pub async fn create_guild(
     auth: crate::Authorization,
     guild_info: Json<GuildCreateJson>,
-) -> Result<crate::Json<Guild>, WebServerError<impl Serialize>> {
+) -> Result<crate::Json<Guild>, WebServerError> {
     let db = get_db_or_fail!();
     let node_id = get_node_id!();
     let guild_id = generate_snowflake::<0>(ModelType::Guild as u8, node_id);

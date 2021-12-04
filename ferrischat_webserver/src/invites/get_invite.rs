@@ -7,7 +7,7 @@ use serde::Serialize;
 pub async fn get_invite(
     Path(code): Path<String>,
     _: crate::Authorization,
-) -> Result<crate::Json<Invite>, WebServerError<impl Serialize>> {
+) -> Result<crate::Json<Invite>, WebServerError> {
     Ok(sqlx::query!("SELECT * FROM invites WHERE code = $1", code)
         .fetch_optional(get_db_or_fail!())
         .await?

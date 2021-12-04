@@ -8,7 +8,7 @@ use serde::Serialize;
 pub async fn delete_user(
     Path(user_id): Path<u128>,
     auth: crate::Authorization,
-) -> Result<http::StatusCode, WebServerError<impl Serialize>> {
+) -> Result<http::StatusCode, WebServerError> {
     if user_id != auth.0 {
         return Err((
             403,

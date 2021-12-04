@@ -12,7 +12,7 @@ pub async fn edit_bot(
     Path((user_id, bot_id)): Path<(u128, u128)>,
     Json(BotUpdateJson { username }): Json<BotUpdateJson>,
     auth: crate::Authorization,
-) -> Result<crate::Json<User>, WebServerError<impl Serialize>> {
+) -> Result<crate::Json<User>, WebServerError> {
     let bigint_bot_id = u128_to_bigdecimal!(bot_id);
 
     let db = get_db_or_fail!();

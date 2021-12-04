@@ -18,10 +18,7 @@ pub enum WsEventError {
     PoolError(PoolError),
 }
 
-pub async fn fire_event(
-    channel: String,
-    event: &WsOutboundEvent,
-) -> Result<(), WebServerError<Json>> {
+pub async fn fire_event(channel: String, event: &WsOutboundEvent) -> Result<(), WebServerError> {
     let message = simd_json::to_vec(event).map_err(|e| WebServerError::Json(e))?;
 
     ferrischat_redis::REDIS_MANAGER

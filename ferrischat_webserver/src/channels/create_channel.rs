@@ -14,7 +14,7 @@ pub async fn create_channel(
     _: crate::Authorization,
     channel_info: JsonInput<ChannelCreateJson>,
     Path(guild_id): Path<u128>,
-) -> Result<Json<Channel>, WebServerError<impl Serialize>> {
+) -> Result<Json<Channel>, WebServerError> {
     let db = get_db_or_fail!();
 
     let ChannelCreateJson { name } = channel_info.0;

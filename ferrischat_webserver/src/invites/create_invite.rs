@@ -14,7 +14,7 @@ pub async fn create_invite(
     auth: crate::Authorization,
     Path(guild_id): Path<u128>,
     Json(InviteCreateJson { max_age, max_uses }): Json<InviteCreateJson>,
-) -> Result<crate::Json<Invite>, WebServerError<impl Serialize>> {
+) -> Result<crate::Json<Invite>, WebServerError> {
     let db = get_db_or_fail!();
 
     let bigint_guild_id = u128_to_bigdecimal!(guild_id);

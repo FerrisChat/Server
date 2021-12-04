@@ -11,7 +11,7 @@ pub async fn edit_channel(
     Path(channel_id): Path<u128>,
     channel_info: axum::extract::Json<ChannelUpdateJson>,
     _: crate::Authorization,
-) -> Result<Json<Channel>, WebServerError<impl Serialize>> {
+) -> Result<Json<Channel>, WebServerError> {
     let bigint_channel_id = u128_to_bigdecimal!(channel_id);
     let db = get_db_or_fail!();
     let ChannelUpdateJson { name } = channel_info.0;

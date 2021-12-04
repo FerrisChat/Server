@@ -13,7 +13,7 @@ use tokio::sync::oneshot::channel;
 /// Creates a ferrischat user with the given info
 pub async fn create_user(
     user_data: Json<UserCreateJson>,
-) -> Result<crate::Json<User>, WebServerError<impl Serialize>> {
+) -> Result<crate::Json<User>, WebServerError> {
     let db = get_db_or_fail!();
     let node_id = get_node_id!();
     let user_id = generate_snowflake::<0>(ModelType::User as u8, node_id);

@@ -7,7 +7,7 @@ use serde::Serialize;
 pub async fn get_message(
     Path((channel_id, message_id)): Path<(u128, u128)>,
     auth: crate::Authorization,
-) -> Result<crate::Json<Message>, WebServerError<impl Serialize>> {
+) -> Result<crate::Json<Message>, WebServerError> {
     let bigint_message_id = u128_to_bigdecimal!(message_id);
     let bigint_channel_id = u128_to_bigdecimal!(channel_id);
     Ok(

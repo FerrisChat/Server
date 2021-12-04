@@ -12,7 +12,7 @@ pub async fn create_message(
     auth: crate::Authorization,
     json: Json<MessageCreateJson>,
     Path(channel_id): Path<u128>,
-) -> Result<crate::Json<Message>, WebServerError<impl Serialize>> {
+) -> Result<crate::Json<Message>, WebServerError> {
     let MessageCreateJson { content, nonce } = json.0;
 
     if content.len() > 10240 {

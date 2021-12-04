@@ -12,7 +12,7 @@ const FERRIS_EPOCH: i64 = 1_577_836_800_000;
 pub async fn use_invite(
     Path(invite_code): Path<String>,
     crate::Authorization(user_id): crate::Authorization,
-) -> Result<crate::Json<impl Serialize>, WebServerError<impl Serialize>> {
+) -> Result<crate::Json<impl Serialize>, WebServerError> {
     let bigint_user_id = u128_to_bigdecimal!(user_id);
 
     let db = get_db_or_fail!();
