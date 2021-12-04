@@ -24,14 +24,11 @@ pub async fn edit_channel(
             name: c.name,
             guild_id: bigdecimal_to_u128!(c.guild_id),
         })
-        .ok_or_else(|| {
-            (
-                404,
-                ErrorJson::new_404(
-                    format!("Unknown channel with ID {}", channel_id),
-                ),
+        .ok_or_else(||
+            ErrorJson::new_404(
+                format!("Unknown channel with ID {}", channel_id),
             )
-        })?;
+        )?;
 
     let new_channel_resp = sqlx::query!(
         "UPDATE channels SET name = $1 WHERE id= $2 RETURNING *",

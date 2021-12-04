@@ -17,14 +17,10 @@ pub async fn delete_guild(
         .fetch_optional(db)
         .await?
         .map(|x| bigdecimal_to_u128!(x.owner_id))
-        .ok_or_else(|| {
-            (
-                404,
-                ErrorJson::new_404(
-                    format!("Unknown guild with ID {}", guild_id),
-                ),
-            )
-        })?;
+        .ok_or_else(|| ErrorJson::new_404(
+            format!("Unknown guild with ID {}", guild_id),
+        ),
+        )?;
     if auth.0 != owner_id {
         return Err((
             403,

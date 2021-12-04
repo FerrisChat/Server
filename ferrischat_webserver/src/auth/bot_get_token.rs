@@ -16,14 +16,11 @@ pub async fn get_bot_token(
     let bot_resp = sqlx::query!("SELECT * FROM bots WHERE user_id = $1", bigint_bot_id)
         .fetch_optional(db)
         .await?
-        .ok_or_else(|| {
-            (
-                404,
-                ErrorJson::new_404(
-                    format!("Unknown bot where ID = {}", bot_id)
-                ),
-            )
-        })?;
+        .ok_or_else(||
+                        ErrorJson::new_404(
+                            format!("Unknown bot where ID = {}", bot_id)
+                        ),
+        )?;
 
     let owner_id = bigdecimal_to_u128!(bot_resp.owner_id);
 

@@ -27,16 +27,12 @@ pub async fn delete_user(
         "DELETE FROM users WHERE id = $1 RETURNING (id)",
         bigint_user_id,
     )
-    .fetch_optional(db)
-    .await?
-    .ok_or_else(|| {
-        (
-            404,
-            ErrorJson::new_404(
-                "account not found".to_string(),
-            ),
-        )
-    })?;
+        .fetch_optional(db)
+        .await?
+        .ok_or_else(|| ErrorJson::new_404(
+            "account not found".to_string(),
+        ),
+        )?;
 
     Ok(http::StatusCode::NO_CONTENT)
 }

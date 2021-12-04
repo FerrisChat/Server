@@ -43,14 +43,10 @@ pub async fn edit_message(
         bigint_message_id
     )
         .fetch_optional(db)
-        .await?.ok_or_else(|| {
-        (
-            404,
-            ErrorJson::new_404(
-                format!("Unknown guild with ID {}", guild_id),
-            ),
-        )
-    })?;
+        .await?.ok_or_else(|| ErrorJson::new_404(
+        format!("Unknown guild with ID {}", guild_id),
+    ),
+    )?;
 
     let old_message_obj = {
         let author_id = bigdecimal_to_u128!(resp.author_id);
@@ -101,12 +97,10 @@ pub async fn edit_message(
             author: old_message_obj.author.clone(),
             nonce: None,
         })
-        .ok_or_else(|| (
-            404,
-            ErrorJson::new_404(
-                format!("Unknown message with ID {}", message_id)
-            )
-        ))?;
+        .ok_or_else(|| ErrorJson::new_404(
+            format!("Unknown message with ID {}", message_id)
+        )
+        )?;
 
     let event = WsOutboundEvent::MessageUpdate {
         old: old_message_obj,

@@ -17,21 +17,18 @@ pub async fn delete_channel(
         "DELETE FROM channels WHERE id = $1 RETURNING *",
         bigint_channel_id,
     )
-    .fetch_optional(db)
-    .await?
-    .map(|channel| Channel {
-        id: bigdecimal_to_u128!(channel.id),
-        guild_id: bigdecimal_to_u128!(channel.guild_id),
-        name: channel.name,
-    })
-    .ok_or_else(|| {
-        (
-            404,
-            ErrorJson::new_404(
-                format!("Unknown channel with ID {}", channel_id),
-            ),
-        )
-    })?;
+        .fetch_optional(db)
+        .await?
+        .map(|channel| Channel {
+            id: bigdecimal_to_u128!(channel.id),
+            guild_id: bigdecimal_to_u128!(channel.guild_id),
+            name: channel.name,
+        })
+        .ok_or_else(||
+                        ErrorJson::new_404(
+                            format!("Unknown channel with ID {}", channel_id),
+                        ),
+        )?;
 
     let event = WsOutboundEvent::ChannelDelete {
         channel: channel_obj.clone(),

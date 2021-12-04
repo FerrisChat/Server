@@ -17,14 +17,10 @@ pub async fn get_guild(
     let guild = sqlx::query!("SELECT * FROM guilds WHERE id = $1", bigint_guild_id)
         .fetch_optional(db)
         .await?
-        .ok_or_else(|| {
-            (
-                404,
-                ErrorJson::new_404(
-                    format!("Unknown guild with ID {}", guild_id),
-                ),
-            )
-        })?;
+        .ok_or_else(|| ErrorJson::new_404(
+            format!("Unknown guild with ID {}", guild_id),
+        ),
+        )?;
 
     let channels: Option<Vec<Channel>> = if params.channels.unwrap_or(true) {
         let resp = sqlx::query!(

@@ -115,14 +115,10 @@ pub async fn edit_user(
     let user = sqlx::query!("SELECT * FROM users WHERE id = $1", bigint_user_id)
         .fetch_optional(db)
         .await?
-        .ok_or_else(|| {
-            (
-                404,
-                ErrorJson::new_404(
-                    format!("unknown user with id {}", user_id),
-                ),
-            )
-        })?;
+        .ok_or_else(|| ErrorJson::new_404(
+            format!("unknown user with id {}", user_id),
+        ),
+        )?;
 
     Ok(crate::Json {
         code: 200,

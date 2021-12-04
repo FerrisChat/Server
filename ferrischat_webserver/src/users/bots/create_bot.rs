@@ -41,14 +41,10 @@ pub async fn create_bot(
             .collect::<Vec<_>>();
         *available
             .get(rand::thread_rng().gen_range(0..available.len()))
-            .ok_or_else(|| {
-                (
-                    409,
-                    ErrorJson::new_409(
-                        "this username has all possible discriminators taken".to_string(),
-                    ),
-                )
-            })?
+            .ok_or_else(|| ErrorJson::new_409(
+                "this username has all possible discriminators taken".to_string(),
+            ),
+            )?
     };
     let hashed_password = {
         let (tx, rx) = channel();

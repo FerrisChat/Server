@@ -28,14 +28,10 @@ pub async fn edit_guild(
             members: None,
             roles: None,
         })
-        .ok_or_else(|| {
-            (
-                404,
-                ErrorJson::new_404(
-                    format!("Unknown guild with ID {}", guild_id),
-                ),
-            )
-        })?;
+        .ok_or_else(|| ErrorJson::new_404(
+            format!("Unknown guild with ID {}", guild_id),
+        ),
+        )?;
 
     if let Some(name) = name {
         sqlx::query!(
@@ -59,14 +55,10 @@ pub async fn edit_guild(
             members: None,
             roles: None,
         })
-        .ok_or_else(|| {
-            (
-                404,
-                ErrorJson::new_404(
-                    format!("Unknown guild with ID {}", guild_id),
-                ),
-            )
-        })?;
+        .ok_or_else(|| ErrorJson::new_404(
+            format!("Unknown guild with ID {}", guild_id),
+        ),
+        )?;
 
     // TODO: impl Eq for all types
     // if old_guild_obj == new_guild_obj {}
