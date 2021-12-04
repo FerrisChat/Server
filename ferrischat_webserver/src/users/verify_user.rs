@@ -1,6 +1,5 @@
 use crate::auth::generate_random_bits;
 use crate::WebServerError;
-use actix_web::{web, HttpResponse, Responder};
 use axum::extract::Path;
 use check_if_email_exists::{check_email, CheckEmailInput, Reachable};
 use ferrischat_common::types::{InternalServerErrorJson, Json, NotFoundJson};
@@ -133,7 +132,7 @@ pub async fn send_verification_email(
         .set_ex::<String, String, String>(format!("email:tokens:{}", token), user_email, 86400)
         .await?;
 
-    HttpResponse::Ok().json(Json {
+    Ok(Json {
         message: "Sent verification, please check your email.".to_string(),
     })
 }
