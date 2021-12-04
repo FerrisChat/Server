@@ -12,6 +12,7 @@ pub async fn typing_end(
 ) -> Result<http::StatusCode, WebServerError> {
     let db = get_db_or_fail!();
     let bigint_user_id = u128_to_bigdecimal!(authorized_user);
+    let bigint_channel_id = u128_to_bigdecimal!(channel_id);
 
     let user = sqlx::query!("SELECT * FROM users WHERE id = $1", bigint_user_id)
         .fetch_optional(db)
@@ -25,7 +26,7 @@ pub async fn typing_end(
             )
         })?;
 
-    let channel = sqlx::query!("SELECT * FROM channels WHERE id = $1", channel_id)
+    let channel = sqlx::query!("SELECT * FROM channels WHERE id = $1", bigint_channel_id)
         .fetch_optional(db)
         .await?
         .ok_or_else(|| {
@@ -47,14 +48,15 @@ pub async fn typing_end(
         pronouns: user.pronouns.and_then(Pronouns::from_i16),
     };
 
+    let guild_id: u128 = bigdecimal_to_u128!(channel.guild_id);
     let channel_obj = Channel {
         id: channel_id,
         name: channel.name,
-        guild_id: channel.guild_id,
+        guild_id,
     };
 
     let event = WsOutboundEvent::TypingEnd {
-        channel: channel,
+        channel,
         user: user_obj,
     };
 

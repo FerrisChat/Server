@@ -1,7 +1,7 @@
 use crate::ws::fire_event;
 use crate::WebServerError;
 use axum::extract::Path;
-use ferrischat_common::types::{Channel, NotFoundJson, Pronouns, User, UserFlags};
+use ferrischat_common::types::{Channel, ErrorJson, Pronouns, User, UserFlags};
 use ferrischat_common::ws::WsOutboundEvent;
 use serde::Serialize;
 
@@ -12,6 +12,7 @@ pub async fn typing_start(
 ) -> Result<http::StatusCode, WebServerError> {
     let db = get_db_or_fail!();
     let bigint_user_id = u128_to_bigdecimal!(authorized_user);
+    let bigint_channel_id = u128_to_bigdecimal!(channel_id);
 
     let user = sqlx::query!("SELECT * FROM users WHERE id = $1", bigint_user_id)
         .fetch_optional(db)
@@ -25,7 +26,7 @@ pub async fn typing_start(
             )
         })?;
 
-    let channel = sqlx::query!("SELECT * FROM channels WHERE id = $1", channel_id)
+    let channel = sqlx::query!("SELECT * FROM channels WHERE id = $1", bigint_channel_id)
         .fetch_optional(db)
         .await?
         .ok_or_else(|| {
@@ -47,18 +48,19 @@ pub async fn typing_start(
         pronouns: user.pronouns.and_then(Pronouns::from_i16),
     };
 
+    let guild_id = bigdecimal_to_u128!(channel.guild_id);
     let channel_obj = Channel {
         id: channel_id,
         name: channel.name,
-        guild_id: channel.guild_id,
+        guild_id,
     };
 
     let event = WsOutboundEvent::TypingStart {
-        channel,
+        channel: channel_obj,
         user: user_obj,
     };
 
-    fire_event(format!("typing_{}", guild_id), event).await?;
+    fire_event(format!("typing_{}", guild_id), &event).await?;
 
     Ok(http::StatusCode::NO_CONTENT)
 }
