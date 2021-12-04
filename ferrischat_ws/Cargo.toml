@@ -25,7 +25,7 @@ ferrischat_db = { path = "../ferrischat_db" }
 ferrischat_config = { path = "../ferrischat_config" }
 
 [dependencies.tokio]
-version = "1.11"
+version = "1.14"
 features = ["full"]
 
 [dependencies.sqlx]

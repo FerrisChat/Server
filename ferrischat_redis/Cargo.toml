@@ -22,6 +22,6 @@ deadpool-redis = { version = "0.10", features = ["serde"] }
 redis = { version = "0.21", features = ["aio", "tokio", "tokio-comp", "connection-manager"] }
 rand = "0.8"
 base64 = "0.13"
-tokio = { version = "1.11", features = ["full"] }
+tokio = { version = "1.14", features = ["full"] }
 sysinfo = "0.20"
 ferrischat_config = { path = "../ferrischat_config", version = "0.1.0" }

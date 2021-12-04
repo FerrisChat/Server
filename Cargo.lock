@@ -21,7 +21,7 @@ dependencies = [
 [[package]]
 name = "actix-http"
 version = "3.0.0-beta.14"
-source = "git+https://github.com/actix/actix-web/#697238fadca3b77c414eda013b1e812a932fad8c"
+source = "git+https://github.com/actix/actix-web/#a2d5c5a0580d3e0d9e1cbb59396ec24159573384"
 dependencies = [
  "actix-codec",
  "actix-rt",
@@ -133,7 +133,7 @@ dependencies = [
 [[package]]
 name = "actix-web"
 version = "4.0.0-beta.13"
-source = "git+https://github.com/actix/actix-web/#697238fadca3b77c414eda013b1e812a932fad8c"
+source = "git+https://github.com/actix/actix-web/#a2d5c5a0580d3e0d9e1cbb59396ec24159573384"
 dependencies = [
  "actix-codec",
  "actix-http",
@@ -1196,7 +1196,7 @@ dependencies = [
 [[package]]
 name = "ferrischat_common"
 version = "0.2.0"
-source = "git+https://github.com/FerrisChat/Common.git?branch=master#4e2be9a6b72b3525b495cc9e1c63b0bd012e3e49"
+source = "git+https://github.com/FerrisChat/Common.git?branch=master#51ff16ee892d436d0cdbda94b9786d1d803172f1"
 dependencies = [
  "bitflags",
  "serde",
@@ -2025,9 +2025,9 @@ dependencies = [
 
 [[package]]
 name = "mailchecker"
-version = "4.1.0"
+version = "4.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f08ababb9ce907758f1feca940fabc48605b372d626d3fbbbf0f56e20a29e212"
+checksum = "330749ea78557091286b463f5a1078aae0c154e31d5258e886711fafdb5c04c6"
 dependencies = [
  "fast_chemail",
  "once_cell",
@@ -2079,9 +2079,9 @@ checksum = "308cc39be01b73d0d18f82a0e7b2a3df85245f84af96fdddc5d202d27e47b86a"
 
 [[package]]
 name = "memoffset"
-version = "0.6.4"
+version = "0.6.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "59accc507f1338036a0477ef61afdae33cde60840f4dfe481319ce3ad116ddf9"
+checksum = "5aa361d4faea93603064a027415f07bd8e1d5c88c9fbf68bf56a285428fd79ce"
 dependencies = [
  "autocfg 1.0.1",
 ]
@@ -3028,9 +3028,9 @@ dependencies = [
 
 [[package]]
 name = "simd-json"
-version = "0.4.8"
+version = "0.4.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e67eb096671712144fb1357787c4312720c99444f52900ca2a20bee57a02cc64"
+checksum = "1ba222f7fabbfd40b196ca4dbefed37fbd26e55fce3257570e3746b30fe95949"
 dependencies = [
  "halfbrown",
  "serde",

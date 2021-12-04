@@ -22,7 +22,7 @@ num-bigint = "0.3"
 ring = "0.16"
 futures = "0.3"
 base64 = "0.13"
-tokio = { version = "1.11", features = ["full"] }
+tokio = { version = "1.14", features = ["full"] }
 futures-cpupool = "0.1"
 http = "0.2"
 bytes = "*"
