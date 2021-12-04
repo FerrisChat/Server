@@ -21,7 +21,7 @@ pub async fn get_token(
         user_email
     )
     .fetch_optional(db)
-    .await
+    .await?
     .ok_or_else(|| {
         (
             404,
