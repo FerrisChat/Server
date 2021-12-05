@@ -10,6 +10,16 @@ pub struct Json<T: Serialize> {
     pub code: u16,
 }
 
+impl<T> Json<T>
+where
+    T: Serialize,
+{
+    #[inline(always)]
+    pub const fn new(obj: T, code: u16) -> Self {
+        Self { obj, code }
+    }
+}
+
 impl<T> IntoResponse for Json<T>
 where
     T: Serialize,
