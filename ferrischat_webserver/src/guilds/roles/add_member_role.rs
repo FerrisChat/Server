@@ -1,14 +1,14 @@
 use crate::WebServerError;
 use axum::extract::Path;
-use ferrischat_common::types::{ModelType};
+use ferrischat_common::types::ModelType;
 use ferrischat_snowflake_generator::generate_snowflake;
-use serde::Serialize;
+use http::StatusCode;
 
 /// POST `/api/v0/guilds/{guild_id}/members/{user_id}/role/{role_id}`
 pub async fn add_member_role(
     Path((guild_id, user_id, role_id)): Path<(u128, u128, u128)>,
     _: crate::Authorization,
-) -> Result<crate::Json<Json>, WebServerError> {
+) -> Result<StatusCode, WebServerError> {
     let db = get_db_or_fail!();
 
     let guild_id = u128_to_bigdecimal!(guild_id);
@@ -29,10 +29,5 @@ pub async fn add_member_role(
     .execute(db)
     .await?;
 
-    Ok(crate::Json {
-        obj: Json {
-            message: "role added to user successfully".to_string(),
-        },
-        code: 200,
-    })
+    Ok(StatusCode::NO_CONTENT)
 }
