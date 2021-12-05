@@ -2,8 +2,6 @@ use crate::auth::token_gen::generate_random_bits;
 use crate::{Json, WebServerError};
 use axum::extract::Path;
 use ferrischat_common::types::{AuthResponse, ErrorJson};
-use futures::TryFutureExt;
-use serde::Serialize;
 use tokio::sync::oneshot::channel;
 
 pub async fn get_bot_token(
@@ -16,21 +14,12 @@ pub async fn get_bot_token(
     let bot_resp = sqlx::query!("SELECT * FROM bots WHERE user_id = $1", bigint_bot_id)
         .fetch_optional(db)
         .await?
-        .ok_or_else(||
-                        ErrorJson::new_404(
-                            format!("Unknown bot where ID = {}", bot_id)
-                        ),
-        )?;
+        .ok_or_else(|| ErrorJson::new_404(format!("Unknown bot with ID {}", bot_id)))?;
 
     let owner_id = bigdecimal_to_u128!(bot_resp.owner_id);
 
     if owner_id != auth.0 {
-        Ok(crate::Json {
-            obj: ErrorJson::new_403(
-                "Forbidden".to_string(),
-            ),
-            code: 403,
-        })
+        return Err(ErrorJson::new_403("you are not the owner of this bot".to_string()).into());
     }
 
     let token = generate_random_bits()
@@ -44,15 +33,11 @@ pub async fn get_bot_token(
         .send((token.clone(), tx))
         .await
         .map_err(|_| {
-            (
-                500,
-                ErrorJson::new_500(
-                    "Password hasher has hung up connection".to_string(),
-                    false,
-                    None,
-                ),
+            ErrorJson::new_500(
+                "Password hasher has hung up connection".to_string(),
+                false,
+                None,
             )
-                .into()
         })?;
 
     let hashed_token = rx.await
@@ -63,19 +48,10 @@ pub async fn get_bot_token(
             )
         })
         .map_err(|e| {
-            (
-                500,
-                ErrorJson::new_500(
-                    format!("failed to hash token: {}", e),
-                    true,
-                    Some(
-                        "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
-                                         labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+failed+to+hash+token"
-                            .to_string(),
-                    ),
-                ),
-            )
-                .into()
+            ErrorJson::new_500(format!("failed to hash token: {}", e), true, Some(
+                "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+failed+to+hash+token"
+                    .to_string(),
+            ))
         })?;
 
     sqlx::query!(
