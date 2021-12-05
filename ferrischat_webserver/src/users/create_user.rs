@@ -1,12 +1,9 @@
 use crate::WebServerError;
 use axum::Json;
 use ferrischat_common::request_json::UserCreateJson;
-use ferrischat_common::types::{
-    ErrorJson, ModelType, User, UserFlags,
-};
+use ferrischat_common::types::{ErrorJson, ModelType, User, UserFlags};
 use ferrischat_snowflake_generator::generate_snowflake;
 use rand::Rng;
-use serde::Serialize;
 use tokio::sync::oneshot::channel;
 
 /// POST /api/v0/users/
@@ -38,15 +35,11 @@ pub async fn create_user(
             .collect::<Vec<_>>();
         *available
             .get(rand::thread_rng().gen_range(0..available.len()))
-            .ok_or_else(
-                (
-                    409,
-                    ErrorJson::new_409(
-                        "This username has all possible discriminators taken.".to_string(),
-                    ),
+            .ok_or_else(|| {
+                ErrorJson::new_409(
+                    "This username has all possible discriminators taken.".to_string(),
                 )
-                    .into,
-            )?
+            })?
     };
     // Hash the password for security.
     let hashed_password = {
@@ -57,15 +50,11 @@ pub async fn create_user(
             .send((password, tx))
             .await
             .map_err(|_| {
-                (
-                    500,
-                    ErrorJson::new_500(
-                        "Password hasher has hung up connection".to_string(),
-                        false,
-                        None,
-                    ),
+                ErrorJson::new_500(
+                    "Password hasher has hung up connection".to_string(),
+                    false,
+                    None,
                 )
-                    .into()
             })?;
         rx.await
           .unwrap_or_else(|e| {
@@ -75,19 +64,15 @@ pub async fn create_user(
               )
           })
           .map_err(|e| {
-              (
-                  500,
-                  ErrorJson::new_500(
-                      format!("failed to hash token: {}", e),
-                      true,
-                      Some(
-                          "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
+              ErrorJson::new_500(
+                  format!("failed to hash token: {}", e),
+                  true,
+                  Some(
+                      "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
                                          labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+failed+to+hash+token"
-                              .to_string(),
-                      ),
+                          .to_string(),
                   ),
               )
-                  .into()
           })?
     };
 
