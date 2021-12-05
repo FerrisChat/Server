@@ -1,8 +1,11 @@
+use axum::body::{self, BoxBody};
 use axum::http::Response;
 use axum::response::IntoResponse;
 use ferrischat_common::types::ErrorJson;
 use ferrischat_redis::deadpool_redis::redis::RedisError;
 use ferrischat_redis::deadpool_redis::PoolError;
+use http::header::CONTENT_TYPE;
+use http::HeaderValue;
 use lettre::address::AddressError;
 use sqlx::Error;
 use std::borrow::Cow;
@@ -81,10 +84,7 @@ impl From<lettre::transport::smtp::Error> for WebServerError {
 }
 
 impl IntoResponse for WebServerError {
-    type Body = axum::body::Body;
-    type BodyError = <Self::Body as axum::body::HttpBody>::Error;
-
-    fn into_response(self) -> Response<Self::Body> {
+    fn into_response(self) -> Response<BoxBody> {
         let body = match self {
             WebServerError::Database(e) => {
                 if let sqlx::Error::Database(e) = e {
@@ -149,15 +149,16 @@ impl IntoResponse for WebServerError {
             Err(err) => {
                 return Response::builder()
                     .status(http::StatusCode::INTERNAL_SERVER_ERROR)
-                    .header(http::header::CONTENT_TYPE, "text/plain")
-                    .body(axum::body::Body::from(err.to_string()))
+                    .header(CONTENT_TYPE, HeaderValue::from_static("text/plain"))
+                    .body(body::boxed(body::Full::from(err.to_string())))
                     .expect("failed to convert static data to a valid request");
             }
         };
 
         axum::http::Response::builder()
             .status(body.get_code())
-            .body(axum::body::Body::from(bytes))
+            .header(CONTENT_TYPE, HeaderValue::from_static("application/json"))
+            .body(body::boxed(body::Full::from(bytes)))
             .unwrap_or_else(|e| {
                 // this should only be reachable if a invalid HTTP code is passed in
                 unreachable!(

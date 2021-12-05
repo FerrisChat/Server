@@ -7,7 +7,7 @@ use tokio::sync::oneshot::channel;
 pub struct Authorization(pub u128);
 
 #[async_trait::async_trait]
-impl FromRequest for Authorization {
+impl FromRequest<Body> for Authorization {
     type Rejection = crate::WebServerError;
 
     async fn from_request(req: &mut RequestParts<Body>) -> Result<Self, Self::Rejection> {

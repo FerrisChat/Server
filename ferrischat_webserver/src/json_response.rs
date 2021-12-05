@@ -1,9 +1,8 @@
-use axum::body::Full;
+use axum::body::{self, BoxBody};
 use axum::response::IntoResponse;
-use bytes::Bytes;
-use http::{header, HeaderValue, Response, StatusCode};
+use http::header::CONTENT_TYPE;
+use http::{HeaderValue, Response};
 use serde::Serialize;
-use std::convert::Infallible;
 
 pub struct Json<T: Serialize> {
     pub obj: T,
@@ -24,27 +23,29 @@ impl<T> IntoResponse for Json<T>
 where
     T: Serialize,
 {
-    type Body = Full<Bytes>;
-    type BodyError = Infallible;
-
-    fn into_response(self) -> Response<Self::Body> {
+    fn into_response(self) -> Response<BoxBody> {
         let bytes = match simd_json::to_vec(&self.obj) {
             Ok(res) => res,
             Err(err) => {
                 return Response::builder()
-                    .status(StatusCode::INTERNAL_SERVER_ERROR)
-                    .header(header::CONTENT_TYPE, "text/plain")
-                    .body(Full::from(err.to_string()))
+                    .status(http::StatusCode::INTERNAL_SERVER_ERROR)
+                    .header(CONTENT_TYPE, HeaderValue::from_static("text/plain"))
+                    .body(body::boxed(body::Full::from(err.to_string())))
                     .expect("failed to convert static data to a valid request");
             }
         };
 
-        let mut res = Response::new(Full::from(bytes));
-        res.headers_mut().insert(
-            header::CONTENT_TYPE,
-            HeaderValue::from_static("application/json"),
-        );
-        res
+        axum::http::Response::builder()
+            .status(self.code)
+            .header(CONTENT_TYPE, HeaderValue::from_static("application/json"))
+            .body(body::boxed(body::Full::from(bytes)))
+            .unwrap_or_else(|e| {
+                // this should only be reachable if a invalid HTTP code is passed in
+                unreachable!(
+                    "got an error while attempting to construct HTTP response for ServerError: {}",
+                    e
+                )
+            })
     }
 }
 
