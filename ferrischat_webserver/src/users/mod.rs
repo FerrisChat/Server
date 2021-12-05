@@ -26,6 +26,10 @@ pub fn generate_users_route() -> axum::Router {
             expand_version!("users/:user_id"),
             get(get_user).patch(edit_user).delete(delete_user),
         )
+        // POST   /verify
+        .route(expand_version!("verify"), post(send_verification_email))
+        // GET    /verify/:token
+        .route(expand_version!("verify/:token"), get(verify_email))
         // POST   /users/:user_id/bots
         // GET    /users/:user_id/bots
         .route(
