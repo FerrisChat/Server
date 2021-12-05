@@ -16,7 +16,6 @@ compile_error!(
     if your OS is supported but there's an issue, please email `os-support@ferris.chat`"
 );
 
-
 #[macro_use]
 extern crate ferrischat_macros;
 
