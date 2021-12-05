@@ -1,7 +1,6 @@
 use crate::WebServerError;
 use axum::extract::Path;
 use ferrischat_common::types::ErrorJson;
-use serde::Serialize;
 
 /// DELETE `/api/v0/users/{user_id}/bots/{bot_id}`
 /// Deletes the bot
@@ -17,13 +16,7 @@ pub async fn delete_bot(
         sqlx::query!("SELECT * FROM bots WHERE user_id = $1", bigint_user_id)
             .fetch_optional(db)
             .await?
-            .ok_or_else(|| {
-                (
-                    404,
-                    ErrorJson::new_404(format!("Unknown bot with ID {}", bot_id)),
-                )
-                    .into()
-            })?
+            .ok_or_else(|| { ErrorJson::new_404(format!("Unknown bot with ID {}", bot_id)) })?
             .owner_id
     );
 
