@@ -6,7 +6,6 @@ use ferrischat_common::perms::Permissions;
 use ferrischat_common::request_json::RoleUpdateJson;
 use ferrischat_common::types::{ErrorJson, Role};
 use ferrischat_common::ws::WsOutboundEvent;
-use serde::Serialize;
 
 pub async fn edit_role(
     Path((guild_id, role_id)): Path<(u128, u128)>,
@@ -22,18 +21,18 @@ pub async fn edit_role(
 
     let db = get_db_or_fail!();
 
-    let old_role_obj = sqlx::query!("SELECT * FROM roles WHERE id = $1", bigint_role_id)
+    let role = sqlx::query!("SELECT * FROM roles WHERE id = $1", bigint_role_id)
         .fetch_optional(db)
         .await?
-        .map(|role| Role {
-            id: bigdecimal_to_u128!(role.id),
-            name: role.name,
-            color: role.color,
-            position: role.position,
-            guild_id: bigdecimal_to_u128!(role.parent_guild),
-            permissions: Permissions::from_bits_truncate(role.permissions),
-        })
         .ok_or_else(|| ErrorJson::new_404(format!("Unknown role with ID {}", role_id)))?;
+    let old_role_obj = Role {
+        id: bigdecimal_to_u128!(role.id),
+        name: role.name,
+        color: role.color,
+        position: role.position,
+        guild_id: bigdecimal_to_u128!(role.parent_guild),
+        permissions: Permissions::from_bits_truncate(role.permissions),
+    };
 
     if let Some(name) = name {
         sqlx::query!(
@@ -42,7 +41,7 @@ pub async fn edit_role(
             bigint_role_id
         )
         .execute(db)
-        .await?
+        .await?;
     };
 
     if let Some(color) = color {
@@ -75,18 +74,18 @@ pub async fn edit_role(
         .await;
     }
 
-    let new_role_obj = sqlx::query!("SELECT * FROM roles WHERE id = $1", bigint_role_id)
+    let role = sqlx::query!("SELECT * FROM roles WHERE id = $1", bigint_role_id)
         .fetch_optional(db)
         .await?
-        .map(|role| Role {
-            id: bigdecimal_to_u128!(role.id),
-            name: role.name,
-            color: role.color,
-            position: role.position,
-            guild_id: bigdecimal_to_u128!(role.parent_guild),
-            permissions: Permissions::from_bits_truncate(role.permissions),
-        })
         .ok_or_else(|| ErrorJson::new_404(format!("Unknown role with ID {}", role_id)))?;
+    let new_role_obj = Role {
+        id: bigdecimal_to_u128!(role.id),
+        name: role.name,
+        color: role.color,
+        position: role.position,
+        guild_id: bigdecimal_to_u128!(role.parent_guild),
+        permissions: Permissions::from_bits_truncate(role.permissions),
+    };
 
     let guild_id = new_role_obj.guild_id;
 
