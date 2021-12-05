@@ -9,7 +9,7 @@ pub use delete_guild::*;
 pub use edit_guild::*;
 pub use get_guild::*;
 
-use axum::routing::{delete, get, post};
+use axum::routing::{get, post};
 use axum::Router;
 
 pub fn generate_guilds_routes() -> axum::Router {
@@ -23,15 +23,6 @@ pub fn generate_guilds_routes() -> axum::Router {
             expand_version!("guilds/:guild_id"),
             get(get_guild).patch(edit_guild).delete(delete_guild),
         )
-        // POST   /guilds/:guild_id/roles
-        .route(
-            expand_version!("guilds/:guild_id/roles"),
-            post(roles::create_role),
-        )
-        // DELETE /guilds/:guild_id/roles/:role_id
-        // PATCH  /guilds/:guild_id/roles/:role_id
-        .route(
-            expand_version!("guilds/:guild_id/roles/:role_id"),
-            delete(roles::delete_role).patch(roles::edit_role),
-        )
+        // roles routes
+        .merge(roles::generate_roles_routes())
 }
