@@ -5,8 +5,16 @@
 #![allow(clippy::future_not_send)]
 #![allow(clippy::module_name_repetitions)]
 
-#[cfg(not(any(target_os = "linux", target_os = "bsd")))]
-compile_error!("the server of FerrisChat is only supported on Linux systems");
+#[cfg(not(any(
+    target_os = "linux",
+    target_os = "freebsd",
+    target_os = "openbsd",
+    target_os = "netbsd"
+)))]
+compile_error!(
+    "the server of FerrisChat is only supported on Linux and BSD systems. \
+    if your OS is supported but there's an issue, please email `os-support@ferris.chat`"
+);
 
 #[macro_use]
 extern crate ferrischat_macros;
