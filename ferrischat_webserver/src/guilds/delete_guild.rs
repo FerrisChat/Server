@@ -1,9 +1,8 @@
 use crate::ws::fire_event;
 use crate::WebServerError;
 use axum::extract::Path;
-use ferrischat_common::types::{Guild, GuildFlags, Member, ErrorJson};
+use ferrischat_common::types::{ErrorJson, Guild, GuildFlags, Member};
 use ferrischat_common::ws::WsOutboundEvent;
-use serde::Serialize;
 
 /// DELETE `/api/v0/guilds/{guild_id}`
 pub async fn delete_guild(
@@ -13,19 +12,13 @@ pub async fn delete_guild(
     let db = get_db_or_fail!();
     let bigint_guild_id = u128_to_bigdecimal!(guild_id);
 
-    let owner_id = sqlx::query!("SELECT owner_id FROM guilds WHERE id = $1", bigint_guild_id)
+    let x = sqlx::query!("SELECT owner_id FROM guilds WHERE id = $1", bigint_guild_id)
         .fetch_optional(db)
         .await?
-        .map(|x| bigdecimal_to_u128!(x.owner_id))
-        .ok_or_else(|| ErrorJson::new_404(
-            format!("Unknown guild with ID {}", guild_id),
-        ),
-        )?;
+        .ok_or_else(|| ErrorJson::new_404(format!("Unknown guild with ID {}", guild_id)))?;
+    let owner_id = bigdecimal_to_u128!(x.owner_id);
     if auth.0 != owner_id {
-        return Err(ErrorJson::new_403(
-            "Forbidden".to_string(),
-        )
-            .into());
+        return Err(ErrorJson::new_403("Forbidden".to_string()).into());
     }
 
     let guild_resp = sqlx::query!(
