@@ -1,27 +1,23 @@
 use crate::auth::token_gen::generate_random_bits;
-use crate::special_headers::{Email, Password};
-use crate::{Json, WebServerError};
-use axum::extract::TypedHeader;
+use crate::WebServerError;
+use axum::extract::Json;
+use ferrischat_common::request_json::AuthJson;
 use ferrischat_common::types::{AuthResponse, ErrorJson};
 use sqlx::types::BigDecimal;
 use tokio::sync::oneshot::channel;
 
 pub async fn get_token(
-    TypedHeader(email): TypedHeader<Email>,
-    TypedHeader(password): TypedHeader<Password>,
-) -> Result<Json<AuthResponse>, WebServerError> {
-    let user_email = email.into_inner();
-    let user_password = password.into_inner();
-
+    Json(AuthJson { email, password }): Json<AuthJson>,
+) -> Result<crate::Json<AuthResponse>, WebServerError> {
     let db = get_db_or_fail!();
 
     let mut r = sqlx::query!(
         "SELECT email, password, id FROM users WHERE email = $1",
-        user_email
+        email
     )
     .fetch_optional(db)
     .await?
-    .ok_or_else(|| ErrorJson::new_404(format!("Unknown user with email {}", user_email)))?;
+    .ok_or_else(|| ErrorJson::new_404(format!("Unknown user with email {}", email)))?;
     let bigdecimal_user_id: BigDecimal = r.id;
     let matches = {
         let v = ferrischat_auth::GLOBAL_VERIFIER
@@ -29,15 +25,13 @@ pub async fn get_token(
             .ok_or(WebServerError::MissingVerifier)?;
         let (tx, rx) = channel();
         let db_password = std::mem::take(&mut r.password);
-        v.send(((user_password, db_password), tx))
-            .await
-            .map_err(|_| {
-                ErrorJson::new_500(
-                    "Password verifier has hung up connection".to_string(),
-                    false,
-                    None,
-                )
-            })?;
+        v.send(((password, db_password), tx)).await.map_err(|_| {
+            ErrorJson::new_500(
+                "Password verifier has hung up connection".to_string(),
+                false,
+                None,
+            )
+        })?;
         rx.await
             .unwrap_or_else(|e| {
                 unreachable!(
@@ -49,7 +43,7 @@ pub async fn get_token(
                 ErrorJson::new_500(format!("failed to verify password: {}", e), false, None)
             })?
     };
-    if !(matches && (user_email == r.email)) {
+    if !(matches && (email == r.email)) {
         return Err(ErrorJson::new_404(format!("Your credentials are not correct")).into());
     }
 
@@ -98,7 +92,7 @@ pub async fn get_token(
         .await?;
 
     let user_id = bigdecimal_to_u128!(bigdecimal_user_id);
-    Ok(Json {
+    Ok(crate::Json {
         obj: AuthResponse {
             token: format!(
                 "{}.{}",
