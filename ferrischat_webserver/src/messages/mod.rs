@@ -14,6 +14,7 @@ use axum::routing::{get, post};
 use axum::Router;
 
 pub fn generate_messages_route() -> axum::Router {
+    debug!("generating routes for messages");
     Router::new()
         // POST   /channels/:channel_id/messages
         // GET    /channels/:channel_id/messages

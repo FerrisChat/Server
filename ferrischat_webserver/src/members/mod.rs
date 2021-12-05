@@ -10,6 +10,7 @@ use axum::routing::get;
 use axum::Router;
 
 pub fn generate_members_routes() -> axum::Router {
+    debug!("generating routes for members");
     Router::new()
         // GET    /guilds/:guild_id/members/:member_id
         // PATCH  /guilds/:guild_id/members/:member_id

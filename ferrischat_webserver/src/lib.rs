@@ -19,6 +19,9 @@ compile_error!(
 #[macro_use]
 extern crate ferrischat_macros;
 
+#[macro_use]
+extern crate tracing;
+
 mod auth;
 mod channels;
 mod entrypoint;

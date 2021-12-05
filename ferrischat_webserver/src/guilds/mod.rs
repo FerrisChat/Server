@@ -13,6 +13,7 @@ use axum::routing::{get, post};
 use axum::Router;
 
 pub fn generate_guilds_routes() -> axum::Router {
+    debug!("generating routes for guilds");
     Router::new()
         // POST   /guilds
         .route(expand_version!("guilds"), post(create_guild))

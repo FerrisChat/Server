@@ -23,6 +23,7 @@ pub async fn fire_event(channel: String, event: &WsOutboundEvent) -> Result<(), 
 }
 
 pub fn generate_ws_route() -> axum::Router {
+    debug!("generating routes for websockets");
     Router::new()
         // GET    /ws/info
         .route(expand_version!("ws/info"), get(ws_info))

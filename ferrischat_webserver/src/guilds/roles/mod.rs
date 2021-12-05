@@ -16,6 +16,7 @@ use axum::routing::{get, post};
 use axum::Router;
 
 pub fn generate_roles_routes() -> axum::Router {
+    debug!("generating routes for roles");
     Router::new()
         // POST   /guilds/:guild_id/roles
         .route(expand_version!("guilds/:guild_id/roles"), post(create_role))

@@ -16,6 +16,7 @@ use axum::routing::{get, post};
 use axum::Router;
 
 pub fn generate_channels_routes() -> axum::Router {
+    debug!("generating routes for channels");
     Router::new()
         // POST   /guilds/:guild_id/channels
         .route(

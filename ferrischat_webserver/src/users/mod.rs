@@ -16,6 +16,7 @@ use axum::routing::{get, patch, post};
 use axum::Router;
 
 pub fn generate_users_route() -> axum::Router {
+    debug!("generating routes for users");
     Router::new()
         // POST   /users/
         .route(expand_version!("users"), post(create_user))
