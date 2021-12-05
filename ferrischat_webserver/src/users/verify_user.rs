@@ -2,7 +2,7 @@ use crate::auth::generate_random_bits;
 use crate::WebServerError;
 use axum::extract::Path;
 use check_if_email_exists::{check_email, CheckEmailInput, Reachable};
-use ferrischat_common::types::ErrorJson;
+use ferrischat_common::types::{ErrorJson, SuccessJson};
 use ferrischat_redis::{redis::AsyncCommands, REDIS_MANAGER};
 use lettre::{
     transport::smtp::authentication::Credentials, AsyncSmtpTransport, AsyncTransport, Message,
@@ -15,7 +15,7 @@ use tokio::time::Duration;
 /// Requires only an authorization token.
 pub async fn send_verification_email(
     crate::Authorization(authorized_user): crate::Authorization,
-) -> Result<crate::Json<Json>, WebServerError> {
+) -> Result<crate::Json<SuccessJson>, WebServerError> {
     let db = get_db_or_fail!();
     let bigint_user_id = u128_to_bigdecimal!(authorized_user);
 
@@ -34,47 +34,33 @@ pub async fn send_verification_email(
     .await?
     .verified
     {
-        return Err((
-            409,
-            ErrorJson::new_409(
-                "User is already verified!".to_string(),
-            ),
-        )
-            .into());
+        return Err(ErrorJson::new_409("User is already verified!".to_string()).into());
     }
 
     // Makes a call to the email checker to avoid sending to completely fake emails
     let mut checker_input = CheckEmailInput::new(vec![user_email.clone()]);
     checker_input.set_smtp_timeout(Duration::new(5, 0));
-    let checked_email =
-        check_email(&checker_input).await.get(0).ok_or_else(|| {
-            (500, ErrorJson::new_500(
-                "zero emails checked".to_string(),
-                true,
-                Some(
-                    "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&labels=bug\
-            &template=api_bug_report.yml&title=%5B500%5D%3A+zero+emails+checked".to_string(),
-                ),
-            )).into()
-        })?;
-    if !checked_email.syntax.is_valid_syntax {
-        return Err((
-            409,
-            ErrorJson::new_409(
-                format!("Email {} is invalid.", user_email),
+    let checked_email = check_email(&checker_input).await.get(0).ok_or_else(|| {
+        ErrorJson::new_500(
+            "zero emails checked".to_string(),
+            true,
+            Some(
+                "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&labels=bug\
+            &template=api_bug_report.yml&title=%5B500%5D%3A+zero+emails+checked"
+                    .to_string(),
             ),
         )
-            .into());
+        .into()
+    })?;
+    if !checked_email.syntax.is_valid_syntax {
+        return Err(ErrorJson::new_409(format!("Email {} is invalid.", user_email)).into());
     }
 
     if checked_email.is_reachable == Reachable::Invalid {
-        return Err((
-            409,
-            ErrorJson::new_409(
-                "Email deemed unsafe to send to. Is it a real email?".to_string(),
-            ),
+        return Err(ErrorJson::new_409(
+            "Email deemed unsafe to send to. Is it a real email?".to_string(),
         )
-            .into());
+        .into());
     }
 
     // Get configurations, they're set in redis for speed reasons. Set them with redis-cli `set config:email:<setting> <value>`
@@ -132,20 +118,23 @@ pub async fn send_verification_email(
         .set_ex::<String, String, String>(format!("email:tokens:{}", token), user_email, 86400)
         .await?;
 
-    Ok(ErrorJson::new_404(
-        "Sent verification, please check your email.".to_string(),
+    Ok(crate::Json::new(
+        SuccessJson::new("Sent verification, please check your email.".to_string()),
+        200,
     ))
 }
 
 /// GET /v0/verify/{token}
 /// Verifies the user's email when they click the link mailed to them.
-pub async fn verify_email(Path(token): Path<String>) -> Result<crate::Json<Json>, WebServerError> {
+pub async fn verify_email(
+    Path(token): Path<String>,
+) -> Result<crate::Json<SuccessJson>, WebServerError> {
     let db = get_db_or_fail!();
 
     let redis_key = format!("email:tokens:{}", token);
     let email = ferrischat_redis::redis::cmd("GETDEL")
         .arg(redis_key)
-        .query_async(
+        .query_async::<_, String>(
             &mut REDIS_MANAGER
                 .get()
                 .ok_or(WebServerError::MissingRedis)?
@@ -154,23 +143,15 @@ pub async fn verify_email(Path(token): Path<String>) -> Result<crate::Json<Json>
         )
         .await?
         .ok_or_else(|| {
-            (
-                404,
-                ErrorJson::new_404(
-                    "This token has expired or was not found.".to_string(),
-                ),
-            )
-                .into()
+            ErrorJson::new_404("This token has expired or was not found.".to_string()).into()
         })?;
 
     // Tell the database to set their verified field to true! The user is now verified.
     sqlx::query!("UPDATE users SET verified = true WHERE email = $1", email)
         .execute(db)
         .await?;
-    Ok(crate::Json {
-        obj: ErrorJson::new_404(
-            "Verified email. You can close this page.".to_string(),
-        ),
-        code: 200,
-    })
+    Ok(crate::Json::new(
+        SuccessJson::new("Verified email. You can close this page.".to_string()),
+        200,
+    ))
 }
