@@ -29,7 +29,7 @@ pub const API_VERSION: u8 = 0;
 pub static RNG_CORE: std::lazy::SyncOnceCell<ring::rand::SystemRandom> =
     std::lazy::SyncOnceCell::new();
 
+pub(crate) use crate::auth::Authorization;
 pub use entrypoint::*;
 pub(crate) use errors::WebServerError;
-pub(crate) use ferrischat_auth::Authorization;
 pub(crate) use json_response::Json;

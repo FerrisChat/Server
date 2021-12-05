@@ -1182,7 +1182,6 @@ dependencies = [
 name = "ferrischat_auth"
 version = "0.1.0"
 dependencies = [
- "actix-web",
  "argonautica",
  "base64 0.13.0",
  "ferrischat_db",
