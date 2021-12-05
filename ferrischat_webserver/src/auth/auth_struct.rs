@@ -3,7 +3,6 @@ use axum::body::Body;
 use axum::extract::{FromRequest, RequestParts};
 use ferrischat_common::types::ErrorJson;
 use tokio::sync::oneshot::channel;
-use tracing::field::debug;
 
 pub struct Authorization(pub u128);
 
@@ -64,7 +63,7 @@ impl FromRequest<Body> for Authorization {
 
         let db = get_db_or_fail!();
 
-        debug!(id, "trying to fetch token from DB");
+        debug!(id = %id, "trying to fetch token from DB");
         let db_token = sqlx::query!(
             "SELECT (auth_token) FROM auth_tokens WHERE user_id = $1",
             id_bigint
@@ -73,21 +72,21 @@ impl FromRequest<Body> for Authorization {
         .await?
         .map(|t| t.auth_token)
         .ok_or_else(|| ErrorJson::new_401("Authorization header passed was invalid".to_string()))?;
-        debug!(id, "got token from DB");
+        debug!(id = %id, "got token from DB");
 
         let verifier = ferrischat_auth::GLOBAL_VERIFIER
             .get()
             .ok_or(WebServerError::MissingVerifier)?;
         let (tx, rx) = channel();
 
-        debug!(id, "sending token to be verified");
+        debug!(id = %id, "sending token to be verified");
         // if the send failed, we'll know because the receiver we wait upon below will fail instantly
         let _tx = verifier.send(((token, db_token), tx)).await;
         let valid = rx.await.map_err(|_| ErrorJson::new_500("Global auth verifier not initialized or missing".to_string(), true, Some(
             "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+global+hash+verifier+not+found"
                 .to_string(),
         )))?.map_err(|e| ErrorJson::new_500(format!("Failed to verify token: {}", e), false, None))?;
-        debug!(id, "token valid: {}", valid);
+        debug!(id = %id, "token valid: {}", valid);
         if valid {
             Ok(Self(id))
         } else {
