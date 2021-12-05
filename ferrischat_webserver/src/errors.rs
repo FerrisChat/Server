@@ -3,6 +3,7 @@ use axum::response::IntoResponse;
 use ferrischat_common::types::ErrorJson;
 use ferrischat_redis::deadpool_redis::redis::RedisError;
 use ferrischat_redis::deadpool_redis::PoolError;
+use lettre::address::AddressError;
 use sqlx::Error;
 use std::borrow::Cow;
 
@@ -47,6 +48,35 @@ impl From<RedisError> for WebServerError {
 impl From<ErrorJson> for WebServerError {
     fn from(e: ErrorJson) -> Self {
         Self::Http(e)
+    }
+}
+
+impl From<lettre::address::AddressError> for WebServerError {
+    fn from(e: AddressError) -> Self {
+        Self::Http(ErrorJson::new_400(format!(
+            "failed to parse email address: {}",
+            e
+        )))
+    }
+}
+
+impl From<lettre::error::Error> for WebServerError {
+    fn from(e: lettre::error::Error) -> Self {
+        Self::Http(ErrorJson::new_500(
+            format!("Email content error: {}", e),
+            false,
+            None,
+        ))
+    }
+}
+
+impl From<lettre::transport::smtp::Error> for WebServerError {
+    fn from(e: lettre::transport::smtp::Error) -> Self {
+        Self::Http(ErrorJson::new_500(
+            format!("SMTP transport error: {}", e),
+            false,
+            None,
+        ))
     }
 }
 
