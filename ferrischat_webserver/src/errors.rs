@@ -4,6 +4,7 @@ use ferrischat_common::types::ErrorJson;
 use ferrischat_redis::deadpool_redis::redis::RedisError;
 use ferrischat_redis::deadpool_redis::PoolError;
 use sqlx::Error;
+use std::borrow::Cow;
 
 pub enum WebServerError {
     Database(sqlx::Error),
@@ -57,7 +58,7 @@ impl IntoResponse for WebServerError {
         let body = match self {
             WebServerError::Database(e) => {
                 if let sqlx::Error::Database(e) = e {
-                    if e.code() == "23505".into() {
+                    if e.code() == Some(Cow::from("23505")) {
                         ErrorJson::new_409("This object is a duplicate.".to_string())
                     } else {
                         ErrorJson::new_500(format!("Database returned an error: {:?}", e), false, None)
