@@ -1,9 +1,8 @@
 use crate::ws::fire_event;
 use crate::WebServerError;
 use axum::extract::Path;
-use ferrischat_common::types::{Message, ErrorJson, User, UserFlags};
+use ferrischat_common::types::{ErrorJson, Message, User, UserFlags};
 use ferrischat_common::ws::WsOutboundEvent;
-use serde::Serialize;
 
 /// DELETE `/api/v0/channels/{channel_id}/messages/{message_id}`
 pub async fn delete_message(
@@ -22,15 +21,7 @@ pub async fn delete_message(
     .fetch_optional(db)
     .await?
     .map(|c| c.guild_id)
-    .ok_or_else(|| {
-        (
-            404,
-            ErrorJson::new_404(
-                format!("Unknown channel with ID {}", channel_id),
-            ),
-        )
-            .into()
-    })?);
+    .ok_or_else(|| { ErrorJson::new_404(format!("Unknown channel with ID {}", channel_id),) })?);
 
     let message = sqlx::query!(
         r#"
@@ -53,15 +44,7 @@ WHERE m.id = $1
     )
     .fetch_optional(db)
     .await?
-    .ok_or_else(|| {
-        (
-            404,
-            ErrorJson::new_404(
-                format!("Unknown message with ID {}", message_id),
-            ),
-        )
-            .into()
-    })?;
+    .ok_or_else(|| ErrorJson::new_404(format!("Unknown message with ID {}", message_id)))?;
 
     let author_id = bigdecimal_to_u128!(message.author_id);
 
