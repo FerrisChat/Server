@@ -4,7 +4,6 @@ use axum::extract::Path;
 use ferrischat_common::request_json::ChannelUpdateJson;
 use ferrischat_common::types::{Channel, ErrorJson};
 use ferrischat_common::ws::WsOutboundEvent;
-use serde::Serialize;
 
 /// PATCH `/api/v0/channels/{channel_id}`
 pub async fn edit_channel(
@@ -16,46 +15,39 @@ pub async fn edit_channel(
     let db = get_db_or_fail!();
     let ChannelUpdateJson { name } = channel_info.0;
 
-    let old_channel_obj = sqlx::query!("SELECT * FROM channels WHERE id = $1", bigint_channel_id)
+    let c = sqlx::query!("SELECT * FROM channels WHERE id = $1", bigint_channel_id)
         .fetch_optional(db)
         .await?
-        .map(|c| Channel {
-            id: channel_id,
-            name: c.name,
-            guild_id: bigdecimal_to_u128!(c.guild_id),
-        })
-        .ok_or_else(||
-            ErrorJson::new_404(
-                format!("Unknown channel with ID {}", channel_id),
-            )
-        )?;
+        .ok_or_else(|| ErrorJson::new_404(format!("Unknown channel with ID {}", channel_id)))?;
+    let old = Channel {
+        id: channel_id,
+        name: c.name,
+        guild_id: bigdecimal_to_u128!(c.guild_id),
+    };
 
-    let new_channel_resp = sqlx::query!(
+    let new_obj = sqlx::query!(
         "UPDATE channels SET name = $1 WHERE id= $2 RETURNING *",
         name,
         bigint_channel_id
     )
     .fetch_optional(db)
-    .await?;
-    let new_channel_obj = Channel {
+    .await?
+    .ok_or_else(|| ErrorJson::new_404(format!("Unknown channel with ID {}", channel_id)))?;
+    let new = Channel {
         id: channel_id,
-        name: new_channel_resp.name,
-        guild_id: bigdecimal_to_u128!(new_channel_resp.guild_id),
+        name: new_obj.name,
+        guild_id: bigdecimal_to_u128!(new_obj.guild_id),
     };
 
     let event = WsOutboundEvent::ChannelUpdate {
-        old: old_channel_obj,
-        new: new_channel_obj.clone(),
+        old,
+        new: new.clone(),
     };
 
-    fire_event(
-        format!("channel_{}_{}", channel_id, new_channel_obj.guild_id),
-        &event,
-    )
-    .await?;
+    fire_event(format!("channel_{}_{}", channel_id, new.guild_id), &event).await?;
 
     Ok(Json {
-        obj: new_channel_obj,
+        obj: new,
         code: 200,
     })
 }
