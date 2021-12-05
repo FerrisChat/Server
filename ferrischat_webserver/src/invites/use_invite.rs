@@ -1,9 +1,8 @@
 use crate::ws::fire_event;
 use crate::WebServerError;
 use axum::extract::Path;
-use ferrischat_common::types::{Invite, Member, ErrorJson, User, UserFlags};
+use ferrischat_common::types::{ErrorJson, Invite, Member, User, UserFlags};
 use ferrischat_common::ws::WsOutboundEvent;
-use serde::Serialize;
 use sqlx::types::time::OffsetDateTime;
 use sqlx::types::BigDecimal;
 
@@ -12,7 +11,7 @@ const FERRIS_EPOCH: i64 = 1_577_836_800_000;
 pub async fn use_invite(
     Path(invite_code): Path<String>,
     crate::Authorization(user_id): crate::Authorization,
-) -> Result<crate::Json<impl Serialize>, WebServerError> {
+) -> Result<crate::Json<Member>, WebServerError> {
     let bigint_user_id = u128_to_bigdecimal!(user_id);
 
     let db = get_db_or_fail!();
@@ -20,15 +19,7 @@ pub async fn use_invite(
     let invite = sqlx::query!("SELECT * FROM invites WHERE code = $1", invite_code)
         .fetch_optional(db)
         .await?
-        .map(|x| bigdecimal_to_u128!(x))
-        .ok_or_else(|| {
-            (
-                404,
-                ErrorJson::new_404(
-                    format!("Unknown invite with code {}", invite_code),
-                ),
-            )
-        })?;
+        .ok_or_else(|| ErrorJson::new_404(format!("Unknown invite with code {}", invite_code)))?;
 
     let bigint_guild_id: BigDecimal = invite.guild_id;
     let guild_id = bigdecimal_to_u128!(bigint_guild_id);
@@ -65,10 +56,7 @@ pub async fn use_invite(
 
         fire_event(format!("invite_{}", guild_id), &event).await?;
 
-        return Err(ErrorJson::new(
-            "this invite just disappeared".to_string(),
-            410,
-        ).into());
+        return Err(ErrorJson::new("this invite just disappeared".to_string(), 410).into());
     }
 
     if sqlx::query!(
@@ -80,15 +68,13 @@ pub async fn use_invite(
     .await?
     .exists
     {
-        return Err(ErrorJson::new_409(
-            "user has already joined this guild".to_string(),
-        ).into());
+        return Err(ErrorJson::new_409("user has already joined this guild".to_string()).into());
     };
 
     let member_resp = sqlx::query!(
         "INSERT INTO members VALUES ($1, $2)",
         bigint_user_id,
-        invite.guild_id
+        bigint_guild_id
     )
     .execute(db)
     .await?;
