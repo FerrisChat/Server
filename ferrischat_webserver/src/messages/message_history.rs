@@ -2,14 +2,13 @@ use crate::WebServerError;
 use axum::extract::{Path, Query};
 use ferrischat_common::request_json::GetMessageHistoryParams;
 use ferrischat_common::types::{ErrorJson, Message, MessageHistory, User, UserFlags};
-use serde::Serialize;
 
 /// GET `/api/v0/channels/{channel_id}/messages`
 pub async fn get_message_history(
     Path(channel_id): Path<u128>,
     _: crate::Authorization,
     Query(GetMessageHistoryParams {
-        mut limit,
+        limit,
         oldest_first,
         mut offset,
     }): Query<GetMessageHistoryParams>,
@@ -20,17 +19,15 @@ pub async fn get_message_history(
     let oldest_first = oldest_first.unwrap_or(false);
 
     if limit < Some(0) {
-        return Err(ErrorJson::new_400(
-            "limit must be > 0".to_string(),
-        ).into());
+        return Err(ErrorJson::new_400("limit must be > 0".to_string()).into());
     }
 
     if offset < Some(0) {
         offset = Some(0);
     }
 
-    let messages = if oldest_first {
-        let mut resp = sqlx::query!(
+    let messages: Vec<_> = if oldest_first {
+        let resp = sqlx::query!(
             r#"
 SELECT m.*,
        a.name AS author_name,
@@ -54,19 +51,21 @@ LIMIT $2 OFFSET $3
         .fetch_all(db)
         .await?;
 
-        resp.iter_mut().map(|x| {
-            (
-                x.id,
-                std::mem::take(&mut x.content),
-                x.channel_id,
-                x.author_id,
-                std::mem::take(&mut x.author_name),
-                x.author_flags,
-                x.author_discriminator,
-                x.author_pronouns,
-                x.edited_at,
-            )
-        })
+        resp.into_iter()
+            .map(|x| {
+                (
+                    x.id,
+                    x.content,
+                    x.channel_id,
+                    x.author_id,
+                    x.author_name,
+                    x.author_flags,
+                    x.author_discriminator,
+                    x.author_pronouns,
+                    x.edited_at,
+                )
+            })
+            .collect()
     } else {
         let resp = sqlx::query!(
             r#"
@@ -90,24 +89,26 @@ LIMIT $2 OFFSET $3
             offset,
         )
         .fetch_all(db)
-        .await;
+        .await?;
 
-        resp.iter_mut().map(|x| {
-            (
-                x.id,
-                std::mem::take(&mut x.content),
-                x.channel_id,
-                x.author_id,
-                std::mem::take(&mut x.author_name),
-                x.author_flags,
-                x.author_discriminator,
-                x.author_pronouns,
-                x.edited_at,
-            )
-        })
+        resp.into_iter()
+            .map(|x| {
+                (
+                    x.id,
+                    x.content,
+                    x.channel_id,
+                    x.author_id,
+                    x.author_name,
+                    x.author_flags,
+                    x.author_discriminator,
+                    x.author_pronouns,
+                    x.edited_at,
+                )
+            })
+            .collect()
     };
 
-    let output_messages = Vec::with_capacity(messages.len());
+    let mut output_messages = Vec::with_capacity(messages.len());
     for (
         id,
         content,
@@ -124,7 +125,7 @@ LIMIT $2 OFFSET $3
         let id = bigdecimal_to_u128!(id);
         let channel_id = bigdecimal_to_u128!(channel_id);
 
-        Message {
+        output_messages.push(Message {
             id,
             content,
             channel_id,
@@ -141,11 +142,13 @@ LIMIT $2 OFFSET $3
             edited_at,
             embeds: vec![],
             nonce: None,
-        }
+        });
     }
 
     Ok(crate::Json {
-        obj: MessageHistory { messages },
+        obj: MessageHistory {
+            messages: output_messages,
+        },
         code: 200,
     })
 }
