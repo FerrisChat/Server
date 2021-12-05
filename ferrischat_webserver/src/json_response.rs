@@ -15,7 +15,7 @@ where
     T: Serialize,
 {
     #[inline(always)]
-    pub const fn new(obj: T, code: u16) -> Self {
+    pub fn new(obj: T, code: u16) -> Self {
         Self { obj, code }
     }
 }
