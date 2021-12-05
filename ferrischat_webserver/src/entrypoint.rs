@@ -42,8 +42,9 @@ pub async fn entrypoint() {
     .expect("failed to bind to unix socket");
     let stream = tokio_stream::wrappers::UnixListenerStream::new(listener);
     let acceptor = hyper::server::accept::from_stream(stream);
-    axum::Server::builder(acceptor)
-        .serve(router.into_make_service())
-        .await
-        .expect("failed to start HTTP server");
+    let server = axum::Server::builder(acceptor).serve(router.into_make_service()).with_graceful_shutdown(async {
+        tokio::signal::ctrl_c().await.expect("failed to wait for ctrl+c: you will need to SIGTERM the server if you want it to shut down");
+    });
+
+    server.await.expect("failed to start HTTP server");
 }
