@@ -3,7 +3,6 @@ use crate::WebServerError;
 use axum::extract::Path;
 use ferrischat_common::types::{Channel, ErrorJson, Pronouns, User, UserFlags};
 use ferrischat_common::ws::WsOutboundEvent;
-use serde::Serialize;
 
 /// DELETE `/api/v0/channels/{channel_id}/typing`
 pub async fn typing_end(
@@ -17,18 +16,12 @@ pub async fn typing_end(
     let user = sqlx::query!("SELECT * FROM users WHERE id = $1", bigint_user_id)
         .fetch_optional(db)
         .await?
-        .ok_or_else(|| ErrorJson::new_404(
-            format!("Unknown user with ID {}", authorized_user),
-        ),
-        )?;
+        .ok_or_else(|| ErrorJson::new_404(format!("Unknown user with ID {}", authorized_user)))?;
 
     let channel = sqlx::query!("SELECT * FROM channels WHERE id = $1", bigint_channel_id)
         .fetch_optional(db)
         .await?
-        .ok_or_else(|| ErrorJson::new_404(
-            format!("Unknown channel with ID {}", channel_id),
-        ),
-        )?;
+        .ok_or_else(|| ErrorJson::new_404(format!("Unknown channel with ID {}", channel_id)))?;
 
     let user_obj = User {
         id: authorized_user,
@@ -41,7 +34,7 @@ pub async fn typing_end(
     };
 
     let guild_id: u128 = bigdecimal_to_u128!(channel.guild_id);
-    let channel_obj = Channel {
+    let channel = Channel {
         id: channel_id,
         name: channel.name,
         guild_id,
