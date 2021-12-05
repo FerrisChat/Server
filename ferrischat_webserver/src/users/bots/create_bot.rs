@@ -5,7 +5,6 @@ use ferrischat_common::types::{ErrorJson, ModelType, User, UserFlags};
 use ferrischat_snowflake_generator::generate_snowflake;
 use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
-use serde::Serialize;
 use tokio::sync::oneshot::channel;
 
 /// POST `/api/v0/users/{user_id}/bots`
@@ -53,15 +52,11 @@ pub async fn create_bot(
             .send((password, tx))
             .await
             .map_err(|_| {
-                (
-                    500,
-                    ErrorJson::new_500(
-                        "Password hasher has hung up connection".to_string(),
-                        false,
-                        None,
-                    ),
+                ErrorJson::new_500(
+                    "Password hasher has hung up connection".to_string(),
+                    false,
+                    None,
                 )
-                    .into()
             })?;
         rx.await
           .unwrap_or_else(|e| {
@@ -71,19 +66,15 @@ pub async fn create_bot(
               )
           })
           .map_err(|e| {
-              (
-                  500,
-                  ErrorJson::new_500(
-                      format!("failed to hash token: {}", e),
-                      true,
-                      Some(
-                          "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
+              ErrorJson::new_500(
+                  format!("failed to hash token: {}", e),
+                  true,
+                  Some(
+                      "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
                                          labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+failed+to+hash+token"
-                              .to_string(),
-                      ),
+                          .to_string(),
                   ),
               )
-                  .into()
           })?
     };
     let bigint_bot_id = u128_to_bigdecimal!(user_id);
