@@ -6,7 +6,6 @@ use ferrischat_common::request_json::InviteCreateJson;
 use ferrischat_common::types::{ErrorJson, Invite};
 use ferrischat_common::ws::WsOutboundEvent;
 use ferrischat_snowflake_generator::FERRIS_EPOCH;
-use serde::Serialize;
 use sqlx::types::time::OffsetDateTime;
 
 /// POST `/api/v0/guilds/{guild_id}/invites`

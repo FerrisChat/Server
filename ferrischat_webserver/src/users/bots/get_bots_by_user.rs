@@ -1,6 +1,5 @@
 use crate::WebServerError;
 use ferrischat_common::types::{BotsOwnedByUser, User, UserFlags};
-use serde::Serialize;
 
 /// GET `/api/v0/users/{user_id}/bots`
 /// Get all bots owned by the user
@@ -36,7 +35,7 @@ pub async fn get_bots_by_user(
             pronouns: user
                 .pronouns
                 .and_then(ferrischat_common::types::Pronouns::from_i16),
-        })
+        });
     }
     Ok(crate::Json {
         obj: BotsOwnedByUser { bots },

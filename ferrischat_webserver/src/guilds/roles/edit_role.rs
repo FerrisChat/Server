@@ -8,7 +8,7 @@ use ferrischat_common::types::{ErrorJson, Role};
 use ferrischat_common::ws::WsOutboundEvent;
 
 pub async fn edit_role(
-    Path((guild_id, role_id)): Path<(u128, u128)>,
+    Path((_, role_id)): Path<(u128, u128)>,
     Json(RoleUpdateJson {
         name,
         color,
@@ -71,7 +71,7 @@ pub async fn edit_role(
             bigint_role_id
         )
         .execute(db)
-        .await;
+        .await?;
     }
 
     let role = sqlx::query!("SELECT * FROM roles WHERE id = $1", bigint_role_id)

@@ -1,7 +1,6 @@
 use crate::WebServerError;
 use axum::extract::Path;
 use ferrischat_common::types::ErrorJson;
-use serde::Serialize;
 
 /// DELETE `/api/v0/users/{user_id}`
 /// Deletes the authenticated user

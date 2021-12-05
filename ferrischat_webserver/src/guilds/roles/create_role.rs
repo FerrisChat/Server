@@ -1,16 +1,13 @@
 use crate::ws::fire_event;
+use crate::WebServerError;
 use axum::extract::Path;
 use axum::Json;
-
-use ferrischat_common::ws::WsOutboundEvent;
-
-use crate::WebServerError;
 use ferrischat_common::perms::Permissions;
 use ferrischat_common::request_json::RoleCreateJson;
 use ferrischat_common::types::{ModelType, Role};
+use ferrischat_common::ws::WsOutboundEvent;
 use ferrischat_macros::get_db_or_fail;
 use ferrischat_snowflake_generator::generate_snowflake;
-use serde::Serialize;
 
 /// POST `/api/v0/guilds/{guild_id}/roles`
 pub async fn create_role(
@@ -47,8 +44,7 @@ pub async fn create_role(
         bigint_guild_id
     )
     .execute(db)
-    .await
-    .map_err(|e| WebServerError::Database(e))?;
+    .await?;
 
     let role_obj = Role {
         id: role_id,

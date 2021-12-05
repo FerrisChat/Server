@@ -71,7 +71,7 @@ pub async fn use_invite(
         return Err(ErrorJson::new_409("user has already joined this guild".to_string()).into());
     };
 
-    let member_resp = sqlx::query!(
+    sqlx::query!(
         "INSERT INTO members VALUES ($1, $2)",
         bigint_user_id,
         bigint_guild_id

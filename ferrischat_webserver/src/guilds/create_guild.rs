@@ -5,7 +5,6 @@ use ferrischat_common::request_json::GuildCreateJson;
 use ferrischat_common::types::{Guild, GuildFlags, Member, ModelType};
 use ferrischat_common::ws::WsOutboundEvent;
 use ferrischat_snowflake_generator::generate_snowflake;
-use serde::Serialize;
 
 /// POST /api/v0/guilds/
 pub async fn create_guild(
@@ -26,8 +25,7 @@ pub async fn create_guild(
         name
     )
     .execute(db)
-    .await
-    .map_err(|e| WebServerError::Database(e))?;
+    .await?;
 
     sqlx::query!(
         "INSERT INTO members VALUES ($1, $2)",
@@ -35,8 +33,7 @@ pub async fn create_guild(
         bigint_guild_id
     )
     .execute(db)
-    .await
-    .map_err(|e| WebServerError::Database(e))?;
+    .await?;
 
     let guild_obj = Guild {
         id: guild_id,

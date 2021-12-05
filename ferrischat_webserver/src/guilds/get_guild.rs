@@ -3,7 +3,6 @@ use axum::extract::{Path, Query};
 use ferrischat_common::request_json::GetGuildUrlParams;
 use ferrischat_common::types::{Channel, ErrorJson, Guild, GuildFlags, Member, User, UserFlags};
 use num_traits::ToPrimitive;
-use serde::Serialize;
 
 /// GET `/api/v0/guilds/{guild_id}`
 pub async fn get_guild(

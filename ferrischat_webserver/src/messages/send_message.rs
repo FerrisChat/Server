@@ -26,7 +26,7 @@ pub async fn create_message(
     let node_id = {
         ferrischat_redis::NODE_ID
             .get()
-            .map(|i| *i)
+            .copied()
             .ok_or(WebServerError::MissingNodeId)?
     };
     let message_id = generate_snowflake::<0>(ModelType::Message as u8, node_id);

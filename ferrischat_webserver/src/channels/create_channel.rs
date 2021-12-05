@@ -7,7 +7,6 @@ use ferrischat_common::types::{Channel, ModelType};
 use ferrischat_common::ws::WsOutboundEvent;
 use ferrischat_macros::get_db_or_fail;
 use ferrischat_snowflake_generator::generate_snowflake;
-use serde::Serialize;
 
 /// POST `/api/v0/guilds/{guild_id/channels`
 pub async fn create_channel(
@@ -32,8 +31,7 @@ pub async fn create_channel(
         bigint_guild_id
     )
     .execute(db)
-    .await
-    .map_err(|e| WebServerError::Database(e))?;
+    .await?;
 
     let channel_obj = Channel {
         id: channel_id,

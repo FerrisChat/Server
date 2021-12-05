@@ -3,7 +3,6 @@ use crate::WebServerError;
 use axum::extract::Path;
 use ferrischat_common::types::{Channel, ErrorJson, Pronouns, User, UserFlags};
 use ferrischat_common::ws::WsOutboundEvent;
-use serde::Serialize;
 
 /// POST `/api/v0/channels/{channel_id}/typing`
 pub async fn typing_start(

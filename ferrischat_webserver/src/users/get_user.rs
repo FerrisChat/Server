@@ -1,10 +1,7 @@
 use crate::WebServerError;
 use axum::extract::Path;
-
 use ferrischat_common::types::{Channel, ErrorJson, Guild, GuildFlags, Member, User, UserFlags};
-
 use num_traits::cast::ToPrimitive;
-use serde::Serialize;
 
 /// GET `/api/v0/users/{user_id}`
 pub async fn get_user(

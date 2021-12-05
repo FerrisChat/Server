@@ -8,7 +8,7 @@ use sqlx::types::BigDecimal;
 /// PATCH `/api/v0/users/{user_id}/bots/{bot_id}`
 /// Edits the bot with the attached payload
 pub async fn edit_bot(
-    Path((user_id, bot_id)): Path<(u128, u128)>,
+    Path((_, bot_id)): Path<(u128, u128)>,
     Json(BotUpdateJson { username }): Json<BotUpdateJson>,
     auth: crate::Authorization,
 ) -> Result<crate::Json<User>, WebServerError> {

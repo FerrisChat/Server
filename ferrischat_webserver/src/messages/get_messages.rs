@@ -5,7 +5,7 @@ use ferrischat_common::types::{ErrorJson, Message, User, UserFlags};
 /// GET `/api/v0/guilds/{guild_id}/channels/{channel_id}/messages/{message_id}`
 pub async fn get_message(
     Path((channel_id, message_id)): Path<(u128, u128)>,
-    auth: crate::Authorization,
+    _: crate::Authorization,
 ) -> Result<crate::Json<Message>, WebServerError> {
     let bigint_message_id = u128_to_bigdecimal!(message_id);
     let bigint_channel_id = u128_to_bigdecimal!(channel_id);

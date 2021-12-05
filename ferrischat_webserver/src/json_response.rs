@@ -14,7 +14,7 @@ impl<T> Json<T>
 where
     T: Serialize,
 {
-    #[inline(always)]
+    #[inline]
     pub fn new(obj: T, code: u16) -> Self {
         Self { obj, code }
     }

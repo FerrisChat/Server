@@ -5,21 +5,24 @@ use ferrischat_common::types::{ErrorJson, Member, User, UserFlags};
 /// GET `/api/v0/guilds/{guild_id}/members/{member_id}`
 pub async fn get_member(
     Path((guild_id, member_id)): Path<(u128, u128)>,
-    auth: crate::Authorization,
+    _: crate::Authorization,
 ) -> Result<crate::Json<Member>, WebServerError> {
     let bigint_guild_id = u128_to_bigdecimal!(guild_id);
     let bigint_member_id = u128_to_bigdecimal!(member_id);
 
     let db = get_db_or_fail!();
 
-    let member_resp = sqlx::query!(
-        "SELECT * FROM members WHERE user_id = $1 AND guild_id = $2",
+    if !(sqlx::query!(
+        r#"SELECT EXISTS(SELECT * FROM members WHERE user_id = $1 AND guild_id = $2) AS "exists!""#,
         bigint_member_id,
         bigint_guild_id
     )
-    .fetch_optional(db)
+    .fetch_one(db)
     .await?
-    .ok_or_else(|| ErrorJson::new_404(format!("Unknown member with ID {}", member_id)))?;
+    .exists)
+    {
+        return Err(ErrorJson::new_404(format!("Unknown member with ID {}", member_id)).into());
+    };
 
     let user = sqlx::query!("SELECT * FROM users WHERE id = $1", bigint_member_id)
         .fetch_optional(db)

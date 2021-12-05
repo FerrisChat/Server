@@ -27,8 +27,7 @@ pub async fn create_user(
             sqlx::query!("SELECT discriminator FROM users WHERE name = $1", username)
                 .fetch_all(db)
                 .await
-                .map(|r| r.into_iter().map(|x| x.discriminator).collect())
-                .map_err(|e| WebServerError::Database(e))?;
+                .map(|r| r.into_iter().map(|x| x.discriminator).collect())?;
         // your discrim can be between 1 and 9999
         let available = (1..=9999)
             .filter(|x| !existing.contains(x))
