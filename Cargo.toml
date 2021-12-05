@@ -20,16 +20,11 @@ members = [
 [dependencies]
 ferrischat_webserver = { path = "ferrischat_webserver", version = "0.1.0" }
 ferrischat_config = { path = "ferrischat_config", version = "0.1.0" }
-actix-web = { git = "https://github.com/actix/actix-web/" }
 env_logger = "0.9"
 time = "*"
 clap = "2.33"
 tracing-subscriber = { version = "0.3.2", features = ["env-filter", "tracing-log"] }
 
 [patch.crates-io]
-# actix = { git = "https://github.com/actix/actix" }
-actix-web = { git = "https://github.com/actix/actix-web" }
-actix-codec = { git = "https://github.com/actix/actix-net" }
-actix-http = { git = "https://github.com/actix/actix-web" }
 bitflags = { git = "https://github.com/bitflags/bitflags" }
 redis = { git = "https://github.com/tazz4843/redis-rs" }

@@ -53,4 +53,4 @@ features = ["headers"]
 
 [dependencies.sqlx]
 version = "0.5"
-features = ["postgres", "macros", "offline", "runtime-actix-rustls", "time"]
+features = ["postgres", "macros", "offline", "runtime-tokio-rustls", "time"]
