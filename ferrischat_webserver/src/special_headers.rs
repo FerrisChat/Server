@@ -20,7 +20,8 @@ impl Header for Email {
                 .next()
                 .ok_or_else(Error::invalid)?
                 .to_str()
-                .map_err(|_| Error::invalid())?,
+                .map_err(|_| Error::invalid())?
+                .to_string(),
         ))
     }
 
@@ -60,7 +61,8 @@ impl Header for Password {
                 .next()
                 .ok_or_else(Error::invalid)?
                 .to_str()
-                .map_err(|_| Error::invalid())?,
+                .map_err(|_| Error::invalid())?
+                .to_string(),
         ))
     }
 
