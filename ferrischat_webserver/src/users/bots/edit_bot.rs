@@ -3,7 +3,6 @@ use axum::extract::Path;
 use axum::Json;
 use ferrischat_common::request_json::BotUpdateJson;
 use ferrischat_common::types::{ErrorJson, User, UserFlags};
-use serde::Serialize;
 use sqlx::types::BigDecimal;
 
 /// PATCH `/api/v0/users/{user_id}/bots/{bot_id}`
@@ -23,13 +22,7 @@ pub async fn edit_bot(
     )
     .fetch_optional(db)
     .await?
-    .ok_or_else(|| {
-        (
-            404,
-            ErrorJson::new_404(format!("Unknown bot with ID {}", bot_id)),
-        )
-            .into()
-    })?
+    .ok_or_else(|| ErrorJson::new_404(format!("Unknown bot with ID {}", bot_id)))?
     .owner_id;
 
     let owner_id = bigdecimal_to_u128!(bigint_owner_id);
@@ -45,13 +38,15 @@ pub async fn edit_bot(
             bigint_bot_id
         )
         .execute(db)
-        .await?
+        .await?;
     }
 
-    sqlx::query!("SELECT * FROM users WHERE id = $1", bigint_bot_id)
+    let user = sqlx::query!("SELECT * FROM users WHERE id = $1", bigint_bot_id)
         .fetch_optional(db)
         .await?
-        .map(|user| User {
+        .ok_or_else(|| ErrorJson::new_404(format!("Unknown bot with ID {}", bot_id)))?;
+    Ok(crate::Json::new(
+        User {
             id: bot_id,
             name: user.name.clone(),
             avatar: None,
@@ -59,12 +54,7 @@ pub async fn edit_bot(
             flags: UserFlags::from_bits_truncate(user.flags),
             discriminator: user.discriminator,
             pronouns: None,
-        })
-        .ok_or_else(|| {
-            (
-                404,
-                ErrorJson::new_404(format!("Unknown bot with ID {}", bot_id)),
-            )
-                .into()
-        })?
+        },
+        200,
+    ))
 }
