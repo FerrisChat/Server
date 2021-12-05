@@ -1,9 +1,8 @@
 use crate::ws::fire_event;
 use crate::WebServerError;
 use axum::extract::Path;
-use ferrischat_common::types::{Member, ErrorJson};
+use ferrischat_common::types::{ErrorJson, Member};
 use ferrischat_common::ws::WsOutboundEvent;
-use serde::Serialize;
 
 /// DELETE `/api/v0/guilds/{guild_id}/members/{member_id}`
 pub async fn delete_member(
@@ -22,7 +21,8 @@ pub async fn delete_member(
     if owner_id == bigint_member_id {
         return Err(ErrorJson::new_409(
             "the guild owner cannot be removed from a guild".to_string(),
-        ).into());
+        )
+        .into());
     }
 
     let member_obj = sqlx::query!(
@@ -39,13 +39,10 @@ pub async fn delete_member(
         guild: None,
     })
     .ok_or_else(|| {
-        (
-            404,
-            ErrorJson::new_404(
-                format!("Unknown member with ID {} in {}", member_id, guild_id),
-            ),
-        )
-            .into()
+        ErrorJson::new_404(format!(
+            "Unknown member with ID {} in {}",
+            member_id, guild_id
+        ))
     })?;
 
     let event = WsOutboundEvent::MemberDelete { member: member_obj };
