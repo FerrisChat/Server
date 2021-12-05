@@ -6,7 +6,7 @@
 #![allow(clippy::module_name_repetitions)]
 
 #[cfg(not(any(target_os = "linux", target_os = "bsd")))]
-compile_error!("the server of FerrisChat is only supported on Linux systems");
+compile_error!("the server of FerrisChat is only supported on Linux and BSD systems");
 
 #[macro_use]
 extern crate ferrischat_macros;
