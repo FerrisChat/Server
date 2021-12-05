@@ -56,15 +56,11 @@ pub async fn edit_user(
                 .send((password, tx))
                 .await
                 .map_err(|_| {
-                    (
-                        500,
-                        ErrorJson::new_500(
-                            "Password hasher has hung up connection".to_string(),
-                            false,
-                            None,
-                        ),
+                    ErrorJson::new_500(
+                        "Password hasher has hung up connection".to_string(),
+                        false,
+                        None,
                     )
-                        .into()
                 })?;
             rx.await
             .unwrap_or_else(|e| {
@@ -73,21 +69,17 @@ pub async fn edit_user(
                     e
                 )
             })
-            .map_err(|e| {
-                (
-                    500,
-                    ErrorJson::new_500(
-                        format!("failed to hash token: {}", e),
-                        true,
-                        Some(
-                            "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
+              .map_err(|e| {
+                  ErrorJson::new_500(
+                      format!("failed to hash token: {}", e),
+                      true,
+                      Some(
+                          "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
                              labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+failed+to+hash+token"
-                                .to_string(),
-                        ),
-                    ),
-                )
-                    .into()
-            })?
+                              .to_string(),
+                      ),
+                  )
+              })?
         };
         sqlx::query!(
             "UPDATE users SET password = $1 WHERE id = $2",
