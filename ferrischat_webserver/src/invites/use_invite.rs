@@ -65,13 +65,10 @@ pub async fn use_invite(
 
         fire_event(format!("invite_{}", guild_id), &event).await?;
 
-        return Err((
+        return Err(ErrorJson::new(
+            "this invite just disappeared".to_string(),
             410,
-            ErrorJson::new_400(
-                "this invite just disappeared".to_string(),
-            ),
-        )
-            .into());
+        ).into());
     }
 
     if sqlx::query!(
@@ -83,13 +80,9 @@ pub async fn use_invite(
     .await?
     .exists
     {
-        return Err((
-            409,
-            ErrorJson::new_409(
-                "user has already joined this guild".to_string(),
-            ),
-        )
-            .into());
+        return Err(ErrorJson::new_409(
+            "user has already joined this guild".to_string(),
+        ).into());
     };
 
     let member_resp = sqlx::query!(

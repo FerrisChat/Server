@@ -19,13 +19,9 @@ pub async fn edit_message(
 
     if let Some(ref content) = content {
         if content.len() > 10240 {
-            return Err((
-                400,
-                ErrorJson::new_400(
-                    "message content size must be fewer than 10,240 bytes".to_string(),
-                ),
-            )
-                .into());
+            return Err(ErrorJson::new_400(
+                "message content size must be fewer than 10,240 bytes".to_string(),
+            ).into());
         }
     }
 

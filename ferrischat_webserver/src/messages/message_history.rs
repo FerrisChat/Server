@@ -20,13 +20,9 @@ pub async fn get_message_history(
     let oldest_first = oldest_first.unwrap_or(false);
 
     if limit < Some(0) {
-        return Err((
-            400,
-            ErrorJson::new_400(
-                "limit must be > 0".to_string(),
-            ),
-        )
-            .into());
+        return Err(ErrorJson::new_400(
+            "limit must be > 0".to_string(),
+        ).into());
     }
 
     if offset < Some(0) {

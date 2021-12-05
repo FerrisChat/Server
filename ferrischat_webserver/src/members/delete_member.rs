@@ -20,13 +20,9 @@ pub async fn delete_member(
         .await?
         .owner_id;
     if owner_id == bigint_member_id {
-        return Err((
-            409,
-            ErrorJson::new_409(
-                "the guild owner cannot be removed from a guild".to_string(),
-            ),
-        )
-            .into());
+        return Err(ErrorJson::new_409(
+            "the guild owner cannot be removed from a guild".to_string(),
+        ).into());
     }
 
     let member_obj = sqlx::query!(

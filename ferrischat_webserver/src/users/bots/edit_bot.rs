@@ -37,13 +37,9 @@ pub async fn edit_bot(
     let owner_id = bigdecimal_to_u128!(bigint_owner_id);
 
     if owner_id != auth.0 {
-        return Err((
-            403,
-            ErrorJson::new_403(
-                "you are not the owner of this bot".to_string(),
-            ),
-        )
-            .into());
+        return Err(ErrorJson::new_403(
+            "you are not the owner of this bot".to_string(),
+        ).into());
     }
 
     if let Some(username) = username {

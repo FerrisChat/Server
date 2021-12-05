@@ -19,13 +19,9 @@ pub async fn edit_user(
     auth: crate::Authorization,
 ) -> Result<crate::Json<User>, WebServerError> {
     if user_id != auth.0 {
-        return Err((
-            403,
-            ErrorJson::new_403(
-                "this account is not yours".to_string(),
-            ),
-        )
-            .into());
+        return Err(ErrorJson::new_403(
+            "this account is not yours".to_string(),
+        ).into());
     }
 
     let bigint_user_id = u128_to_bigdecimal!(user_id);

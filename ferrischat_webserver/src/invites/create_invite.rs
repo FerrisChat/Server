@@ -31,11 +31,8 @@ pub async fn create_invite(
     .await?
     .is_none()
     {
-        return Err((
-            403,
-            ErrorJson::new_403(
-                "you are not a member of this guild".to_string(),
-            ),
+        return Err(ErrorJson::new_403(
+            "you are not a member of this guild".to_string(),
         )
             .into());
     }

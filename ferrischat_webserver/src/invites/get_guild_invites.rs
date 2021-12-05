@@ -21,13 +21,9 @@ pub async fn get_guild_invites(
     .await?
     .is_none()
     {
-        return Err((
-            403,
-            ErrorJson::new_403(
-                "you are not a member of this guild".to_string(),
-            ),
-        )
-            .into());
+        return Err(ErrorJson::new_403(
+            "you are not a member of this guild".to_string(),
+        ).into());
     }
 
     let res_invites = sqlx::query!("SELECT * FROM invites WHERE guild_id = $1", bigint_guild_id)

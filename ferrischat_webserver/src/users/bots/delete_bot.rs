@@ -30,13 +30,9 @@ pub async fn delete_bot(
     );
 
     if owner_id != auth.0 {
-        return Err((
-            403,
-            ErrorJson::new_403(
-                "you are not the owner of this bot".to_string(),
-            ),
-        )
-            .into());
+        return Err(ErrorJson::new_403(
+            "you are not the owner of this bot".to_string(),
+        ).into());
     }
 
     sqlx::query!("DELETE FROM users WHERE id = $1", bigint_user_id)

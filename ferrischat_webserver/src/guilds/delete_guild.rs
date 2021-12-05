@@ -22,11 +22,8 @@ pub async fn delete_guild(
         ),
         )?;
     if auth.0 != owner_id {
-        return Err((
-            403,
-            ErrorJson::new_403(
-                "Forbidden".to_string(),
-            ),
+        return Err(ErrorJson::new_403(
+            "Forbidden".to_string(),
         )
             .into());
     }

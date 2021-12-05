@@ -65,13 +65,9 @@ pub async fn get_token(
             })?
     };
     if !(matches && (user_email == r.email)) {
-        return Err((
-            404,
-            ErrorJson::new_404(
-                format!("Your credentials are not correct"),
-            ),
-        )
-            .into());
+        return Err(ErrorJson::new_404(
+            format!("Your credentials are not correct"),
+        ).into());
     }
 
     let token = generate_random_bits()
