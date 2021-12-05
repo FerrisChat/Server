@@ -1,7 +1,6 @@
 use crate::WebServerError;
 use axum::extract::Path;
-use ferrischat_common::types::{Member, ErrorJson, User, UserFlags};
-use serde::Serialize;
+use ferrischat_common::types::{ErrorJson, Member, User, UserFlags};
 
 /// GET `/api/v0/guilds/{guild_id}/members/{member_id}`
 pub async fn get_member(
@@ -20,15 +19,7 @@ pub async fn get_member(
     )
     .fetch_optional(db)
     .await?
-    .ok_or_else(|| {
-        (
-            404,
-            ErrorJson::new_404(
-                format!("Unknown member with ID {}", member_id),
-            ),
-        )
-            .into()
-    })?;
+    .ok_or_else(|| ErrorJson::new_404(format!("Unknown member with ID {}", member_id)))?;
 
     let user = sqlx::query!("SELECT * FROM users WHERE id = $1", bigint_member_id)
         .fetch_optional(db)
