@@ -2,7 +2,6 @@ use crate::WebServerError;
 use axum::extract::{Json, Path};
 use ferrischat_common::request_json::UserUpdateJson;
 use ferrischat_common::types::{ErrorJson, User, UserFlags};
-use serde::Serialize;
 use tokio::sync::oneshot::channel;
 
 /// PATCH `/api/v0/users/{user_id}`
@@ -19,9 +18,7 @@ pub async fn edit_user(
     auth: crate::Authorization,
 ) -> Result<crate::Json<User>, WebServerError> {
     if user_id != auth.0 {
-        return Err(ErrorJson::new_403(
-            "this account is not yours".to_string(),
-        ).into());
+        return Err(ErrorJson::new_403("this account is not yours".to_string()).into());
     }
 
     let bigint_user_id = u128_to_bigdecimal!(user_id);
@@ -103,10 +100,7 @@ pub async fn edit_user(
     let user = sqlx::query!("SELECT * FROM users WHERE id = $1", bigint_user_id)
         .fetch_optional(db)
         .await?
-        .ok_or_else(|| ErrorJson::new_404(
-            format!("unknown user with id {}", user_id),
-        ),
-        )?;
+        .ok_or_else(|| ErrorJson::new_404(format!("unknown user with id {}", user_id)))?;
 
     Ok(crate::Json {
         code: 200,

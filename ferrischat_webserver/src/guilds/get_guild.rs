@@ -1,7 +1,7 @@
 use crate::WebServerError;
 use axum::extract::{Path, Query};
 use ferrischat_common::request_json::GetGuildUrlParams;
-use ferrischat_common::types::{Channel, Guild, GuildFlags, Member, ErrorJson, User, UserFlags};
+use ferrischat_common::types::{Channel, ErrorJson, Guild, GuildFlags, Member, User, UserFlags};
 use num_traits::ToPrimitive;
 use serde::Serialize;
 
@@ -17,10 +17,7 @@ pub async fn get_guild(
     let guild = sqlx::query!("SELECT * FROM guilds WHERE id = $1", bigint_guild_id)
         .fetch_optional(db)
         .await?
-        .ok_or_else(|| ErrorJson::new_404(
-            format!("Unknown guild with ID {}", guild_id),
-        ),
-        )?;
+        .ok_or_else(|| ErrorJson::new_404(format!("Unknown guild with ID {}", guild_id)))?;
 
     let channels: Option<Vec<Channel>> = if params.channels.unwrap_or(true) {
         let resp = sqlx::query!(

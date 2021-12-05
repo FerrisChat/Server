@@ -20,9 +20,7 @@ pub async fn delete_bot(
             .ok_or_else(|| {
                 (
                     404,
-                    ErrorJson::new_404(
-                        format!("Unknown bot with ID {}", bot_id),
-                    ),
+                    ErrorJson::new_404(format!("Unknown bot with ID {}", bot_id)),
                 )
                     .into()
             })?
@@ -30,9 +28,7 @@ pub async fn delete_bot(
     );
 
     if owner_id != auth.0 {
-        return Err(ErrorJson::new_403(
-            "you are not the owner of this bot".to_string(),
-        ).into());
+        return Err(ErrorJson::new_403("you are not the owner of this bot".to_string()).into());
     }
 
     sqlx::query!("DELETE FROM users WHERE id = $1", bigint_user_id)

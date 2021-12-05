@@ -33,10 +33,7 @@ pub async fn edit_role(
             guild_id: bigdecimal_to_u128!(role.parent_guild),
             permissions: Permissions::from_bits_truncate(role.permissions),
         })
-        .ok_or_else(|| ErrorJson::new_404(
-            format!("Unknown role with ID {}", role_id),
-        ),
-        )?;
+        .ok_or_else(|| ErrorJson::new_404(format!("Unknown role with ID {}", role_id)))?;
 
     if let Some(name) = name {
         sqlx::query!(
@@ -44,8 +41,8 @@ pub async fn edit_role(
             name,
             bigint_role_id
         )
-            .execute(db)
-            .await?
+        .execute(db)
+        .await?
     };
 
     if let Some(color) = color {
@@ -89,10 +86,7 @@ pub async fn edit_role(
             guild_id: bigdecimal_to_u128!(role.parent_guild),
             permissions: Permissions::from_bits_truncate(role.permissions),
         })
-        .ok_or_else(|| ErrorJson::new_404(
-            format!("Unknown role with ID {}", role_id),
-        ),
-        )?;
+        .ok_or_else(|| ErrorJson::new_404(format!("Unknown role with ID {}", role_id)))?;
 
     let guild_id = new_role_obj.guild_id;
 

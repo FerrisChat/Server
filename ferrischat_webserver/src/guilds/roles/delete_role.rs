@@ -21,20 +21,17 @@ pub async fn delete_role(
         bigint_role_id,
         bigint_guild_id
     )
-        .fetch_optional(db)
-        .await?
-        .map(|role| Role {
-            id: bigdecimal_to_u128!(role.id),
-            guild_id: bigdecimal_to_u128!(role.parent_guild),
-            name: role.name,
-            color: role.color,
-            position: role.position,
-            permissions: Permissions::from_bits_truncate(role.permissions),
-        })
-        .ok_or_else(|| ErrorJson::new_404(
-            format!("Unknown role with ID {}", role_id),
-        ),
-        )?;
+    .fetch_optional(db)
+    .await?
+    .map(|role| Role {
+        id: bigdecimal_to_u128!(role.id),
+        guild_id: bigdecimal_to_u128!(role.parent_guild),
+        name: role.name,
+        color: role.color,
+        position: role.position,
+        permissions: Permissions::from_bits_truncate(role.permissions),
+    })
+    .ok_or_else(|| ErrorJson::new_404(format!("Unknown role with ID {}", role_id)))?;
 
     let event = WsOutboundEvent::RoleDelete {
         role: role_obj.clone(),

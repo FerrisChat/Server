@@ -1,7 +1,7 @@
 use crate::WebServerError;
 use axum::extract::Path;
 
-use ferrischat_common::types::{Channel, Guild, GuildFlags, Member, ErrorJson, User, UserFlags};
+use ferrischat_common::types::{Channel, ErrorJson, Guild, GuildFlags, Member, User, UserFlags};
 
 use num_traits::cast::ToPrimitive;
 use serde::Serialize;
@@ -17,10 +17,7 @@ pub async fn get_user(
     let user = sqlx::query!("SELECT * FROM users WHERE id = $1", bigint_user_id)
         .fetch_optional(db)
         .await?
-        .ok_or_else(|| ErrorJson::new_404(
-            format!("Unknown user with ID {}", user_id),
-        ),
-        )?;
+        .ok_or_else(|| ErrorJson::new_404(format!("Unknown user with ID {}", user_id)))?;
 
     Ok(crate::Json {
         code: 200,

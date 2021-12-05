@@ -26,9 +26,7 @@ pub async fn edit_bot(
     .ok_or_else(|| {
         (
             404,
-            ErrorJson::new_404(
-                format!("Unknown bot with ID {}", bot_id),
-            ),
+            ErrorJson::new_404(format!("Unknown bot with ID {}", bot_id)),
         )
             .into()
     })?
@@ -37,9 +35,7 @@ pub async fn edit_bot(
     let owner_id = bigdecimal_to_u128!(bigint_owner_id);
 
     if owner_id != auth.0 {
-        return Err(ErrorJson::new_403(
-            "you are not the owner of this bot".to_string(),
-        ).into());
+        return Err(ErrorJson::new_403("you are not the owner of this bot".to_string()).into());
     }
 
     if let Some(username) = username {
@@ -67,9 +63,7 @@ pub async fn edit_bot(
         .ok_or_else(|| {
             (
                 404,
-                ErrorJson::new_404(
-                    format!("Unknown bot with ID {}", bot_id),
-                ),
+                ErrorJson::new_404(format!("Unknown bot with ID {}", bot_id)),
             )
                 .into()
         })?

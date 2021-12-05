@@ -3,7 +3,7 @@ use crate::WebServerError;
 use axum::extract::Path;
 use axum::Json;
 use ferrischat_common::request_json::InviteCreateJson;
-use ferrischat_common::types::{Invite, ErrorJson};
+use ferrischat_common::types::{ErrorJson, Invite};
 use ferrischat_common::ws::WsOutboundEvent;
 use ferrischat_snowflake_generator::FERRIS_EPOCH;
 use serde::Serialize;
@@ -31,10 +31,7 @@ pub async fn create_invite(
     .await?
     .is_none()
     {
-        return Err(ErrorJson::new_403(
-            "you are not a member of this guild".to_string(),
-        )
-            .into());
+        return Err(ErrorJson::new_403("you are not a member of this guild".to_string()).into());
     }
 
     let now = OffsetDateTime::now_utc().unix_timestamp()

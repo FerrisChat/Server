@@ -28,9 +28,7 @@ pub async fn get_role(
             .ok_or_else(|| {
                 (
                     404,
-                    ErrorJson::new_404(
-                        format!("Unknown role with ID {}", role_id),
-                    ),
+                    ErrorJson::new_404(format!("Unknown role with ID {}", role_id)),
                 )
                     .into()
             })?,

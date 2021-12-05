@@ -10,9 +10,7 @@ pub async fn delete_user(
     auth: crate::Authorization,
 ) -> Result<http::StatusCode, WebServerError> {
     if user_id != auth.0 {
-        return Err(ErrorJson::new_403(
-            "this account is not yours".to_string(),
-        ).into());
+        return Err(ErrorJson::new_403("this account is not yours".to_string()).into());
     }
 
     let bigint_user_id = u128_to_bigdecimal!(user_id);
@@ -23,12 +21,9 @@ pub async fn delete_user(
         "DELETE FROM users WHERE id = $1 RETURNING (id)",
         bigint_user_id,
     )
-        .fetch_optional(db)
-        .await?
-        .ok_or_else(|| ErrorJson::new_404(
-            "account not found".to_string(),
-        ),
-        )?;
+    .fetch_optional(db)
+    .await?
+    .ok_or_else(|| ErrorJson::new_404("account not found".to_string()))?;
 
     Ok(http::StatusCode::NO_CONTENT)
 }
