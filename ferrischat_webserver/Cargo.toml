@@ -22,7 +22,6 @@ num-bigint = "0.3"
 ring = "0.16"
 futures = "0.3"
 base64 = "0.13"
-tokio = { version = "1.14", features = ["full"] }
 futures-cpupool = "0.1"
 http = "0.2"
 bytes = "*"
@@ -46,6 +45,10 @@ ferrischat_redis = { path = "../ferrischat_redis", version = "0.1" }
 ferrischat_ws = { path = "../ferrischat_ws", version = "0.1" }
 ferrischat_auth = { path = "../ferrischat_auth", version = "0.1" }
 ferrischat_snowflake_generator = "1"
+
+[dependencies.tokio]
+version = "1.14"
+features = ["full"]
 
 [dependencies.axum]
 version = "0.3"

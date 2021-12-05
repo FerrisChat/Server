@@ -999,6 +999,7 @@ dependencies = [
  "ferrischat_config",
  "ferrischat_webserver",
  "time 0.3.5",
+ "tokio",
  "tracing-subscriber",
 ]
 

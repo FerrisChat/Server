@@ -25,6 +25,10 @@ time = "*"
 clap = "2.33"
 tracing-subscriber = { version = "0.3.2", features = ["env-filter", "tracing-log"] }
 
+[dependencies.tokio]
+version = "1.14"
+features = ["full"]
+
 [patch.crates-io]
 bitflags = { git = "https://github.com/bitflags/bitflags" }
 redis = { git = "https://github.com/tazz4843/redis-rs" }
