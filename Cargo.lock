@@ -21,7 +21,7 @@ dependencies = [
 [[package]]
 name = "actix-http"
 version = "3.0.0-beta.14"
-source = "git+https://github.com/actix/actix-web/#d89c706cd6653b9ce14ecbed4237435209e85f7b"
+source = "git+https://github.com/actix/actix-web/#e1a2d9c60684820723a539f4005f3af35281884a"
 dependencies = [
  "actix-codec",
  "actix-rt",
@@ -133,7 +133,7 @@ dependencies = [
 [[package]]
 name = "actix-web"
 version = "4.0.0-beta.13"
-source = "git+https://github.com/actix/actix-web/#d89c706cd6653b9ce14ecbed4237435209e85f7b"
+source = "git+https://github.com/actix/actix-web/#e1a2d9c60684820723a539f4005f3af35281884a"
 dependencies = [
  "actix-codec",
  "actix-http",
@@ -1195,7 +1195,7 @@ dependencies = [
 [[package]]
 name = "ferrischat_common"
 version = "0.2.0"
-source = "git+https://github.com/FerrisChat/Common.git?branch=master#0256487162aa2c73c8c1f7a5612cc911896e56a1"
+source = "git+https://github.com/FerrisChat/Common.git?branch=master#218eb414d18bc3647fdf3e4755d5905e66e78e20"
 dependencies = [
  "bitflags",
  "serde",
