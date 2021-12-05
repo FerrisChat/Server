@@ -3,7 +3,6 @@ use crate::special_headers::{Email, Password};
 use crate::{Json, WebServerError};
 use axum::extract::TypedHeader;
 use ferrischat_common::types::{AuthResponse, ErrorJson};
-use serde::Serialize;
 use sqlx::types::BigDecimal;
 use tokio::sync::oneshot::channel;
 
@@ -22,15 +21,7 @@ pub async fn get_token(
     )
     .fetch_optional(db)
     .await?
-    .ok_or_else(|| {
-        (
-            404,
-            ErrorJson::new_404(
-                format!("Unknown user with email {}", user_email),
-            ),
-        )
-            .into()
-    })?;
+    .ok_or_else(|| ErrorJson::new_404(format!("Unknown user with email {}", user_email)))?;
     let bigdecimal_user_id: BigDecimal = r.id;
     let matches = {
         let v = ferrischat_auth::GLOBAL_VERIFIER
@@ -40,11 +31,13 @@ pub async fn get_token(
         let db_password = std::mem::take(&mut r.password);
         v.send(((user_password, db_password), tx))
             .await
-            .map_err(|_| ErrorJson::new_500(
-                "Password verifier has hung up connection".to_string(),
-                false,
-                None,
-            ))?;
+            .map_err(|_| {
+                ErrorJson::new_500(
+                    "Password verifier has hung up connection".to_string(),
+                    false,
+                    None,
+                )
+            })?;
         rx.await
             .unwrap_or_else(|e| {
                 unreachable!(
@@ -53,21 +46,11 @@ pub async fn get_token(
                 )
             })
             .map_err(|e| {
-                (
-                    500,
-                    ErrorJson::new_500(
-                        format!("failed to verify password: {}", e),
-                        false,
-                        None,
-                    ),
-                )
-                    .into()
+                ErrorJson::new_500(format!("failed to verify password: {}", e), false, None)
             })?
     };
     if !(matches && (user_email == r.email)) {
-        return Err(ErrorJson::new_404(
-            format!("Your credentials are not correct"),
-        ).into());
+        return Err(ErrorJson::new_404(format!("Your credentials are not correct")).into());
     }
 
     let token = generate_random_bits()
@@ -81,15 +64,11 @@ pub async fn get_token(
         .send((token.clone(), tx))
         .await
         .map_err(|_| {
-            (
-                500,
-                ErrorJson::new_500(
-                    "Password hasher has hung up connection".to_string(),
-                    false,
-                    None,
-                ),
+            ErrorJson::new_500(
+                "Password hasher has hung up connection".to_string(),
+                false,
+                None,
             )
-                .into()
         })?;
 
     let hashed_token = rx.await
@@ -100,19 +79,15 @@ pub async fn get_token(
                              )
                          })
                          .map_err(|e| {
-                             (
-                                 500,
-                                 ErrorJson::new_500(
-                                     format!("failed to hash token: {}", e),
-                                     true,
-                                     Some(
-                                         "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
+                             ErrorJson::new_500(
+                                 format!("failed to hash token: {}", e),
+                                 true,
+                                 Some(
+                                     "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
                                          labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+failed+to+hash+token"
-                                             .to_string(),
-                                     ),
+                                         .to_string(),
                                  ),
                              )
-                                 .into()
                          })?;
 
     sqlx::query!(
