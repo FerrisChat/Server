@@ -324,11 +324,12 @@ checksum = "cdb031dd78e28731d87d56cc8ffef4a8f36ca26c38fe2de700543e627f8a464a"
 
 [[package]]
 name = "axum"
-version = "0.3.4"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6b4e96976b2022b23b2199168ff9b281e9ddc1aa795607d5cb7146868ca5c101"
+checksum = "9ffb96dd8f4ac663bdda87a7c7b458a7e28cbd6d2f7f16f1e274a413863bc443"
 dependencies = [
  "async-trait",
+ "axum-core",
  "bitflags",
  "bytes 1.1.0",
  "futures-util",
@@ -350,6 +351,20 @@ dependencies = [
  "tower-http",
  "tower-layer",
  "tower-service",
+]
+
+[[package]]
+name = "axum-core"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "95dfe272060b44b3845e7657652363153531409331641b766bff4bfdcb75c8c0"
+dependencies = [
+ "async-trait",
+ "bytes 1.1.0",
+ "futures-util",
+ "http 0.2.5",
+ "http-body 0.4.4",
+ "mime",
 ]
 
 [[package]]
@@ -1473,6 +1488,12 @@ dependencies = [
  "http 0.2.5",
  "pin-project-lite",
 ]
+
+[[package]]
+name = "http-range-header"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0bfe8eed0a9285ef776bb792479ea3834e8b94e13d615c2f66d03dd50a435a29"
 
 [[package]]
 name = "httparse"
@@ -3296,16 +3317,18 @@ dependencies = [
 
 [[package]]
 name = "tower-http"
-version = "0.1.2"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6f70061b0592867f0a60e67a6e699da5fe000c88a360a5b92ebdba9d73b2238c"
+checksum = "39ee603d6e665ecc7e0f8d479eedb4626bd4726f0ee6119cee5b3a6bf184cac0"
 dependencies = [
+ "bitflags",
  "bytes 1.1.0",
  "futures-core",
  "futures-util",
  "http 0.2.5",
  "http-body 0.4.4",
- "pin-project",
+ "http-range-header",
+ "pin-project-lite",
  "tower-layer",
  "tower-service",
 ]
