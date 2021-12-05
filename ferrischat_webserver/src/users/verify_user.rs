@@ -8,7 +8,6 @@ use lettre::{
     transport::smtp::authentication::Credentials, AsyncSmtpTransport, AsyncTransport, Message,
     Tokio1Executor,
 };
-use serde::Serialize;
 use tokio::time::Duration;
 
 /// POST /v0/verify
@@ -40,7 +39,8 @@ pub async fn send_verification_email(
     // Makes a call to the email checker to avoid sending to completely fake emails
     let mut checker_input = CheckEmailInput::new(vec![user_email.clone()]);
     checker_input.set_smtp_timeout(Duration::new(5, 0));
-    let checked_email = check_email(&checker_input).await.get(0).ok_or_else(|| {
+    let checked_email_vec = check_email(&checker_input).await;
+    let checked_email = checked_email_vec.get(0).ok_or_else(|| {
         ErrorJson::new_500(
             "zero emails checked".to_string(),
             true,
@@ -50,17 +50,18 @@ pub async fn send_verification_email(
                     .to_string(),
             ),
         )
-        .into()
     })?;
     if !checked_email.syntax.is_valid_syntax {
-        return Err(ErrorJson::new_409(format!("Email {} is invalid.", user_email)).into());
+        return Err(WebServerError::from(ErrorJson::new_409(format!(
+            "Email {} is invalid.",
+            user_email
+        ))));
     }
 
     if checked_email.is_reachable == Reachable::Invalid {
-        return Err(ErrorJson::new_409(
+        return Err(WebServerError::from(ErrorJson::new_409(
             "Email deemed unsafe to send to. Is it a real email?".to_string(),
-        )
-        .into());
+        )));
     }
 
     // Get configurations, they're set in redis for speed reasons. Set them with redis-cli `set config:email:<setting> <value>`
@@ -82,7 +83,7 @@ pub async fn send_verification_email(
         // SMTP password
         .get::<String, String>("config:email:password".to_string())
         .await?;
-    let mail_creds = Credentials::new(username, password);
+    let mail_creds = Credentials::new(username.clone(), password);
 
     // This generates a random string that can be used to verify that the request is actually from the email owner
     let token = generate_random_bits()
@@ -134,7 +135,7 @@ pub async fn verify_email(
     let redis_key = format!("email:tokens:{}", token);
     let email = ferrischat_redis::redis::cmd("GETDEL")
         .arg(redis_key)
-        .query_async::<_, String>(
+        .query_async::<_, Option<String>>(
             &mut REDIS_MANAGER
                 .get()
                 .ok_or(WebServerError::MissingRedis)?
@@ -143,7 +144,7 @@ pub async fn verify_email(
         )
         .await?
         .ok_or_else(|| {
-            ErrorJson::new_404("This token has expired or was not found.".to_string()).into()
+            ErrorJson::new_404("This token has expired or was not found.".to_string())
         })?;
 
     // Tell the database to set their verified field to true! The user is now verified.
