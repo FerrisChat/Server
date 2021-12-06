@@ -73,16 +73,25 @@ pub async fn send_verification_email(
 
     let host = redis
         // FQDN of the SMTP server
-        .get::<&str, String>("config:email:host")
-        .await?;
+        .get::<&str, Option<String>>("config:email:host")
+        .await?
+        .ok_or_else(|| {
+            ErrorJson::new_500("redis config not set (host)".to_string(), false, None)
+        })?;
     let username = redis
         // FULL SMTP username, e.g. `verification@ferris.chat`
-        .get::<&str, String>("config:email:username")
-        .await?;
+        .get::<&str, Option<String>>("config:email:username")
+        .await?
+        .ok_or_else(|| {
+            ErrorJson::new_500("redis config not set (username)".to_string(), false, None)
+        })?;
     let password = redis
         // SMTP password
-        .get::<String, String>("config:email:password".to_string())
-        .await?;
+        .get::<&str, Option<String>>("config:email:password")
+        .await?
+        .ok_or_else(|| {
+            ErrorJson::new_500("redis config not set (password)".to_string(), false, None)
+        })?;
     let mail_creds = Credentials::new(username.clone(), password);
 
     // This generates a random string that can be used to verify that the request is actually from the email owner
