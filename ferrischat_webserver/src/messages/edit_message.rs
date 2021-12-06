@@ -38,8 +38,8 @@ pub async fn edit_message(
 
     let resp = sqlx::query!(
         "SELECT m.*, a.name AS author_name, a.flags AS author_flags, a.discriminator AS author_discriminator, a.pronouns AS author_pronouns FROM messages m CROSS JOIN LATERAL (SELECT * FROM users WHERE id = m.author_id) AS a WHERE m.id = $1 AND m.channel_id = $2",
+        bigint_message_id,
         bigint_channel_id,
-        bigint_message_id
     )
         .fetch_optional(db)
         .await?
