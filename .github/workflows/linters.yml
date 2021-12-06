@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - gh-actions-fixes
 
 
 name: Linters
@@ -27,7 +26,7 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: fmt
-          args: --all -- --check
+          args: --all -- --check -D clippy::pedantic -D clippy::nursery -A clippy::too_many_lines
 
   clippy:
     name: Clippy
