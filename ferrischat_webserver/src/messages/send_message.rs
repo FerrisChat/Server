@@ -42,8 +42,9 @@ pub async fn create_message(
             "SELECT guild_id FROM channels WHERE id = $1",
             bigint_channel_id
         )
-        .fetch_one(db)
+        .fetch_optional(db)
         .await?
+        .ok_or_else(|| ErrorJson::new_404("channel not found".to_string()))
         .guild_id
     );
 
