@@ -43,8 +43,8 @@ pub async fn get_me(
                     "#,
                     bigint_user_id,
                 )
-                    .fetch_all(db)
-                    .await?;
+                .fetch_all(db)
+                .await?;
 
                 let mut guilds = Vec::with_capacity(d.len());
 
@@ -82,27 +82,27 @@ pub async fn get_me(
                                 "SELECT * FROM channels WHERE guild_id = $1",
                                 x.id.clone()
                             )
-                                .fetch_all(db)
-                                .await?
-                                .iter()
-                                .filter_map(|x| {
-                                    Some(Channel {
-                                        id: x
-                                            .id
-                                            .with_scale(0)
-                                            .into_bigint_and_exponent()
-                                            .0
-                                            .to_u128()?,
-                                        name: x.name.clone(),
-                                        guild_id: x
-                                            .guild_id
-                                            .with_scale(0)
-                                            .into_bigint_and_exponent()
-                                            .0
-                                            .to_u128()?,
-                                    })
+                            .fetch_all(db)
+                            .await?
+                            .iter()
+                            .filter_map(|x| {
+                                Some(Channel {
+                                    id: x
+                                        .id
+                                        .with_scale(0)
+                                        .into_bigint_and_exponent()
+                                        .0
+                                        .to_u128()?,
+                                    name: x.name.clone(),
+                                    guild_id: x
+                                        .guild_id
+                                        .with_scale(0)
+                                        .into_bigint_and_exponent()
+                                        .0
+                                        .to_u128()?,
                                 })
-                                .collect(),
+                            })
+                            .collect(),
                         ),
                         flags: GuildFlags::empty(),
                         members: {
@@ -120,8 +120,8 @@ pub async fn get_me(
                                             "SELECT * FROM users WHERE id = $1",
                                             x.user_id.clone()
                                         )
-                                            .fetch_one(db)
-                                            .await?;
+                                        .fetch_one(db)
+                                        .await?;
 
                                         Some(User {
                                             id: bigdecimal_to_u128!(user.id),

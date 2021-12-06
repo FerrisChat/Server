@@ -1,10 +1,10 @@
-use crate::WebServerError;
 use crate::ws::fire_event;
+use crate::WebServerError;
 use axum::extract::Path;
 use axum::Json;
-use ferrischat_common::ws::WsOutboundEvent;
-use ferrischat_common::request_json::{BotInviteJson};
+use ferrischat_common::request_json::BotInviteJson;
 use ferrischat_common::types::{ErrorJson, Member, User, UserFlags};
+use ferrischat_common::ws::WsOutboundEvent;
 
 /// POST /v0/bots/{bot_id}/add
 pub async fn invite_bot(
@@ -21,11 +21,7 @@ pub async fn invite_bot(
     let guild = sqlx::query!("SELECT * FROM guilds WHERE owner_id = $1", bigint_user_id)
         .fetch_optional(db)
         .await?
-        .ok_or_else(|| {
-            ErrorJson::new_404(
-                format!("Unknown guild with ID {}", guild_id)
-            )
-        })?;
+        .ok_or_else(|| ErrorJson::new_404(format!("Unknown guild with ID {}", guild_id)))?;
 
     let guild_owner = bigdecimal_to_u128!(guild.owner_id);
     if guild_owner != auth.0 {
@@ -37,9 +33,9 @@ pub async fn invite_bot(
         bigint_bot_id,
         bigint_guild_id
     )
-        .fetch_one(db)
-        .await?
-        .exists
+    .fetch_one(db)
+    .await?
+    .exists
     {
         return Err(ErrorJson::new_409("bot has already joined this guild".to_string()).into());
     };
@@ -49,8 +45,8 @@ pub async fn invite_bot(
         bigint_bot_id,
         bigint_guild_id
     )
-        .execute(db)
-        .await?;
+    .execute(db)
+    .await?;
 
     let member_obj = Member {
         user_id: Some(bot_id),

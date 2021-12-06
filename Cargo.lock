@@ -305,9 +305,9 @@ checksum = "cdb031dd78e28731d87d56cc8ffef4a8f36ca26c38fe2de700543e627f8a464a"
 
 [[package]]
 name = "axum"
-version = "0.4.0"
+version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9ffb96dd8f4ac663bdda87a7c7b458a7e28cbd6d2f7f16f1e274a413863bc443"
+checksum = "ae08f7a0b974a1b226b9a4bb07fcc865f25d7c7513cefc53603f84ab41e586fd"
 dependencies = [
  "async-trait",
  "axum-core",
@@ -336,9 +336,9 @@ dependencies = [
 
 [[package]]
 name = "axum-core"
-version = "0.1.0"
+version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "95dfe272060b44b3845e7657652363153531409331641b766bff4bfdcb75c8c0"
+checksum = "1ca6c0b218388a7ed6a8d25e94f7dea5498daaa4fd8c711fb3ff166041b06fda"
 dependencies = [
  "async-trait",
  "bytes 1.1.0",
@@ -851,7 +851,7 @@ dependencies = [
 [[package]]
 name = "ferrischat_common"
 version = "0.2.0"
-source = "git+https://github.com/FerrisChat/Common.git?branch=master#218eb414d18bc3647fdf3e4755d5905e66e78e20"
+source = "git+https://github.com/FerrisChat/Common.git?branch=master#e2b8bea6f5c4d8d6ec6c1107ad795db8dc758adb"
 dependencies = [
  "bitflags",
  "serde",
@@ -1471,9 +1471,9 @@ checksum = "68f2d64f2edebec4ce84ad108148e67e1064789bee435edc5b60ad398714a3a9"
 
 [[package]]
 name = "itertools"
-version = "0.10.1"
+version = "0.10.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "69ddb889f9d0d08a67338271fa9b62996bc788c7796a5c18cf057420aaed5eaf"
+checksum = "a9a9d19fa1e79b6215ff29b9d6880b706147f16e9b1dbb1e4e5947b5b02bc5e3"
 dependencies = [
  "either",
 ]
@@ -1900,9 +1900,9 @@ checksum = "8b870d8c151b6f2fb93e84a13146138f05d02ed11c7e7c54f8826aaaf7c9f184"
 
 [[package]]
 name = "pkg-config"
-version = "0.3.22"
+version = "0.3.23"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "12295df4f294471248581bc09bef3c38a5e46f1e36d6a37353621a0c6c357e1f"
+checksum = "d1a3ea4f0dd7f1f3e512cf97bf100819aa547f36a6eccac8dbaae839eb92363e"
 
 [[package]]
 name = "polling"
