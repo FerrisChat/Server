@@ -19,7 +19,7 @@ pub async fn get_token(
     .ok_or_else(|| ErrorJson::new_404(format!("Unknown user with email {}", email)))?;
     let flags = UserFlags::from_bits_truncate(r.flags);
     if flags.contains(UserFlags::BOT_ACCOUNT) {
-        return Err(ErrorJson::new401(
+        return Err(ErrorJson::new_401(
             "Please use bot token generation. Bots are not allowed to use email/password."
                 .to_string(),
         )
