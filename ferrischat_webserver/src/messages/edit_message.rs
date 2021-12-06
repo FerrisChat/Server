@@ -30,8 +30,9 @@ pub async fn edit_message(
             "SELECT guild_id FROM channels WHERE id = $1",
             bigint_channel_id
         )
-        .fetch_one(db)
+        .fetch_optional(db)
         .await?
+        .ok_or_else(|| ErrorJson::new_404("channel not found".to_string()))?
         .guild_id
     );
 
@@ -41,10 +42,9 @@ pub async fn edit_message(
         bigint_message_id
     )
         .fetch_optional(db)
-        .await?.ok_or_else(|| ErrorJson::new_404(
-        format!("Unknown guild with ID {}", guild_id),
-    ),
-    )?;
+        .await?
+        .ok_or_else(|| ErrorJson::new_404(format!("Unknown message with ID {}", message_id)),
+        )?;
 
     let old_message_obj = {
         let author_id = bigdecimal_to_u128!(resp.author_id);
