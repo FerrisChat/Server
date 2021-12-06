@@ -1,6 +1,7 @@
 use axum::body::{self, BoxBody};
 use axum::http::Response;
 use axum::response::IntoResponse;
+use ferrischat_auth::{Argon2Error, SplitTokenError, VerifyTokenFailure};
 use ferrischat_common::types::ErrorJson;
 use ferrischat_redis::deadpool_redis::redis::RedisError;
 use ferrischat_redis::deadpool_redis::PoolError;
@@ -19,8 +20,6 @@ pub enum WebServerError {
     RedisPool(PoolError),
     Http(ErrorJson),
     RandomGenerationFailure,
-    MissingHasher,
-    MissingVerifier,
     MissingNodeId,
 }
 
@@ -83,6 +82,58 @@ impl From<lettre::transport::smtp::Error> for WebServerError {
     }
 }
 
+impl From<ferrischat_auth::VerifyTokenFailure> for WebServerError {
+    fn from(e: VerifyTokenFailure) -> Self {
+        let reason = match e {
+            VerifyTokenFailure::MissingDatabase => "database pool not found".to_string(),
+            VerifyTokenFailure::DbError(e) => return Self::from(e),
+            VerifyTokenFailure::VerifierError(e) => {
+                format!("argon2 verifier returned an error: {}", e)
+            }
+            VerifyTokenFailure::InvalidToken => {
+                unreachable!("a invalid token error should be handled earlier")
+            }
+        };
+        Self::Http(ErrorJson::new_500(reason, false, None))
+    }
+}
+
+impl From<Argon2Error> for WebServerError {
+    fn from(e: Argon2Error) -> Self {
+        let reason = format!(
+            "hashing error: {}",
+            match e {
+                Argon2Error::Communication => {
+                    "an error was encountered while waiting for a background thread to complete."
+                        .to_string()
+                }
+                Argon2Error::Argon(e) =>
+                    format!("underlying argon2 algorithm threw an error: {}", e),
+                Argon2Error::PasswordHash(e) => {
+                    format!("password string handling library threw an error: {}", e)
+                }
+                Argon2Error::MissingConfig => "global configuration unset".to_string(),
+                _ => "unknown error".to_string(),
+            }
+        );
+        Self::Http(ErrorJson::new_500(reason, false, None))
+    }
+}
+
+impl From<SplitTokenError> for WebServerError {
+    fn from(e: SplitTokenError) -> Self {
+        let message = match e {
+            SplitTokenError::InvalidUtf8(e) => format!("invalid utf8 found in token: {}", e),
+            SplitTokenError::Base64DecodeError(e) => {
+                format!("invalid base64 data found in token: {}", e)
+            }
+            SplitTokenError::InvalidInteger(e) => format!("invalid integer found in token: {}", e),
+            SplitTokenError::MissingParts(idx) => format!("part {} of token missing", idx),
+        };
+        Self::Http(ErrorJson::new_400(message))
+    }
+}
+
 impl IntoResponse for WebServerError {
     fn into_response(self) -> Response<BoxBody> {
         let body = match self {
@@ -120,19 +171,6 @@ impl IntoResponse for WebServerError {
                         .to_string(),
                 ),
             ),
-            WebServerError::MissingHasher => ErrorJson::new_500(
-                "password hasher not found".to_string(),
-                false,
-                None,
-            ),
-            WebServerError::MissingVerifier => ErrorJson::new_500(
-                "password verifier not found".to_string(),
-                true,
-                Some(
-                    "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
-                        labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+password+verifier+not+found"
-                        .to_string(),
-                )),
 
             WebServerError::MissingNodeId => ErrorJson::new_500(
                 "Redis has not been set up yet".to_string(),

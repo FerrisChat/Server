@@ -12,7 +12,7 @@ use ferrischat_ws::{init_ws, init_ws_server};
 #[allow(clippy::expect_used)]
 pub async fn entrypoint() {
     init_rng();
-    init_auth();
+    init_auth().await;
     load_redis().await;
     load_db().await;
     init_ws().await;

@@ -7,9 +7,9 @@ edition = "2021"
 
 [dependencies]
 futures = "0.3"
-argonautica = { version = "0.2", features = ["serde", "simd"]}
 base64 = "0.13"
 num-bigint = "0.3"
+argon2-async = "0.1.1"
 
 ferrischat_db = { path = "../ferrischat_db" }
 ferrischat_macros = { path = "../ferrischat_macros"}

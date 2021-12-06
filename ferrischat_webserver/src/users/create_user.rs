@@ -4,7 +4,6 @@ use ferrischat_common::request_json::UserCreateJson;
 use ferrischat_common::types::{ErrorJson, ModelType, User, UserFlags};
 use ferrischat_snowflake_generator::generate_snowflake;
 use rand::Rng;
-use tokio::sync::oneshot::channel;
 
 /// POST /api/v0/users/
 /// Creates a ferrischat user with the given info
@@ -41,39 +40,7 @@ pub async fn create_user(
             })?
     };
     // Hash the password for security.
-    let hashed_password = {
-        let (tx, rx) = channel();
-        ferrischat_auth::GLOBAL_HASHER
-            .get()
-            .ok_or(WebServerError::MissingHasher)?
-            .send((password, tx))
-            .await
-            .map_err(|_| {
-                ErrorJson::new_500(
-                    "Password hasher has hung up connection".to_string(),
-                    false,
-                    None,
-                )
-            })?;
-        rx.await
-          .unwrap_or_else(|e| {
-              unreachable!(
-                  "failed to receive value from channel despite value being sent earlier on: {}",
-                  e
-              )
-          })
-          .map_err(|e| {
-              ErrorJson::new_500(
-                  format!("failed to hash token: {}", e),
-                  true,
-                  Some(
-                      "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&\
-                                         labels=bug&template=api_bug_report.yml&title=%5B500%5D%3A+failed+to+hash+token"
-                          .to_string(),
-                  ),
-              )
-          })?
-    };
+    let hashed_password = ferrischat_auth::hash(&password).await?;
 
     let db_pronouns = pronouns.map(|p| p as i16);
     let bigint_user_id = u128_to_bigdecimal!(user_id);
