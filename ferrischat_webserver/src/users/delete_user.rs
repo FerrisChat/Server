@@ -1,36 +1,28 @@
-use actix_web::{HttpRequest, HttpResponse, Responder};
-use ferrischat_common::types::{InternalServerErrorJson, NotFoundJson};
+use crate::WebServerError;
+use axum::extract::Path;
+use ferrischat_common::types::ErrorJson;
 
 /// DELETE `/api/v0/users/{user_id}`
 /// Deletes the authenticated user
-pub async fn delete_user(req: HttpRequest, auth: crate::Authorization) -> impl Responder {
-    let user_id = get_item_id!(req, "user_id");
-
+pub async fn delete_user(
+    Path(user_id): Path<u128>,
+    auth: crate::Authorization,
+) -> Result<http::StatusCode, WebServerError> {
     if user_id != auth.0 {
-        return HttpResponse::Forbidden().finish();
+        return Err(ErrorJson::new_403("this account is not yours".to_string()).into());
     }
-    let bigint_user_id = u128_to_bigdecimal!(user_id);
 
+    let bigint_user_id = u128_to_bigdecimal!(user_id);
     let db = get_db_or_fail!();
+
     // Drop the user.
-    let resp = sqlx::query!(
+    sqlx::query!(
         "DELETE FROM users WHERE id = $1 RETURNING (id)",
-        bigint_user_id
+        bigint_user_id,
     )
     .fetch_optional(db)
-    .await;
+    .await?
+    .ok_or_else(|| ErrorJson::new_404("account not found".to_string()))?;
 
-    match resp {
-        Ok(r) => match r {
-            Some(_) => HttpResponse::NoContent().finish(),
-            None => HttpResponse::NotFound().json(NotFoundJson {
-                message: format!("Unknown user with id {}", user_id),
-            }),
-        },
-        Err(e) => HttpResponse::InternalServerError().json(InternalServerErrorJson {
-            reason: format!("DB Returned a error: {}", e),
-            is_bug: false,
-            link: None,
-        }),
-    }
+    Ok(http::StatusCode::NO_CONTENT)
 }

@@ -7,18 +7,17 @@ edition = "2021"
 
 [dependencies]
 futures = "0.3"
-argonautica = { version = "0.2", features = ["serde", "simd"]}
-actix-web = { git = "https://github.com/actix/actix-web/" }
 base64 = "0.13"
 num-bigint = "0.3"
+argon2-async = "0.1.1"
 
 ferrischat_db = { path = "../ferrischat_db" }
 ferrischat_macros = { path = "../ferrischat_macros"}
 
 [dependencies.tokio]
-version = "1.11"
+version = "1.14"
 features = ["full"]
 
 [dependencies.sqlx]
 version = "0.5"
-features = ["postgres", "macros", "offline", "runtime-actix-rustls", "time"]
+features = ["postgres", "macros", "offline", "runtime-tokio-rustls", "time"]

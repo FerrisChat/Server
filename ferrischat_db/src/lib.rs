@@ -1,5 +1,7 @@
 #![feature(once_cell)]
 
+pub use sqlx;
+
 use ferrischat_config::GLOBAL_CONFIG;
 use sqlx::postgres::{PgConnectOptions, PgPoolOptions};
 use sqlx::{Pool, Postgres};

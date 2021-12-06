@@ -27,7 +27,7 @@ pub async fn handle_identify_rx<'a>(
     }
 
     let (id, secret) = split_token(token.as_str())?;
-    verify_token(id, secret).await.as_ref()?;
+    verify_token(id, secret).await?;
     let bigdecimal_user_id = u128_to_bigdecimal!(id);
 
     let res = sqlx::query!("SELECT * FROM users WHERE id = $1", bigdecimal_user_id)

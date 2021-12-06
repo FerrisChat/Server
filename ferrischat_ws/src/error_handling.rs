@@ -1,4 +1,5 @@
 use ferrischat_auth::{SplitTokenError, VerifyTokenFailure};
+use std::borrow::Cow;
 use tokio::sync::mpsc::error::SendError;
 use tokio_tungstenite::tungstenite::error::Error;
 use tokio_tungstenite::tungstenite::protocol::frame::coding::CloseCode;
@@ -9,14 +10,23 @@ pub enum WsEventHandlerError<'a> {
     Sender,
 }
 
-impl From<&VerifyTokenFailure> for WsEventHandlerError<'_> {
-    fn from(e: &VerifyTokenFailure) -> Self {
-        let msg = match e {
-            VerifyTokenFailure::Unauthorized(e) | VerifyTokenFailure::InternalServerError(e) => e,
+impl From<VerifyTokenFailure> for WsEventHandlerError<'_> {
+    fn from(e: VerifyTokenFailure) -> Self {
+        let (code, msg) = match e {
+            VerifyTokenFailure::MissingDatabase => (5003, Cow::from("Database pool missing")),
+            VerifyTokenFailure::InvalidToken => (2003, Cow::from("Invalid token")),
+            VerifyTokenFailure::DbError(e) => (
+                5000,
+                Cow::from(format!("Database returned an error: {:?}", e)),
+            ),
+            VerifyTokenFailure::VerifierError(e) => (
+                5007,
+                Cow::from(format!("Password verifier returned an error: {}", e)),
+            ),
         };
         Self::CloseFrame(CloseFrame {
-            code: CloseCode::from(2003),
-            reason: format!("Token invalid: {}", msg).into(),
+            code: CloseCode::from(code),
+            reason: msg,
         })
     }
 }
