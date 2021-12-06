@@ -1,69 +1,53 @@
-use actix_web::{HttpRequest, HttpResponse, Responder};
-use ferrischat_common::types::{InternalServerErrorJson, Member, NotFoundJson, User, UserFlags};
+use crate::WebServerError;
+use axum::extract::Path;
+use ferrischat_common::types::{ErrorJson, Member, User, UserFlags};
 
-/// GET /api/v0/guilds/{guild_id}/members/{member_id}
-pub async fn get_member(req: HttpRequest) -> impl Responder {
-    let guild_id = get_item_id!(req, "guild_id");
-    let decimal_guild_id = u128_to_bigdecimal!(guild_id);
-
-    let member_id = get_item_id!(req, "member_id");
-    let decimal_member_id = u128_to_bigdecimal!(member_id);
+/// GET `/api/v0/guilds/{guild_id}/members/{member_id}`
+pub async fn get_member(
+    Path((guild_id, member_id)): Path<(u128, u128)>,
+    _: crate::Authorization,
+) -> Result<crate::Json<Member>, WebServerError> {
+    let bigint_guild_id = u128_to_bigdecimal!(guild_id);
+    let bigint_member_id = u128_to_bigdecimal!(member_id);
 
     let db = get_db_or_fail!();
 
-    let resp = sqlx::query!(
-        "SELECT * FROM members WHERE user_id = $1 AND guild_id = $2",
-        decimal_member_id,
-        decimal_guild_id
+    if !(sqlx::query!(
+        r#"SELECT EXISTS(SELECT * FROM members WHERE user_id = $1 AND guild_id = $2) AS "exists!""#,
+        bigint_member_id,
+        bigint_guild_id
     )
-    .fetch_optional(db)
-    .await;
+    .fetch_one(db)
+    .await?
+    .exists)
+    {
+        return Err(ErrorJson::new_404(format!("Unknown member with ID {}", member_id)).into());
+    };
 
-    match resp {
-        Ok(entry) => match entry {
-            Some(_member) => {
-                let user_resp =
-                    sqlx::query!("SELECT * FROM users WHERE id = $1", decimal_member_id)
-                        .fetch_optional(db)
-                        .await;
+    let user = sqlx::query!("SELECT * FROM users WHERE id = $1", bigint_member_id)
+        .fetch_optional(db)
+        .await?
+        .map(|u| User {
+            id: member_id,
+            name: u.name,
+            avatar: u.avatar,
+            discriminator: u.discriminator,
+            flags: UserFlags::from_bits_truncate(u.flags),
+            guilds: None,
+            pronouns: u
+                .pronouns
+                .and_then(ferrischat_common::types::Pronouns::from_i16),
+        });
 
-                match user_resp {
-                    Ok(u) => {
-                        let user = match u {
-                            Some(u) => Some(User {
-                                id: member_id,
-                                name: u.name,
-                                avatar: None,
-                                discriminator: u.discriminator,
-                                flags: UserFlags::from_bits_truncate(u.flags),
-                                guilds: None,
-                            }),
-                            None => None,
-                        };
-                        HttpResponse::Ok().json(Member {
-                            user_id: Some(member_id),
-                            user: user,
-                            guild_id: Some(guild_id),
-                            guild: None,
-                        })
-                    }
-                    Err(e) => {
-                        return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                            reason: format!("database returned an error: {}", e),
-                        })
-                    }
-                }
-            }
-            None => {
-                return HttpResponse::NotFound().json(NotFoundJson {
-                    message: "Member not found".to_string(),
-                })
-            }
-        },
-        Err(e) => {
-            return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                reason: format!("database returned an error: {}", e),
-            })
-        }
-    }
+    let member_obj = Member {
+        user_id: Some(member_id),
+        user,
+        guild_id: Some(guild_id),
+        guild: None,
+    };
+
+    Ok(crate::Json {
+        obj: member_obj,
+        code: 200,
+    })
 }

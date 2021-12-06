@@ -15,25 +15,32 @@ pub enum SplitTokenError {
     MissingParts(u8),
 }
 
-pub fn split_token(token: String) -> Result<(u128, String), SplitTokenError> {
+/// Splits a token into its constituent parts and returns it.
+///
+/// # Errors
+/// Returns an error if any of the following happen:
+/// * Invalid UTF-8 is detected
+/// * The base64 encoded data cannot be decoded
+/// * A invalid integer is detected in the data
+/// * Parts of the token are missing
+pub fn split_token(token: &str) -> Result<(u128, String), SplitTokenError> {
     let mut auth = token.split('.');
-    let id = match auth.next() {
-        Some(id) => match match base64::decode_config(id, base64::URL_SAFE) {
-            Ok(t) => match String::from_utf8(t) {
-                Ok(s) => s.parse::<u128>(),
-                Err(e) => return Err(SplitTokenError::InvalidUtf8(e)),
-            },
-            Err(e) => return Err(SplitTokenError::Base64DecodeError(e)),
-        } {
-            Ok(id) => id,
-            Err(e) => return Err(SplitTokenError::InvalidInteger(e)),
-        },
-        None => return Err(SplitTokenError::MissingParts(0)),
-    };
-    let token = match auth.next() {
-        Some(token) => token.to_string(),
-        None => return Err(SplitTokenError::MissingParts(1)),
-    };
+
+    let id = String::from_utf8(
+        base64::decode_config(
+            auth.next().ok_or(SplitTokenError::MissingParts(0))?,
+            base64::URL_SAFE,
+        )
+        .map_err(SplitTokenError::Base64DecodeError)?,
+    )
+    .map_err(SplitTokenError::InvalidUtf8)?
+    .parse()
+    .map_err(SplitTokenError::InvalidInteger)?;
+
+    let token = auth
+        .next()
+        .ok_or(SplitTokenError::MissingParts(1))?
+        .to_string();
 
     Ok((id, token))
 }

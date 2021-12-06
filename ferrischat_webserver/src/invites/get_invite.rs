@@ -1,43 +1,26 @@
-use actix_web::{HttpRequest, HttpResponse, Responder};
-use ferrischat_common::types::{InternalServerErrorJson, Invite, NotFoundJson};
+use crate::WebServerError;
+use axum::extract::Path;
+use ferrischat_common::types::{ErrorJson, Invite};
 
 /// GET api/v0/invites/{code}
-pub async fn get_invite(req: HttpRequest, _: crate::Authorization) -> impl Responder {
-    let db = get_db_or_fail!();
-    let code = {
-        match req.match_info().get("code") {
-            Some(c) => c,
-            None => {
-                return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                    reason: "\"code\" not found in match_info: this is a bug, please report it at \
-              https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&labels=bug&\
-              template=api_bug_report.yml&title=%5B500%5D%3A+code+not+found+in+match_info"
-                        .to_string(),
-                })
-            }
-        }
-    };
-    let resp = sqlx::query!("SELECT * FROM invites WHERE code = $1", code)
-        .fetch_optional(db)
-        .await;
-
-    match resp {
-        Ok(resp) => match resp {
-            Some(invite) => HttpResponse::Ok().json(Invite {
-                code: code.to_string(),
-                owner_id: bigdecimal_to_u128!(invite.owner_id),
-                guild_id: bigdecimal_to_u128!(invite.guild_id),
-                created_at: invite.created_at,
-                uses: invite.uses,
-                max_uses: invite.max_uses,
-                max_age: invite.max_age,
-            }),
-            None => HttpResponse::NotFound().json(NotFoundJson {
-                message: "Invite Not Found".to_string(),
-            }),
+pub async fn get_invite(
+    Path(code): Path<String>,
+    _: crate::Authorization,
+) -> Result<crate::Json<Invite>, WebServerError> {
+    let r = sqlx::query!("SELECT * FROM invites WHERE code = $1", code)
+        .fetch_optional(get_db_or_fail!())
+        .await?
+        .ok_or_else(|| ErrorJson::new_404(format!("Unknown invite with code {}", code)))?;
+    Ok(crate::Json {
+        obj: Invite {
+            code: code.to_string(),
+            owner_id: bigdecimal_to_u128!(r.owner_id),
+            guild_id: bigdecimal_to_u128!(r.guild_id),
+            created_at: r.created_at,
+            uses: r.uses,
+            max_uses: r.max_uses,
+            max_age: r.max_age,
         },
-        Err(e) => HttpResponse::InternalServerError().json(InternalServerErrorJson {
-            reason: format!("DB returned an error: {}", e),
-        }),
-    }
+        code: 200,
+    })
 }

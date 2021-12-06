@@ -17,19 +17,12 @@ include = [
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-actix-web = { git = "https://github.com/actix/actix-web/" }
-actix-web-actors = { git = "https://github.com/actix/actix-web/" }
-actix = { git = "https://github.com/actix/actix" }
 num-traits = "0.2"
 num-bigint = "0.3"
 ring = "0.16"
 futures = "0.3"
 base64 = "0.13"
-tokio = { version = "1.11", features = ["full"] }
 futures-cpupool = "0.1"
-dotenv = "0.15"
-libc = "0.2"
-nix = { git = "https://github.com/nix-rust/nix" }
 http = "0.2"
 bytes = "*"
 tokio-tungstenite = "0.15"
@@ -37,16 +30,31 @@ lettre = { version = "0.10.0-rc.4", features = ["tokio1", "tokio1_rustls", "toki
 check-if-email-exists = "0.8"
 simd-json = { version = "0.4", features = ["128bit"] }
 urlencoding = "2.1.0"
+serde = "1.0"
+async-trait = "0.1"
+http-body = "0.1"
+rand = "0.8.4"
+headers = "0.3.5"
+tokio-stream = { version = "0.1", features = ["net"] }
+hyper = "*"
+tracing = "0.1"
 
 ferrischat_db = { path = "../ferrischat_db", version = "0.1" }
 ferrischat_common = { git = "https://github.com/FerrisChat/Common.git", version = "0.2", branch = "master" }
 ferrischat_macros = { path = "../ferrischat_macros", version = "0.1" }
-ferrischat_redis = { path = "../ferrischat_redis", version = "0.1"}
+ferrischat_redis = { path = "../ferrischat_redis", version = "0.1" }
 ferrischat_ws = { path = "../ferrischat_ws", version = "0.1" }
 ferrischat_auth = { path = "../ferrischat_auth", version = "0.1" }
 ferrischat_snowflake_generator = "1"
-rand = "0.8.4"
+
+[dependencies.tokio]
+version = "1.14"
+features = ["full"]
+
+[dependencies.axum]
+version = "0.4"
+features = ["headers"]
 
 [dependencies.sqlx]
 version = "0.5"
-features = ["postgres", "macros", "offline", "runtime-actix-rustls", "time"]
+features = ["postgres", "macros", "offline", "runtime-tokio-rustls", "time"]

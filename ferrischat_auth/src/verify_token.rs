@@ -1,78 +1,51 @@
-use tokio::sync::oneshot::channel;
-
 pub enum VerifyTokenFailure {
-    InternalServerError(String),
-    Unauthorized(String),
+    MissingDatabase,
+    InvalidToken,
+    DbError(sqlx::Error),
+    VerifierError(argon2_async::Error),
 }
 
+impl From<sqlx::Error> for VerifyTokenFailure {
+    #[inline]
+    fn from(e: sqlx::Error) -> Self {
+        Self::DbError(e)
+    }
+}
+
+impl From<argon2_async::Error> for VerifyTokenFailure {
+    fn from(e: argon2_async::Error) -> Self {
+        Self::VerifierError(e)
+    }
+}
+
+#[allow(clippy::missing_panics_doc)]
 /// Verify a user's token.
+///
+/// # Errors
+/// Returns an error if any of the following happen:
+/// * The DB pool is not initialized.
+/// * Auth data is invalid.
+/// * The DB returns an error.
+/// * The global verifier is not found.
+/// * A verification error occurs.
 pub async fn verify_token(user_id: u128, secret: String) -> Result<(), VerifyTokenFailure> {
     let id_bigint = u128_to_bigdecimal!(user_id);
-    let db = match ferrischat_db::DATABASE_POOL.get() {
-        Some(db) => db,
-        None => {
-            return Err(VerifyTokenFailure::InternalServerError(
-                "Database pool was not initialized".to_string(),
-            ));
-        }
-    };
+    let db = ferrischat_db::DATABASE_POOL
+        .get()
+        .ok_or(VerifyTokenFailure::MissingDatabase)?;
 
-    let db_token = match sqlx::query!(
+    let db_token = sqlx::query!(
         "SELECT (auth_token) FROM auth_tokens WHERE user_id = $1",
         id_bigint
     )
     .fetch_optional(db)
-    .await
-    {
-        Ok(t) => match t {
-            Some(t) => t.auth_token,
-            None => {
-                return Err(VerifyTokenFailure::Unauthorized(
-                    "`Authorization` header passed was invalid".to_string(),
-                ));
-            }
-        },
-        Err(e) => {
-            return Err(VerifyTokenFailure::InternalServerError(format!(
-                "Database returned a error: {}",
-                e
-            )));
-        }
-    };
-    let verifier = match crate::GLOBAL_VERIFIER.get() {
-        Some(v) => v,
-        None => {
-            return Err(VerifyTokenFailure::InternalServerError(
-                "Global hash verifier not found".to_string(),
-            ))
-        }
-    };
-    let (tx, rx) = channel();
-    // if the send failed, we'll know because the receiver we wait upon below will fail instantly
-    let _ = verifier.send(((secret, db_token), tx)).await;
-    let res = match rx.await {
-        Ok(r) => match r {
-            Ok(r) => r,
-            Err(e) => {
-                return Err(VerifyTokenFailure::InternalServerError(format!(
-                    "Failed to verify token: {}",
-                    e
-                )))
-            }
-        },
-        Err(_) => {
-            return Err(VerifyTokenFailure::InternalServerError(
-                "A impossible situation seems to have happened".to_string(),
-            ))
-        }
-    };
-    if res {
+    .await?
+    .ok_or(VerifyTokenFailure::InvalidToken)?
+    .auth_token;
+
+    if argon2_async::verify(secret, db_token).await? {
         Ok(())
     } else {
-        // we specifically do not define the boundary between no token and
-        // wrong tokens
-        Err(VerifyTokenFailure::Unauthorized(
-            "`Authorization` header passed was invalid".to_string(),
-        ))
+        Err(VerifyTokenFailure::InvalidToken)
     }
 }

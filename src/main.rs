@@ -1,8 +1,7 @@
 use clap::{crate_authors, crate_description, crate_name, crate_version, Arg};
 use ferrischat_webserver::entrypoint;
 
-#[actix_web::main]
-async fn main() {
+fn main() {
     #[cfg(target_arch = "x86_64")]
     if !is_x86_feature_detected!("pclmulqdq") {
         eprintln!("Your CPU doesn't support `pclmulqdq`. Exiting.");
@@ -28,7 +27,14 @@ async fn main() {
         .expect("unexpected missing config file path")
         .into();
     ferrischat_config::load_config(cfg_path);
-    env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
 
-    entrypoint().await;
+    tracing_subscriber::fmt()
+        .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
+        .init();
+
+    tokio::runtime::Builder::new_multi_thread()
+        .enable_all()
+        .build()
+        .expect("failed to build tokio runtime")
+        .block_on(entrypoint());
 }

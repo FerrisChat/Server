@@ -1,73 +1,47 @@
-use actix_web::{HttpRequest, HttpResponse, Responder};
-use ferrischat_common::types::{InternalServerErrorJson, Invite};
+use crate::WebServerError;
+use axum::extract::Path;
+use ferrischat_common::types::{ErrorJson, Invite};
 
-use num_traits::ToPrimitive;
-
-/// GET api/v0/guilds/{guild_id}/invites
-pub async fn get_guild_invites(req: HttpRequest, auth: crate::Authorization) -> impl Responder {
+/// GET `/api/v0/guilds/{guild_id}/invites`
+pub async fn get_guild_invites(
+    Path(guild_id): Path<u128>,
+    crate::Authorization(authorized_user): crate::Authorization,
+) -> Result<crate::Json<Vec<Invite>>, WebServerError> {
     let db = get_db_or_fail!();
-    let guild_id = get_item_id!(req, "guild_id");
     let bigint_guild_id = u128_to_bigdecimal!(guild_id);
-    let bigint_caller_id = u128_to_bigdecimal!(auth.0);
+    let bigint_authed_user = u128_to_bigdecimal!(authorized_user);
 
-    let member_query = sqlx::query!(
+    if sqlx::query!(
         "SELECT * FROM members WHERE user_id = $1 AND guild_id = $2",
-        bigint_caller_id,
+        bigint_authed_user,
         bigint_guild_id
     )
     .fetch_optional(db)
-    .await;
-
-    match member_query {
-        Ok(member_id) => {
-            if member_id.is_none() {
-                return HttpResponse::Forbidden().finish();
-            }
-        }
-        Err(e) => {
-            return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                reason: format!("DB returned an error: {}", e),
-            })
-        }
+    .await?
+    .is_none()
+    {
+        return Err(ErrorJson::new_403("you are not a member of this guild".to_string()).into());
     }
 
-    let invites = {
-        let resp = sqlx::query!("SELECT * FROM invites WHERE guild_id = $1", bigint_guild_id)
-            .fetch_all(db)
-            .await;
+    let res_invites = sqlx::query!("SELECT * FROM invites WHERE guild_id = $1", bigint_guild_id)
+        .fetch_all(db)
+        .await?;
 
-        match resp {
-            Ok(resp) => resp
-                .iter()
-                .filter_map(|invite| {
-                    Some(Invite {
-                        code: invite.code.clone(),
-                        owner_id: invite
-                            .owner_id
-                            .with_scale(0)
-                            .into_bigint_and_exponent()
-                            .0
-                            .to_u128()?,
-                        guild_id: invite
-                            .guild_id
-                            .with_scale(0)
-                            .into_bigint_and_exponent()
-                            .0
-                            .to_u128()?,
-                        created_at: invite.created_at,
-                        uses: invite.uses,
-                        max_uses: invite.max_uses,
-                        max_age: invite.max_age,
-                    })
-                })
-                .collect::<Vec<_>>(),
-            Err(e) => {
-                return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                    reason: format!("DB returned an error: {}", e),
-                })
-            }
-        }
-    };
+    let mut invites = Vec::with_capacity(res_invites.len());
+    for invite in res_invites {
+        invites.push(Invite {
+            code: invite.code,
+            owner_id: bigdecimal_to_u128!(invite.owner_id),
+            guild_id: bigdecimal_to_u128!(invite.guild_id),
+            created_at: invite.created_at,
+            uses: invite.uses,
+            max_uses: invite.max_uses,
+            max_age: invite.max_age,
+        });
+    }
 
-    HttpResponse::Ok().json(invites)
+    Ok(crate::Json {
+        obj: invites,
+        code: 200,
+    })
 }

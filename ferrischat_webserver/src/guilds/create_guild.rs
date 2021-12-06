@@ -1,49 +1,39 @@
-use crate::ws::{fire_event, WsEventError};
-use ferrischat_common::ws::WsOutboundEvent;
-
-use actix_web::web::Json;
-use actix_web::{HttpResponse, Responder};
+use crate::ws::fire_event;
+use crate::WebServerError;
+use axum::Json;
 use ferrischat_common::request_json::GuildCreateJson;
-use ferrischat_common::types::{Guild, GuildFlags, InternalServerErrorJson, Member, ModelType};
+use ferrischat_common::types::{Guild, GuildFlags, Member, ModelType};
+use ferrischat_common::ws::WsOutboundEvent;
 use ferrischat_snowflake_generator::generate_snowflake;
 
 /// POST /api/v0/guilds/
 pub async fn create_guild(
     auth: crate::Authorization,
     guild_info: Json<GuildCreateJson>,
-) -> impl Responder {
+) -> Result<crate::Json<Guild>, WebServerError> {
     let db = get_db_or_fail!();
     let node_id = get_node_id!();
     let guild_id = generate_snowflake::<0>(ModelType::Guild as u8, node_id);
     let bigint_guild_id = u128_to_bigdecimal!(guild_id);
     let bigint_user_id = u128_to_bigdecimal!(auth.0);
     let GuildCreateJson { name } = guild_info.0;
-    if let Err(e) = sqlx::query!(
+
+    sqlx::query!(
         "INSERT INTO guilds VALUES ($1, $2, $3)",
         bigint_guild_id,
         bigint_user_id,
         name
     )
     .execute(db)
-    .await
-    {
-        return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-            reason: format!("DB returned a error: {}", e),
-        });
-    }
+    .await?;
 
-    if let Err(e) = sqlx::query!(
+    sqlx::query!(
         "INSERT INTO members VALUES ($1, $2)",
         bigint_user_id,
         bigint_guild_id
     )
     .execute(db)
-    .await
-    {
-        return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-            reason: format!("DB returned a error: {}", e),
-        });
-    }
+    .await?;
 
     let guild_obj = Guild {
         id: guild_id,
@@ -64,16 +54,10 @@ pub async fn create_guild(
         guild: guild_obj.clone(),
     };
 
-    if let Err(e) = fire_event(format!("guild_{}", guild_id), &event).await {
-        let reason = match e {
-            WsEventError::MissingRedis => "Redis pool missing".to_string(),
-            WsEventError::RedisError(e) => format!("Redis returned an error: {}", e),
-            WsEventError::JsonError(e) => {
-                format!("Failed to serialize message to JSON format: {}", e)
-            }
-        };
-        return HttpResponse::InternalServerError().json(InternalServerErrorJson { reason });
-    }
+    fire_event(format!("guild_{}", guild_id), &event).await?;
 
-    HttpResponse::Created().json(guild_obj)
+    Ok(crate::Json {
+        obj: guild_obj,
+        code: 201,
+    })
 }

@@ -1,70 +1,57 @@
-use crate::ws::{fire_event, WsEventError};
-
+use crate::ws::fire_event;
+use crate::WebServerError;
+use axum::extract::Path;
+use ferrischat_common::types::{ErrorJson, Message, User, UserFlags};
 use ferrischat_common::ws::WsOutboundEvent;
 
-use actix_web::{HttpRequest, HttpResponse, Responder};
-use ferrischat_common::types::{InternalServerErrorJson, Message, NotFoundJson, User, UserFlags};
-
-/// DELETE /api/v0/guilds/{guild_id}/channels/{channel_id}/messages/{message_id}
-pub async fn delete_message(req: HttpRequest, _: crate::Authorization) -> impl Responder {
-    let message_id = get_item_id!(req, "message_id");
+/// DELETE `/api/v0/channels/{channel_id}/messages/{message_id}`
+pub async fn delete_message(
+    Path((channel_id, message_id)): Path<(u128, u128)>,
+    _: crate::Authorization,
+) -> Result<http::StatusCode, WebServerError> {
     let bigint_message_id = u128_to_bigdecimal!(message_id);
-
-    let channel_id = get_item_id!(req, "channel_id");
     let bigint_channel_id = u128_to_bigdecimal!(channel_id);
 
     let db = get_db_or_fail!();
 
-    let guild_id = {
-        let resp = sqlx::query!(
-            "SELECT guild_id FROM channels WHERE id = $1",
-            bigint_channel_id
-        )
-        .fetch_one(db)
-        .await;
+    let guild_id: u128 = bigdecimal_to_u128!(sqlx::query!(
+        "SELECT guild_id FROM channels WHERE id = $1",
+        bigint_channel_id
+    )
+    .fetch_optional(db)
+    .await?
+    .map(|c| c.guild_id)
+    .ok_or_else(|| { ErrorJson::new_404(format!("Unknown channel with ID {}", channel_id),) })?);
 
-        match resp {
-            Ok(r) => bigdecimal_to_u128!(r.guild_id),
-            Err(e) => {
-                return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                    reason: format!("DB returned a error: {}", e),
-                })
-            }
-        }
-    };
-
-    let message = {
-        let resp = sqlx::query!(
-            "SELECT m.*, a.name AS author_name, a.flags AS author_flags, a.discriminator AS author_discriminator FROM messages m CROSS JOIN LATERAL (SELECT * FROM users WHERE id = m.author_id) AS a WHERE m.id = $1 AND m.channel_id = $2",
-            bigint_message_id,
-            bigint_channel_id,
-        )
-        .fetch_optional(db)
-        .await;
-
-        match resp {
-            Ok(r) => match r {
-                Some(message) => message,
-                None => {
-                    return HttpResponse::NotFound().json(NotFoundJson {
-                        message: "message not found".to_string(),
-                    })
-                }
-            },
-            Err(e) => {
-                return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                    reason: format!("DB returned an error: {}", e),
-                })
-            }
-        }
-    };
+    let message = sqlx::query!(
+        r#"
+SELECT m.*,
+       a.name AS author_name,
+       a.flags AS author_flags,
+       a.discriminator AS author_discriminator,
+       a.pronouns AS author_pronouns
+FROM messages m
+    CROSS JOIN LATERAL (
+        SELECT *
+        FROM users
+        WHERE id = m.author_id
+        ) AS a 
+WHERE m.id = $1
+  AND m.channel_id = $2
+  "#,
+        bigint_message_id,
+        bigint_channel_id,
+    )
+    .fetch_optional(db)
+    .await?
+    .ok_or_else(|| ErrorJson::new_404(format!("Unknown message with ID {}", message_id)))?;
 
     let author_id = bigdecimal_to_u128!(message.author_id);
 
     let msg_obj = Message {
         id: message_id,
         channel_id,
-        author_id: author_id.clone(),
+        author_id,
         content: message.content,
         edited_at: message.edited_at,
         embeds: vec![],
@@ -75,41 +62,25 @@ pub async fn delete_message(req: HttpRequest, _: crate::Authorization) -> impl R
             guilds: None,
             flags: UserFlags::from_bits_truncate(message.author_flags),
             discriminator: message.author_discriminator,
+            pronouns: message
+                .author_pronouns
+                .and_then(ferrischat_common::types::Pronouns::from_i16),
         }),
         nonce: None,
     };
 
-    let resp = sqlx::query!(
+    sqlx::query!(
         "DELETE FROM messages WHERE id = $1 AND channel_id = $2",
         bigint_message_id,
         bigint_channel_id
     )
     .execute(db)
-    .await;
-
-    match resp {
-        Ok(_) => (),
-        Err(e) => {
-            return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                reason: format!("DB return an error: {}", e),
-            })
-        }
-    }
+    .await?;
 
     let event = WsOutboundEvent::MessageDelete {
         message: msg_obj.clone(),
     };
 
-    if let Err(e) = fire_event(format!("message_{}_{}", channel_id, guild_id), &event).await {
-        let reason = match e {
-            WsEventError::MissingRedis => "Redis pool missing".to_string(),
-            WsEventError::RedisError(e) => format!("Redis returned an error: {}", e),
-            WsEventError::JsonError(e) => {
-                format!("Failed to serialize message to JSON format: {}", e)
-            }
-        };
-        return HttpResponse::InternalServerError().json(InternalServerErrorJson { reason });
-    }
-
-    HttpResponse::NoContent().finish()
+    fire_event(format!("message_{}_{}", channel_id, guild_id), &event).await?;
+    Ok(http::StatusCode::NO_CONTENT)
 }

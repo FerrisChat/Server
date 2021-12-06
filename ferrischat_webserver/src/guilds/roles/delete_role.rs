@@ -1,62 +1,41 @@
-use crate::ws::{fire_event, WsEventError};
-use actix_web::{HttpRequest, HttpResponse, Responder};
+use crate::ws::fire_event;
+use crate::WebServerError;
+use axum::extract::Path;
 use ferrischat_common::perms::Permissions;
-use ferrischat_common::types::{InternalServerErrorJson, NotFoundJson, Role};
+use ferrischat_common::types::{ErrorJson, Role};
 use ferrischat_common::ws::WsOutboundEvent;
+use http::StatusCode;
 
-/// DELETE /api/v0/guilds/{guild_id/roles/{role_id}
-pub async fn delete_role(req: HttpRequest, _: crate::Authorization) -> impl Responder {
+/// DELETE `/api/v0/guilds/{guild_id/roles/{role_id}`
+pub async fn delete_role(
+    Path((guild_id, role_id)): Path<(u128, u128)>,
+    _: crate::Authorization,
+) -> Result<StatusCode, WebServerError> {
     let db = get_db_or_fail!();
-    let role_id = get_item_id!(req, "role_id");
-    let guild_id = get_item_id!(req, "guild_id");
     let bigint_role_id = u128_to_bigdecimal!(role_id);
     let bigint_guild_id = u128_to_bigdecimal!(guild_id);
 
-    let resp = sqlx::query!(
+    let role = sqlx::query!(
         "DELETE FROM roles WHERE id = $1 AND parent_guild = $2 RETURNING *",
         bigint_role_id,
         bigint_guild_id
     )
     .fetch_optional(db)
-    .await;
-
-    let role_obj = match resp {
-        Ok(resp) => match resp {
-            Some(role) => Role {
-                id: bigdecimal_to_u128!(role.id),
-                guild_id: bigdecimal_to_u128!(role.parent_guild),
-                name: role.name,
-                color: role.color,
-                position: role.position,
-                permissions: Permissions::from_bits_truncate(role.permissions),
-            },
-            None => {
-                return HttpResponse::NotFound().json(NotFoundJson {
-                    message: "Role not found".to_string(),
-                })
-            }
-        },
-        Err(e) => {
-            return HttpResponse::InternalServerError().json(InternalServerErrorJson {
-                reason: format!("DB returned an error: {}", e).to_string(),
-            })
-        }
+    .await?
+    .ok_or_else(|| ErrorJson::new_404(format!("Unknown role with ID {}", role_id)))?;
+    let role_obj = Role {
+        id: bigdecimal_to_u128!(role.id),
+        guild_id: bigdecimal_to_u128!(role.parent_guild),
+        name: role.name,
+        color: role.color,
+        position: role.position,
+        permissions: Permissions::from_bits_truncate(role.permissions),
     };
 
     let event = WsOutboundEvent::RoleDelete {
         role: role_obj.clone(),
     };
 
-    if let Err(e) = fire_event(format!("role_{}_{}", role_id, guild_id), &event).await {
-        let reason = match e {
-            WsEventError::MissingRedis => "Redis pool missing".to_string(),
-            WsEventError::RedisError(e) => format!("Redis returned an error: {}", e),
-            WsEventError::JsonError(e) => {
-                format!("Failed to serialize message to JSON format: {}", e)
-            }
-        };
-        return HttpResponse::InternalServerError().json(InternalServerErrorJson { reason });
-    }
-
-    HttpResponse::NoContent().finish()
+    fire_event(format!("role_{}_{}", role_id, guild_id), &event).await?;
+    Ok(StatusCode::NO_CONTENT)
 }

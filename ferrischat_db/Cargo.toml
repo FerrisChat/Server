@@ -20,9 +20,9 @@ include = [
 ferrischat_config = { path = "../ferrischat_config", version = "0.1.0" }
 
 [dependencies.tokio]
-version = "1.11"
+version = "1.14"
 features = ["full"]
 
 [dependencies.sqlx]
 version = "0.5"
-features = ["postgres", "macros", "offline", "runtime-actix-rustls", "bigdecimal"]
+features = ["postgres", "macros", "offline", "runtime-tokio-rustls", "bigdecimal"]
