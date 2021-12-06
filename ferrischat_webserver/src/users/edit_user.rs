@@ -1,5 +1,5 @@
 use crate::WebServerError;
-use axum::extract::{Json, Path};
+use axum::extract::Json;
 use ferrischat_common::request_json::UserUpdateJson;
 use ferrischat_common::types::{ErrorJson, User, UserFlags};
 
