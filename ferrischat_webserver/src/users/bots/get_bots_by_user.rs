@@ -1,7 +1,7 @@
 use crate::WebServerError;
 use ferrischat_common::types::{BotsOwnedByUser, User, UserFlags};
 
-/// GET `/api/v0/users/{user_id}/bots`
+/// GET `/api/v0/users/me/bots`
 /// Get all bots owned by the user
 pub async fn get_bots_by_user(
     auth: crate::Authorization,
