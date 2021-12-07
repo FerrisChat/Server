@@ -128,6 +128,7 @@ LIMIT $2 OFFSET $3
         output_messages.push(Message {
             id,
             content,
+            channel: None,
             channel_id,
             author_id,
             author: Some(User {

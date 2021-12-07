@@ -3,7 +3,7 @@ use crate::WebServerError;
 use axum::extract::Path;
 use axum::Json;
 use ferrischat_common::request_json::MessageUpdateJson;
-use ferrischat_common::types::{ErrorJson, Message, User, UserFlags};
+use ferrischat_common::types::{Channel, ErrorJson, Message, User, UserFlags};
 use ferrischat_common::ws::WsOutboundEvent;
 
 pub async fn edit_message(
@@ -25,16 +25,20 @@ pub async fn edit_message(
         }
     }
 
-    let guild_id = bigdecimal_to_u128!(
+    let channel =
         sqlx::query!(
-            "SELECT guild_id FROM channels WHERE id = $1",
+            "SELECT * FROM channels WHERE id = $1",
             bigint_channel_id
         )
         .fetch_optional(db)
         .await?
-        .ok_or_else(|| ErrorJson::new_404("channel not found".to_string()))?
-        .guild_id
-    );
+        .ok_or_else(|| ErrorJson::new_404("channel not found".to_string()))?;
+
+    let channel_obj = Channel {
+        id: channel_id,
+        name: channel.name,
+        guild_id: bigdecimal_to_u128!(channel.guild_id),
+    };
 
     let resp = sqlx::query!(
         "SELECT m.*, a.name AS author_name, a.flags AS author_flags, a.discriminator AS author_discriminator, a.pronouns AS author_pronouns FROM messages m CROSS JOIN LATERAL (SELECT * FROM users WHERE id = m.author_id) AS a WHERE m.id = $1 AND m.channel_id = $2",
@@ -59,6 +63,7 @@ pub async fn edit_message(
 
         Message {
             id: message_id,
+            channel: None,
             channel_id,
             author_id,
             content: resp.content,
@@ -88,6 +93,7 @@ pub async fn edit_message(
         )?;
     let new_msg_obj = Message {
         id: message_id,
+        channel: Some(channel_obj),
         channel_id,
         author_id: bigdecimal_to_u128!(message.author_id),
         content: message.content,
@@ -102,7 +108,7 @@ pub async fn edit_message(
         new: new_msg_obj.clone(),
     };
 
-    fire_event(format!("message_{}_{}", channel_id, guild_id), &event).await?;
+    fire_event(format!("message_{}_{}", channel_id, bigdecimal_to_u128!(channel.guild_id)), &event).await?;
     Ok(crate::Json {
         obj: new_msg_obj,
         code: 200,
