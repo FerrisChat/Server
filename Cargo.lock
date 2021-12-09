@@ -783,9 +783,9 @@ dependencies = [
 
 [[package]]
 name = "encoding_rs"
-version = "0.8.29"
+version = "0.8.30"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a74ea89a0a1b98f6332de42c95baff457ada66d1cb4030f9ff151b2041a1c746"
+checksum = "7896dc8abb250ffdda33912550faa54c88ec8b998dec0b2c55ab224921ce11df"
 dependencies = [
  "cfg-if",
 ]
@@ -869,12 +869,12 @@ dependencies = [
 [[package]]
 name = "ferrischat_common"
 version = "0.2.0"
-source = "git+https://github.com/FerrisChat/Common.git?branch=master#e2b8bea6f5c4d8d6ec6c1107ad795db8dc758adb"
+source = "git+https://github.com/FerrisChat/Common.git?branch=master#8a16739abd1206710713c99a73e2ac517f18f5ef"
 dependencies = [
  "bitflags",
  "serde",
  "serde_derive",
- "time 0.2.27",
+ "time",
 ]
 
 [[package]]
@@ -883,6 +883,22 @@ version = "0.1.0"
 dependencies = [
  "serde",
  "toml",
+]
+
+[[package]]
+name = "ferrischat_core"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "env_logger",
+ "ferrischat_auth",
+ "ferrischat_config",
+ "ferrischat_db",
+ "ferrischat_redis",
+ "ferrischat_webserver",
+ "ferrischat_ws",
+ "tokio",
+ "tracing-subscriber",
 ]
 
 [[package]]
@@ -916,13 +932,7 @@ dependencies = [
 name = "ferrischat_server"
 version = "0.1.0"
 dependencies = [
- "clap",
- "env_logger",
- "ferrischat_config",
- "ferrischat_webserver",
- "time 0.3.5",
- "tokio",
- "tracing-subscriber",
+ "ferrischat_core",
 ]
 
 [[package]]
@@ -1199,9 +1209,9 @@ dependencies = [
 
 [[package]]
 name = "h2"
-version = "0.3.7"
+version = "0.3.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7fd819562fcebdac5afc5c113c3ec36f902840b70fd4fc458799c8ce4607ae55"
+checksum = "8d09bbc040ce3758a0d32a8a910562104a853aea429dbe1a998beb065c2eacb2"
 dependencies = [
  "bytes 1.1.0",
  "fnv",
@@ -2388,9 +2398,9 @@ dependencies = [
 
 [[package]]
 name = "signal-hook"
-version = "0.3.11"
+version = "0.3.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b5a7a75ea6f4a29c7cd5a752ddcfc5453bd5ed97688db68b50698fd3c82f343a"
+checksum = "c35dfd12afb7828318348b8c408383cf5071a086c1d4ab1c0f9840ec92dbb922"
 dependencies = [
  "libc",
  "signal-hook-registry",
@@ -2531,7 +2541,7 @@ dependencies = [
  "sqlx-rt",
  "stringprep",
  "thiserror",
- "time 0.2.27",
+ "time",
  "tokio-stream",
  "url",
  "webpki 0.21.4",
@@ -2765,15 +2775,6 @@ dependencies = [
  "time-macros",
  "version_check",
  "winapi",
-]
-
-[[package]]
-name = "time"
-version = "0.3.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "41effe7cfa8af36f439fac33861b66b049edc6f9a32331e2312660529c1c24ad"
-dependencies = [
- "libc",
 ]
 
 [[package]]
