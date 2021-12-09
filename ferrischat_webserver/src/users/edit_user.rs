@@ -1,12 +1,11 @@
 use crate::WebServerError;
-use axum::extract::{Json, Path};
+use axum::extract::Json;
 use ferrischat_common::request_json::UserUpdateJson;
 use ferrischat_common::types::{ErrorJson, User, UserFlags};
 
-/// PATCH `/api/v0/users/{user_id}`
+/// PATCH `/api/v0/users/me`
 /// Modifies the authenticated user
 pub async fn edit_user(
-    Path(user_id): Path<u128>,
     Json(UserUpdateJson {
         username,
         email,
@@ -16,9 +15,7 @@ pub async fn edit_user(
     }): Json<UserUpdateJson>,
     auth: crate::Authorization,
 ) -> Result<crate::Json<User>, WebServerError> {
-    if user_id != auth.0 {
-        return Err(ErrorJson::new_403("this account is not yours".to_string()).into());
-    }
+    let user_id = auth.0;
 
     let bigint_user_id = u128_to_bigdecimal!(user_id);
     let db = get_db_or_fail!();

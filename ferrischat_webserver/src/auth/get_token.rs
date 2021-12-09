@@ -2,7 +2,7 @@ use crate::auth::token_gen::generate_random_bits;
 use crate::WebServerError;
 use axum::extract::Json;
 use ferrischat_common::request_json::AuthJson;
-use ferrischat_common::types::{AuthResponse, ErrorJson};
+use ferrischat_common::types::{AuthResponse, ErrorJson, UserFlags};
 use sqlx::types::BigDecimal;
 
 pub async fn get_token(
@@ -11,12 +11,20 @@ pub async fn get_token(
     let db = get_db_or_fail!();
 
     let r = sqlx::query!(
-        "SELECT email, password, id FROM users WHERE email = $1",
+        "SELECT email, password, id, flags FROM users WHERE email = $1",
         email
     )
     .fetch_optional(db)
     .await?
     .ok_or_else(|| ErrorJson::new_404(format!("Unknown user with email {}", email)))?;
+    let flags = UserFlags::from_bits_truncate(r.flags);
+    if flags.contains(UserFlags::BOT_ACCOUNT) {
+        return Err(ErrorJson::new_401(
+            "Please use bot token generation. Bots are not allowed to use email/password."
+                .to_string(),
+        )
+        .into());
+    }
     let bigdecimal_user_id: BigDecimal = r.id;
     let matches = ferrischat_auth::verify(password, r.password).await?;
     if !(matches && (email == r.email)) {
