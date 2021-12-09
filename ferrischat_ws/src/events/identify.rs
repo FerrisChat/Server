@@ -1,7 +1,7 @@
 use crate::error_handling::WsEventHandlerError;
 use dashmap::DashMap;
 use ferrischat_auth::{split_token, verify_token};
-use ferrischat_common::ws::WsOutboundEvent;
+use ferrischat_common::ws::{Intents, WsOutboundEvent};
 use num_traits::ToPrimitive;
 use sqlx::{Pool, Postgres};
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -12,7 +12,7 @@ use uuid::Uuid;
 
 pub async fn handle_identify_rx<'a>(
     token: String,
-    _intents: u64,
+    _intents: Intents,
     inter_tx: &Sender<WsOutboundEvent>,
     uid_conn_map: &DashMap<Uuid, u128>,
     identify_received: &AtomicBool,
