@@ -5,7 +5,6 @@ use axum::Json;
 use ferrischat_common::request_json::InviteCreateJson;
 use ferrischat_common::types::{ErrorJson, Invite};
 use ferrischat_common::ws::WsOutboundEvent;
-use ferrischat_snowflake_generator::FERRIS_EPOCH;
 use sqlx::types::time::OffsetDateTime;
 
 /// POST `/api/v0/guilds/{guild_id}/invites`
@@ -33,8 +32,7 @@ pub async fn create_invite(
         return Err(ErrorJson::new_403("you are not a member of this guild".to_string()).into());
     }
 
-    let now = OffsetDateTime::now_utc().unix_timestamp()
-        - (i64::try_from(FERRIS_EPOCH).expect("failed to cast the Ferris Epoch to i64"));
+    let now = OffsetDateTime::now_utc().unix_timestamp();
     let resp = sqlx::query!(
         "INSERT INTO invites VALUES ((SELECT array_to_string( \
             ARRAY(SELECT substr( \
