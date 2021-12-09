@@ -48,6 +48,6 @@ pub fn generate_users_route() -> axum::Router {
             expand_version!("users/me/bots/:bot_id"),
             patch(edit_bot).delete(delete_bot),
         )
-        // POST /bots/:bot_id/add
-        .route(expand_version!("bots/:bot_id/add"), post(invite_bot))
+        // POST /bots/:bot_id/add/:guild_id
+        .route(expand_version!("bots/:bot_id/add/:guild_id"), post(invite_bot))
 }

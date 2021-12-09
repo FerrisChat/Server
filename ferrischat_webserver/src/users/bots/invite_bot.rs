@@ -1,24 +1,19 @@
 use crate::ws::fire_event;
 use crate::WebServerError;
 use axum::extract::Path;
-use axum::Json;
-use ferrischat_common::request_json::BotInviteJson;
 use ferrischat_common::types::{ErrorJson, Member, User, UserFlags};
 use ferrischat_common::ws::WsOutboundEvent;
 
-/// POST /v0/bots/{bot_id}/add
+/// POST /v0/bots/{bot_id}/add/{guild_id}
 pub async fn invite_bot(
-    Path(bot_id): Path<u128>,
+    Path((bot_id, guild_id)): Path<(u128, u128)>,
     auth: crate::Authorization,
-    guild_id_req: Json<BotInviteJson>,
 ) -> Result<crate::Json<Member>, WebServerError> {
-    let bigint_user_id = u128_to_bigdecimal!(auth.0);
     let bigint_bot_id = u128_to_bigdecimal!(bot_id);
     let db = get_db_or_fail!();
-    let BotInviteJson { guild_id } = guild_id_req.0;
     let bigint_guild_id = u128_to_bigdecimal!(guild_id);
 
-    let guild = sqlx::query!("SELECT * FROM guilds WHERE owner_id = $1", bigint_user_id)
+    let guild = sqlx::query!("SELECT * FROM guilds WHERE id = $1", bigint_guild_id)
         .fetch_optional(db)
         .await?
         .ok_or_else(|| ErrorJson::new_404(format!("Unknown guild with ID {}", guild_id)))?;
