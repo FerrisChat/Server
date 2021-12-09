@@ -20,7 +20,7 @@ pub async fn get_me(
         obj: User {
             id: user_id,
             name: user.name,
-            avatar: None,
+            avatar: user.avatar,
             guilds: {
                 // this code is shit, can probably make it better but i can't figure out the
                 // unsatisfied trait bounds that happens when you get rid of .iter()

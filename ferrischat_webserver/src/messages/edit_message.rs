@@ -41,7 +41,7 @@ pub async fn edit_message(
     };
 
     let resp = sqlx::query!(
-        "SELECT m.*, a.name AS author_name, a.flags AS author_flags, a.discriminator AS author_discriminator, a.pronouns AS author_pronouns FROM messages m CROSS JOIN LATERAL (SELECT * FROM users WHERE id = m.author_id) AS a WHERE m.id = $1 AND m.channel_id = $2",
+        "SELECT m.*, a.avatar AS avatar, a.name AS author_name, a.flags AS author_flags, a.discriminator AS author_discriminator, a.pronouns AS author_pronouns FROM messages m CROSS JOIN LATERAL (SELECT * FROM users WHERE id = m.author_id) AS a WHERE m.id = $1 AND m.channel_id = $2",
         bigint_message_id,
         bigint_channel_id,
     )
@@ -72,7 +72,7 @@ pub async fn edit_message(
             author: Some(User {
                 id: author_id,
                 name: resp.author_name,
-                avatar: None,
+                avatar: resp.avatar,
                 guilds: None,
                 flags: UserFlags::from_bits_truncate(resp.author_flags),
                 discriminator: resp.author_discriminator,

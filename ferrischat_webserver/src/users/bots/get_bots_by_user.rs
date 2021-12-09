@@ -28,7 +28,7 @@ pub async fn get_bots_by_user(
         bots.push(User {
             id,
             name: user.name,
-            avatar: None,
+            avatar: user.avatar,
             guilds: None,
             discriminator: user.discriminator,
             flags: UserFlags::from_bits_truncate(user.flags),

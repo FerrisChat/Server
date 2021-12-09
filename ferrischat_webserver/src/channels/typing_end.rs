@@ -26,7 +26,7 @@ pub async fn typing_end(
     let user_obj = User {
         id: authorized_user,
         name: user.name,
-        avatar: None,
+        avatar: user.avatar,
         guilds: None,
         discriminator: user.discriminator,
         flags: UserFlags::from_bits_truncate(user.flags),

@@ -26,6 +26,7 @@ pub async fn delete_message(
         r#"
 SELECT m.*,
        a.name AS author_name,
+       a.avatar AS avatar,
        a.flags AS author_flags,
        a.discriminator AS author_discriminator,
        a.pronouns AS author_pronouns
@@ -64,7 +65,7 @@ WHERE m.id = $1
         author: Some(User {
             id: author_id,
             name: message.author_name,
-            avatar: None,
+            avatar: message.avatar,
             guilds: None,
             flags: UserFlags::from_bits_truncate(message.author_flags),
             discriminator: message.author_discriminator,

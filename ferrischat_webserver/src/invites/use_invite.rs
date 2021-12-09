@@ -88,7 +88,7 @@ pub async fn use_invite(
             User {
                 id: user_id,
                 name: u.name.clone(),
-                avatar: None,
+                avatar: u.avatar,
                 guilds: None,
                 flags: UserFlags::from_bits_truncate(u.flags),
                 discriminator: u.discriminator,

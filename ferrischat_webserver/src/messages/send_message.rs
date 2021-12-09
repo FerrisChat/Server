@@ -64,7 +64,7 @@ pub async fn create_message(
     let author = User {
         id: bigdecimal_to_u128!(r.id),
         name: r.name,
-        avatar: None,
+        avatar: r.avatar,
         guilds: None,
         flags: UserFlags::from_bits_truncate(r.flags),
         discriminator: r.discriminator,
