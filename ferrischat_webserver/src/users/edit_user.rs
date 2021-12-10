@@ -9,6 +9,7 @@ pub async fn edit_user(
     Json(UserUpdateJson {
         username,
         email,
+        avatar,
         password,
         pronouns,
         ..
@@ -24,6 +25,16 @@ pub async fn edit_user(
         sqlx::query!(
             "UPDATE users SET name = $1 WHERE id = $2",
             username,
+            bigint_user_id,
+        )
+        .execute(db)
+        .await?;
+    }
+
+    if let Some(avatar) = avatar {
+        sqlx::query!(
+            "UPDATE users SET avatar = $1 WHERE id = $2",
+            avatar,
             bigint_user_id,
         )
         .execute(db)
@@ -71,7 +82,7 @@ pub async fn edit_user(
         obj: User {
             id: user_id,
             name: user.name.clone(),
-            avatar: None,
+            avatar: user.avatar,
             guilds: None,
             flags: UserFlags::from_bits_truncate(user.flags),
             discriminator: user.discriminator,

@@ -14,13 +14,10 @@ pub async fn delete_message(
 
     let db = get_db_or_fail!();
 
-    let channel = sqlx::query!(
-        "SELECT * FROM channels WHERE id = $1",
-        bigint_channel_id
-    )
-    .fetch_optional(db)
-    .await?
-    .ok_or_else(|| { ErrorJson::new_404(format!("Unknown channel with ID {}", channel_id),) })?;
+    let channel = sqlx::query!("SELECT * FROM channels WHERE id = $1", bigint_channel_id)
+        .fetch_optional(db)
+        .await?
+        .ok_or_else(|| ErrorJson::new_404(format!("Unknown channel with ID {}", channel_id)))?;
 
     let message = sqlx::query!(
         r#"
@@ -49,7 +46,7 @@ WHERE m.id = $1
     let channel_obj = Channel {
         name: channel.name,
         id: channel_id,
-        guild_id: bigdecimal_to_u128!(channel.guild_id)
+        guild_id: bigdecimal_to_u128!(channel.guild_id),
     };
 
     let author_id = bigdecimal_to_u128!(message.author_id);
@@ -88,6 +85,14 @@ WHERE m.id = $1
         message: msg_obj.clone(),
     };
 
-    fire_event(format!("message_{}_{}", channel_id, bigdecimal_to_u128!(channel.guild_id)), &event).await?;
+    fire_event(
+        format!(
+            "message_{}_{}",
+            channel_id,
+            bigdecimal_to_u128!(channel.guild_id)
+        ),
+        &event,
+    )
+    .await?;
     Ok(http::StatusCode::NO_CONTENT)
 }

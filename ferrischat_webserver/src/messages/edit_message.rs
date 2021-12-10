@@ -25,11 +25,7 @@ pub async fn edit_message(
         }
     }
 
-    let channel =
-        sqlx::query!(
-            "SELECT * FROM channels WHERE id = $1",
-            bigint_channel_id
-        )
+    let channel = sqlx::query!("SELECT * FROM channels WHERE id = $1", bigint_channel_id)
         .fetch_optional(db)
         .await?
         .ok_or_else(|| ErrorJson::new_404("channel not found".to_string()))?;
@@ -108,7 +104,15 @@ pub async fn edit_message(
         new: new_msg_obj.clone(),
     };
 
-    fire_event(format!("message_{}_{}", channel_id, bigdecimal_to_u128!(channel.guild_id)), &event).await?;
+    fire_event(
+        format!(
+            "message_{}_{}",
+            channel_id,
+            bigdecimal_to_u128!(channel.guild_id)
+        ),
+        &event,
+    )
+    .await?;
     Ok(crate::Json {
         obj: new_msg_obj,
         code: 200,

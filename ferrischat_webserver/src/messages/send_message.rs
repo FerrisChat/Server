@@ -90,7 +90,11 @@ pub async fn create_message(
     };
 
     fire_event(
-        format!("message_{}_{}", channel_id, bigdecimal_to_u128!(channel.guild_id)),
+        format!(
+            "message_{}_{}",
+            channel_id,
+            bigdecimal_to_u128!(channel.guild_id)
+        ),
         &event,
     )
     .await?;
