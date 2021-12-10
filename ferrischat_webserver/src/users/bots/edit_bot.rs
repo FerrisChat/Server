@@ -5,11 +5,13 @@ use ferrischat_common::request_json::BotUpdateJson;
 use ferrischat_common::types::{ErrorJson, User, UserFlags};
 use sqlx::types::BigDecimal;
 
-/// PATCH `/api/v0/users/{user_id}/bots/{bot_id}`
+/// PATCH `/api/v0/users/me/bots/{bot_id}`
 /// Edits the bot with the attached payload
 pub async fn edit_bot(
     Path((_, bot_id)): Path<(u128, u128)>,
-    Json(BotUpdateJson { username }): Json<BotUpdateJson>,
+    Json(BotUpdateJson {
+        username, avatar, ..
+    }): Json<BotUpdateJson>,
     auth: crate::Authorization,
 ) -> Result<crate::Json<User>, WebServerError> {
     let bigint_bot_id = u128_to_bigdecimal!(bot_id);
@@ -36,6 +38,16 @@ pub async fn edit_bot(
             "UPDATE users SET name = $1 WHERE id = $2",
             username,
             bigint_bot_id
+        )
+        .execute(db)
+        .await?;
+    }
+
+    if let Some(avatar) = avatar {
+        sqlx::query!(
+            "UPDATE users SET avatar = $1 WHERE id = $2",
+            avatar,
+            bigint_bot_id,
         )
         .execute(db)
         .await?;

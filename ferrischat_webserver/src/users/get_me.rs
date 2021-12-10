@@ -1,13 +1,12 @@
 use crate::WebServerError;
-use axum::extract::Path;
 use ferrischat_common::types::{Channel, ErrorJson, Guild, GuildFlags, Member, User, UserFlags};
 use num_traits::cast::ToPrimitive;
 
-/// GET `/api/v0/users/{user_id}`
-pub async fn get_user(
-    Path(user_id): Path<u128>,
+/// GET `/api/v0/users/me`
+pub async fn get_me(
     crate::Authorization(authorized_user): crate::Authorization,
 ) -> Result<crate::Json<User>, WebServerError> {
+    let user_id = authorized_user;
     let db = get_db_or_fail!();
     let bigint_user_id = u128_to_bigdecimal!(user_id);
 
@@ -22,7 +21,7 @@ pub async fn get_user(
             id: user_id,
             name: user.name,
             avatar: user.avatar,
-            guilds: if authorized_user == user_id {
+            guilds: {
                 // this code is shit, can probably make it better but i can't figure out the
                 // unsatisfied trait bounds that happens when you get rid of .iter()
 
@@ -31,11 +30,11 @@ pub async fn get_user(
 
                 let d = sqlx::query!(
                     r#"
-                        SELECT 
+                        SELECT
                             id AS "id!",
                             owner_id AS "owner_id!",
                             name AS "name!"
-                        FROM 
+                        FROM
                             guilds
                         INNER JOIN
                             members m ON guilds.id = m.guild_id
@@ -165,8 +164,6 @@ pub async fn get_user(
                 }
 
                 Some(guilds)
-            } else {
-                None
             },
             discriminator: user.discriminator,
             flags: UserFlags::from_bits_truncate(user.flags),

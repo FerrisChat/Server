@@ -15,19 +15,11 @@ members = [
   "ferrischat_ws",
   "ferrischat_auth",
   "ferrischat_config",
+  "ferrischat_core",
 ]
 
 [dependencies]
-ferrischat_webserver = { path = "ferrischat_webserver", version = "0.1.0" }
-ferrischat_config = { path = "ferrischat_config", version = "0.1.0" }
-env_logger = "0.9"
-time = "*"
-clap = "2.33"
-tracing-subscriber = { version = "0.3.2", features = ["env-filter", "tracing-log"] }
-
-[dependencies.tokio]
-version = "1.14"
-features = ["full"]
+ferrischat_core = { path = "ferrischat_core" }
 
 [patch.crates-io]
 bitflags = { git = "https://github.com/bitflags/bitflags" }

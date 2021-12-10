@@ -57,22 +57,20 @@ pub async fn init_ws_server() {
             .expect("failed to send message to listeners");
     });
 
-    tokio::spawn(async move {
-        loop {
-            let res = tokio::select! {
-                stream_addr = listener.accept() => {DieOrResult::Result(stream_addr.map(|x| x.0))}
-                _ = &mut end_rx => {DieOrResult::Die}
-            };
+    loop {
+        let res = tokio::select! {
+            stream_addr = listener.accept() => {DieOrResult::Result(stream_addr.map(|x| x.0))}
+            _ = &mut end_rx => {DieOrResult::Die}
+        };
 
-            match res {
-                DieOrResult::Die => break,
-                DieOrResult::Result(r) => match r {
-                    Ok(stream) => {
-                        tokio::spawn(handle_ws_connection(stream));
-                    }
-                    Err(e) => error!("failed to accept WS conn: {}", e),
-                },
-            }
+        match res {
+            DieOrResult::Die => break,
+            DieOrResult::Result(r) => match r {
+                Ok(stream) => {
+                    tokio::spawn(handle_ws_connection(stream));
+                }
+                Err(e) => error!("failed to accept WS conn: {}", e),
+            },
         }
-    });
+    }
 }

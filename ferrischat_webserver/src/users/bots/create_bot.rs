@@ -6,7 +6,7 @@ use ferrischat_snowflake_generator::generate_snowflake;
 use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
 
-/// POST `/api/v0/users/{user_id}/bots`
+/// POST `/api/v0/users/me/bots`
 /// Creates a `FerrisChat` bot with the given info
 pub async fn create_bot(
     auth: crate::Authorization,

@@ -30,6 +30,7 @@ pub async fn get_message_history(
         let resp = sqlx::query!(
             r#"
 SELECT m.*,
+       a.avatar AS avatar,
        a.name AS author_name,
        a.flags AS author_flags,
        a.discriminator AS author_discriminator,
@@ -57,6 +58,7 @@ LIMIT $2 OFFSET $3
                     x.id,
                     x.content,
                     x.channel_id,
+                    x.avatar,
                     x.author_id,
                     x.author_name,
                     x.author_flags,
@@ -71,6 +73,7 @@ LIMIT $2 OFFSET $3
             r#"
 SELECT m.*,
        a.name AS author_name,
+       a.avatar AS avatar,
        a.flags AS author_flags,
        a.discriminator AS author_discriminator,
        a.pronouns AS author_pronouns
@@ -97,6 +100,7 @@ LIMIT $2 OFFSET $3
                     x.id,
                     x.content,
                     x.channel_id,
+                    x.avatar,
                     x.author_id,
                     x.author_name,
                     x.author_flags,
@@ -113,6 +117,7 @@ LIMIT $2 OFFSET $3
         id,
         content,
         channel_id,
+        avatar,
         author_id,
         author_name,
         author_flags,
@@ -128,12 +133,13 @@ LIMIT $2 OFFSET $3
         output_messages.push(Message {
             id,
             content,
+            channel: None,
             channel_id,
             author_id,
             author: Some(User {
                 id: author_id,
                 name: author_name,
-                avatar: None,
+                avatar,
                 guilds: None,
                 flags: UserFlags::from_bits_truncate(author_flags),
                 discriminator: author_discriminator,

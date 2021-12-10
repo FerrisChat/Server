@@ -4,19 +4,10 @@ use crate::auth::init_rng;
 use axum::http::StatusCode;
 use axum::routing::get;
 use axum::Router;
-use ferrischat_auth::init_auth;
-use ferrischat_db::load_db;
-use ferrischat_redis::load_redis;
-use ferrischat_ws::{init_ws, init_ws_server};
 
 #[allow(clippy::expect_used)]
 pub async fn entrypoint() {
     init_rng();
-    init_auth().await;
-    load_redis().await;
-    load_db().await;
-    init_ws().await;
-    init_ws_server().await;
 
     let router = Router::new()
         // GET    /teapot

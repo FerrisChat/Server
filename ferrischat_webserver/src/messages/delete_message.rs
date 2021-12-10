@@ -1,7 +1,7 @@
 use crate::ws::fire_event;
 use crate::WebServerError;
 use axum::extract::Path;
-use ferrischat_common::types::{ErrorJson, Message, User, UserFlags};
+use ferrischat_common::types::{Channel, ErrorJson, Message, User, UserFlags};
 use ferrischat_common::ws::WsOutboundEvent;
 
 /// DELETE `/api/v0/channels/{channel_id}/messages/{message_id}`
@@ -14,19 +14,16 @@ pub async fn delete_message(
 
     let db = get_db_or_fail!();
 
-    let guild_id: u128 = bigdecimal_to_u128!(sqlx::query!(
-        "SELECT guild_id FROM channels WHERE id = $1",
-        bigint_channel_id
-    )
-    .fetch_optional(db)
-    .await?
-    .map(|c| c.guild_id)
-    .ok_or_else(|| { ErrorJson::new_404(format!("Unknown channel with ID {}", channel_id),) })?);
+    let channel = sqlx::query!("SELECT * FROM channels WHERE id = $1", bigint_channel_id)
+        .fetch_optional(db)
+        .await?
+        .ok_or_else(|| ErrorJson::new_404(format!("Unknown channel with ID {}", channel_id)))?;
 
     let message = sqlx::query!(
         r#"
 SELECT m.*,
        a.name AS author_name,
+       a.avatar AS avatar,
        a.flags AS author_flags,
        a.discriminator AS author_discriminator,
        a.pronouns AS author_pronouns
@@ -46,10 +43,17 @@ WHERE m.id = $1
     .await?
     .ok_or_else(|| ErrorJson::new_404(format!("Unknown message with ID {}", message_id)))?;
 
+    let channel_obj = Channel {
+        name: channel.name,
+        id: channel_id,
+        guild_id: bigdecimal_to_u128!(channel.guild_id),
+    };
+
     let author_id = bigdecimal_to_u128!(message.author_id);
 
     let msg_obj = Message {
         id: message_id,
+        channel: Some(channel_obj),
         channel_id,
         author_id,
         content: message.content,
@@ -58,7 +62,7 @@ WHERE m.id = $1
         author: Some(User {
             id: author_id,
             name: message.author_name,
-            avatar: None,
+            avatar: message.avatar,
             guilds: None,
             flags: UserFlags::from_bits_truncate(message.author_flags),
             discriminator: message.author_discriminator,
@@ -81,6 +85,14 @@ WHERE m.id = $1
         message: msg_obj.clone(),
     };
 
-    fire_event(format!("message_{}_{}", channel_id, guild_id), &event).await?;
+    fire_event(
+        format!(
+            "message_{}_{}",
+            channel_id,
+            bigdecimal_to_u128!(channel.guild_id)
+        ),
+        &event,
+    )
+    .await?;
     Ok(http::StatusCode::NO_CONTENT)
 }

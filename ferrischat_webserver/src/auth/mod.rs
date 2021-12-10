@@ -16,9 +16,9 @@ use axum::Router;
 pub fn generate_auth_routes() -> axum::Router {
     debug!("generating routes for auth");
     Router::new()
-        // POST   /users/:user_id/bots/:bot_id/auth
+        // POST   /users/me/bots/:bot_id/auth
         .route(
-            expand_version!("users/:user_id/bots/:bot_id/auth"),
+            expand_version!("users/me/bots/:bot_id/auth"),
             post(get_bot_token),
         )
         // POST   /auth

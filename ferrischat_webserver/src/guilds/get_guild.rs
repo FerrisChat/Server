@@ -50,7 +50,8 @@ pub async fn get_guild(
             r#"
         SELECT 
                m.*,
-               u.name AS name, 
+               u.name AS name,
+               u.avatar AS avatar,
                u.flags AS flags,
                u.discriminator AS discriminator,
                u.pronouns AS pronouns
@@ -80,7 +81,7 @@ pub async fn get_guild(
                         user: Some(User {
                             id: user_id,
                             name: x.name.clone(),
-                            avatar: None,
+                            avatar: x.avatar.clone(),
                             guilds: None,
                             flags: UserFlags::from_bits_truncate(x.flags),
                             discriminator: x.discriminator,
