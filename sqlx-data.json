@@ -538,6 +538,38 @@
       ]
     }
   },
+  "4e6700a440048240f14e71fd07c683b85d4705a9b9ab279e38538cf50b895bee": {
+    "query": "\n                        SELECT\n                            id AS \"id!\",\n                            owner_id AS \"owner_id!\",\n                            name AS \"name!\"\n                        FROM\n                            guilds\n                        INNER JOIN\n                            members m ON guilds.id = m.guild_id\n                        WHERE\n                            m.user_id = $1\n                    ",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id!",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 1,
+          "name": "owner_id!",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 2,
+          "name": "name!",
+          "type_info": "Varchar"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Numeric"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false
+      ]
+    }
+  },
   "50293c2e54af11d4c2a553e29b671cef087a159c6ee7182d8ca929ecb748f3b7": {
     "query": "DELETE FROM users WHERE id = $1",
     "describe": {
@@ -948,6 +980,38 @@
         ]
       },
       "nullable": []
+    }
+  },
+  "88f03e7432ce9ae393717613af8b5ff20082eed3166feaccb92e31e07af7520b": {
+    "query": "SELECT * FROM guilds WHERE owner_id = $1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 1,
+          "name": "owner_id",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 2,
+          "name": "name",
+          "type_info": "Varchar"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Numeric"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false
+      ]
     }
   },
   "8a3d652e7517cad54579e2831b9cefb4618c4c9a00cbc32f9aa76e0254561c32": {
