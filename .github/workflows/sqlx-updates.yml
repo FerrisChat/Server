@@ -11,7 +11,7 @@ name: "SQLx Checks"
 jobs:
   sqlx_check:
     name: "SQLx Check"
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     services:
       postgres:
