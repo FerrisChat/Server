@@ -46,9 +46,6 @@ jobs:
           --health-retries 5
 
     steps:
-      - name: "install ld"
-        run: "sudo apt install lld -y"
-
       - uses: actions/checkout@v2
 
       - uses: actions-rs/toolchain@v1
