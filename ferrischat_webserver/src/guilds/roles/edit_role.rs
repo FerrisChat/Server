@@ -31,7 +31,7 @@ pub async fn edit_role(
         color: role.color,
         position: role.position,
         guild_id: bigdecimal_to_u128!(role.parent_guild),
-        permissions: Permissions::from_bits_truncate(role.permissions),
+        permissions: Permissions::empty(),
     };
 
     if let Some(name) = name {
@@ -64,10 +64,11 @@ pub async fn edit_role(
         .await?;
     }
 
-    if let Some(permissions) = permissions {
+    if let Some(_permissions) = permissions {
+        let perms = b"".as_slice();
         sqlx::query!(
             "UPDATE roles SET permissions = $1 WHERE id = $2",
-            permissions.bits(),
+            perms,
             bigint_role_id
         )
         .execute(db)
@@ -84,7 +85,7 @@ pub async fn edit_role(
         color: role.color,
         position: role.position,
         guild_id: bigdecimal_to_u128!(role.parent_guild),
-        permissions: Permissions::from_bits_truncate(role.permissions),
+        permissions: Permissions::empty(),
     };
 
     let guild_id = new_role_obj.guild_id;

@@ -20,7 +20,7 @@ pub async fn get_role(
             color: r.color,
             position: r.position,
             guild_id: bigdecimal_to_u128!(r.parent_guild),
-            permissions: Permissions::from_bits_truncate(r.permissions),
+            permissions: Permissions::empty(),
         },
         code: 200,
     })
