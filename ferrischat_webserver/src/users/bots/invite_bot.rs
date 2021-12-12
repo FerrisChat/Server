@@ -4,7 +4,7 @@ use axum::extract::Path;
 use ferrischat_common::types::{ErrorJson, Member, User, UserFlags};
 use ferrischat_common::ws::WsOutboundEvent;
 
-/// POST /v0/bots/{bot_id}/add/{guild_id}
+/// POST `/v0/bots/{bot_id}/add/{guild_id}`
 pub async fn invite_bot(
     Path((bot_id, guild_id)): Path<(u128, u128)>,
     auth: crate::Authorization,

@@ -3,7 +3,7 @@ on:
 
   push:
     branches:
-      - main
+      - master
 
 
 name: Linters
@@ -11,7 +11,7 @@ name: Linters
 jobs:
   fmt:
     name: Rustfmt
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v2
 
@@ -30,7 +30,7 @@ jobs:
 
   clippy:
     name: Clippy
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     services:
       postgres:
@@ -46,9 +46,6 @@ jobs:
           --health-retries 5
 
     steps:
-      - name: "install ld"
-        run: "sudo apt install lld -y"
-
       - uses: actions/checkout@v2
 
       - uses: actions-rs/toolchain@v1
