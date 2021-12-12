@@ -34,13 +34,14 @@ pub async fn create_role(
 
     let bigint_guild_id = u128_to_bigdecimal!(guild_id);
 
+    let perms = b"".as_slice();
     sqlx::query!(
         "INSERT INTO roles VALUES ($1, $2, $3, $4, $5, $6)",
         bigint_role_id,
         name,
         color,
         position,
-        permissions.bits(),
+        perms,
         bigint_guild_id
     )
     .execute(db)

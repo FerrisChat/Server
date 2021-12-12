@@ -29,7 +29,7 @@ pub async fn delete_role(
         name: role.name,
         color: role.color,
         position: role.position,
-        permissions: Permissions::from_bits_truncate(role.permissions),
+        permissions: Permissions::empty(),
     };
 
     let event = WsOutboundEvent::RoleDelete {
