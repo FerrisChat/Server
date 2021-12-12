@@ -15,6 +15,7 @@ ferrischat_ws = { path = "../ferrischat_ws" }
 env_logger = "0.9"
 clap = "2.33"
 tracing-subscriber = { version = "0.3.2", features = ["env-filter", "tracing-log"] }
+futures = "0.3"
 
 [dependencies.tokio]
 version = "1.14"
