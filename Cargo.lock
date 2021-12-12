@@ -898,6 +898,7 @@ dependencies = [
  "ferrischat_redis",
  "ferrischat_webserver",
  "ferrischat_ws",
+ "futures 0.3.18",
  "tokio",
  "tracing-subscriber",
 ]
