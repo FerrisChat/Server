@@ -103,13 +103,13 @@ pub async fn send_verification_email(
     // TODO HTML rather then plaintext
     // Also encodes the email to be URL-safe, however some work is needed on it still
     let default_email = format!(
-        "Click here to verify your email: https://api.ferris.chat/v0/verify/{}",
+        "Hey!\n\nWe see you have requested to verify your email. Click here to verify your email: https://api.ferris.chat/v0/verify/{}.\n\nIf you did not request this, your account may be compromised.\n\n- FerrisChat Team\nhello@ferris.chat",
         urlencoding::encode(&*token)
     );
 
     // Builds the message with a hardcoded subject and sender full name
     let message = Message::builder()
-        .from(format!("Ferris <{}>", username).parse()?)
+        .from(format!("FerrisChat Verification<{}>", username).parse()?)
         .to(user_email.parse()?)
         .subject("FerrisChat Email Verification")
         .body(default_email)?;
