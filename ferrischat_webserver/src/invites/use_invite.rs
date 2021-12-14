@@ -16,6 +16,21 @@ pub async fn use_invite(
 
     let db = get_db_or_fail!();
 
+    let r = sqlx::query!(
+        "SELECT flags FROM users WHERE id = $1",
+        bigint_user_id
+    )
+        .fetch_one(db)
+        .await?;
+    let flags = UserFlags::from_bits_truncate(r.flags);
+    if flags.contains(UserFlags::BOT_ACCOUNT) {
+        return Err(ErrorJson::new_401(
+            "Bots cannot use invites! They must be invited by the guild owner."
+                .to_string(),
+        )
+            .into());
+    }
+
     let invite = sqlx::query!("SELECT * FROM invites WHERE code = $1", invite_code)
         .fetch_optional(db)
         .await?

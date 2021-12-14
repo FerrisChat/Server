@@ -869,12 +869,13 @@ dependencies = [
 [[package]]
 name = "ferrischat_common"
 version = "0.2.0"
-source = "git+https://github.com/FerrisChat/Common.git?branch=master#aee1b5b672148763a9704d7a938e11bf64a3fb33"
+source = "git+https://github.com/FerrisChat/Common.git?branch=master#b0e859d219b2e5de809bbf3c2b5495ddf155f414"
 dependencies = [
  "bitflags",
  "serde",
  "serde_derive",
  "time",
+ "tribool",
 ]
 
 [[package]]
@@ -897,6 +898,7 @@ dependencies = [
  "ferrischat_redis",
  "ferrischat_webserver",
  "ferrischat_ws",
+ "futures 0.3.18",
  "tokio",
  "tracing-subscriber",
 ]
@@ -1290,9 +1292,9 @@ dependencies = [
 
 [[package]]
 name = "hermit-abi"
-version = "0.1.20"
+version = "0.1.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c7a30908dbce072eca83216eab939d2290080e00ca71611b96a09e5cdce5f3fa"
+checksum = "62b467343b94ba476dcb2500d242dadbb39557df889310ac77c5d99100aaac33"
 dependencies = [
  "libc",
 ]
@@ -1577,9 +1579,9 @@ dependencies = [
 
 [[package]]
 name = "libc"
-version = "0.2.110"
+version = "0.2.111"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b58a4469763e4e3a906c4ed786e1c70512d16aa88f84dded826da42640fc6a1c"
+checksum = "8e167738f1866a7ec625567bae89ca0d44477232a4f7c52b1c7f2adc2c98804f"
 
 [[package]]
 name = "linked-hash-map"
@@ -1617,9 +1619,9 @@ dependencies = [
 
 [[package]]
 name = "mailchecker"
-version = "4.1.4"
+version = "4.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "48881b629b9cf1ba6a933ae03ee83b25853c3427c4de652b57a1d7125146de20"
+checksum = "5af6fd1ec20069cf1cb4e533b0fd75379db8f54357e3cefea2520bbaeca300e3"
 dependencies = [
  "fast_chemail",
  "once_cell",
@@ -1835,9 +1837,9 @@ checksum = "28988d872ab76095a6e6ac88d99b54fd267702734fd7ffe610ca27f533ddb95a"
 
 [[package]]
 name = "openssl-sys"
-version = "0.9.71"
+version = "0.9.72"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7df13d165e607909b363a4757a6f133f8a818a74e9d3a98d09c6128e15fa4c73"
+checksum = "7e46109c383602735fa0a2e48dd2b7c892b048e1bf69e5c3b1d804b7d9c203cb"
 dependencies = [
  "autocfg",
  "cc",
@@ -1928,9 +1930,9 @@ checksum = "8b870d8c151b6f2fb93e84a13146138f05d02ed11c7e7c54f8826aaaf7c9f184"
 
 [[package]]
 name = "pkg-config"
-version = "0.3.23"
+version = "0.3.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d1a3ea4f0dd7f1f3e512cf97bf100819aa547f36a6eccac8dbaae839eb92363e"
+checksum = "58893f751c9b0412871a09abd62ecd2a00298c6c83befa223ef98c52aef40cbe"
 
 [[package]]
 name = "polling"
@@ -2233,9 +2235,9 @@ dependencies = [
 
 [[package]]
 name = "ryu"
-version = "1.0.6"
+version = "1.0.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3c9613b5a66ab9ba26415184cfc41156594925a9cf3a2057e57f31ff145f6568"
+checksum = "73b4b750c782965c211b42f022f59af1fbceabdd026623714f104152f1ec149f"
 
 [[package]]
 name = "schannel"
@@ -2417,9 +2419,9 @@ dependencies = [
 
 [[package]]
 name = "simd-json"
-version = "0.4.11"
+version = "0.4.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1ba222f7fabbfd40b196ca4dbefed37fbd26e55fce3257570e3746b30fe95949"
+checksum = "00a526d490497ef02c417402e9209ea6c597f923020c58d1b330ad0587ba443d"
 dependencies = [
  "halfbrown",
  "serde",
@@ -3054,6 +3056,15 @@ dependencies = [
  "tracing",
  "tracing-core",
  "tracing-log",
+]
+
+[[package]]
+name = "tribool"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1e8660361502033a51e119386b47fbb811e5706722f2e91ccf867aa6b2b09f90"
+dependencies = [
+ "serde",
 ]
 
 [[package]]
