@@ -116,7 +116,7 @@ pub async fn tx_handler(
                 let mut names = n.split('_');
                 let ret = match names.next() {
                     Some("channel") => {
-                        if let (Some(Ok(channel_id)), Some(Ok(guild_id))) =
+                        if let (Some(Ok(guild_id)), Some(Ok(channel_id))) =
                             (names.next().map(str::parse), names.next().map(str::parse))
                         {
                             handle_channel_tx(
