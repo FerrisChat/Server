@@ -24,11 +24,10 @@ pub async fn delete_channel(
         guild_id: bigdecimal_to_u128!(channel.guild_id),
         name: channel.name,
     };
-    let guild_id = channel.guild_id;
 
     let event = WsOutboundEvent::ChannelDelete { channel };
 
-    fire_event(format!("channel_{}_{}", channel_id, guild_id), &event).await?;
+    fire_event(&event).await?;
 
     Ok(http::StatusCode::NO_CONTENT)
 }

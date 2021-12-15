@@ -63,7 +63,7 @@ pub async fn create_invite(
         invite: invite_obj.clone(),
     };
 
-    fire_event(format!("invite_{}", guild_id), &event).await?;
+    fire_event(&event).await?;
     Ok(crate::Json {
         obj: invite_obj,
         code: 201,

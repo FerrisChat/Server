@@ -76,7 +76,7 @@ pub async fn create_message(
     let msg_obj = Message {
         id: message_id,
         content: Some(content),
-        channel: Some(channel_obj),
+        channel: channel_obj,
         channel_id,
         author_id,
         author: Some(author),
@@ -89,15 +89,7 @@ pub async fn create_message(
         message: msg_obj.clone(),
     };
 
-    fire_event(
-        format!(
-            "message_{}_{}",
-            channel_id,
-            bigdecimal_to_u128!(channel.guild_id)
-        ),
-        &event,
-    )
-    .await?;
+    fire_event(&event).await?;
 
     Ok(crate::Json {
         obj: msg_obj,

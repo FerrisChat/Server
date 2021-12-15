@@ -45,7 +45,7 @@ pub async fn typing_end(
         user: user_obj,
     };
 
-    fire_event(format!("typing_{}", guild_id), &event).await?;
+    fire_event(&event).await?;
 
     Ok(http::StatusCode::NO_CONTENT)
 }

@@ -54,7 +54,7 @@ pub async fn create_guild(
         guild: guild_obj.clone(),
     };
 
-    fire_event(format!("gc_{}", auth.0), &event).await?;
+    fire_event(&event).await?;
 
     Ok(crate::Json {
         obj: guild_obj,

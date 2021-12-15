@@ -1,7 +1,7 @@
 use crate::WebServerError;
 use axum::extract::{Path, Query};
 use ferrischat_common::request_json::GetMessageHistoryParams;
-use ferrischat_common::types::{ErrorJson, Message, MessageHistory, User, UserFlags};
+use ferrischat_common::types::{Channel, ErrorJson, Message, MessageHistory, User, UserFlags};
 
 /// GET `/api/v0/channels/{channel_id}/messages`
 pub async fn get_message_history(
@@ -25,6 +25,17 @@ pub async fn get_message_history(
     if offset < Some(0) {
         offset = Some(0);
     }
+
+    let channel = sqlx::query!("SELECT * FROM channels WHERE id = $1", bigint_channel_id)
+        .fetch_optional(db)
+        .await?
+        .ok_or_else(|| ErrorJson::new_404("channel not found".to_string()))?;
+
+    let channel_obj = Channel {
+        id: channel_id,
+        name: channel.name,
+        guild_id: bigdecimal_to_u128!(channel.guild_id),
+    };
 
     let messages: Vec<_> = if oldest_first {
         let resp = sqlx::query!(
@@ -133,7 +144,7 @@ LIMIT $2 OFFSET $3
         output_messages.push(Message {
             id,
             content,
-            channel: None,
+            channel: channel_obj.clone(),
             channel_id,
             author_id,
             author: Some(User {

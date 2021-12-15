@@ -46,6 +46,6 @@ pub async fn delete_guild(
         guild: guild_obj.clone(),
     };
 
-    fire_event(format!("guild_{}", guild_id), &event).await?;
+    fire_event(&event).await?;
     Ok(http::StatusCode::NO_CONTENT)
 }

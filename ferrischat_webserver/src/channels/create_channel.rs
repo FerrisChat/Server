@@ -43,7 +43,7 @@ pub async fn create_channel(
         channel: channel_obj.clone(),
     };
 
-    fire_event(format!("channel_{}_{}", guild_id, channel_id), &event).await?;
+    fire_event(&event).await?;
 
     Ok(crate::Json {
         obj: channel_obj,

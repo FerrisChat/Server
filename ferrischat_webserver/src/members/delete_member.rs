@@ -47,6 +47,6 @@ pub async fn delete_member(
 
     let event = WsOutboundEvent::MemberDelete { member: member_obj };
 
-    fire_event(format!("member_{}", guild_id), &event).await?;
+    fire_event(&event).await?;
     Ok(http::StatusCode::NO_CONTENT)
 }

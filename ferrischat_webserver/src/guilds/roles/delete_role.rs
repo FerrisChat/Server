@@ -36,6 +36,6 @@ pub async fn delete_role(
         role: role_obj.clone(),
     };
 
-    fire_event(format!("role_{}_{}", role_id, guild_id), &event).await?;
+    fire_event(&event).await?;
     Ok(StatusCode::NO_CONTENT)
 }

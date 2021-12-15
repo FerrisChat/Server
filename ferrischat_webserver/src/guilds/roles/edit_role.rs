@@ -88,14 +88,12 @@ pub async fn edit_role(
         permissions: Permissions::empty(),
     };
 
-    let guild_id = new_role_obj.guild_id;
-
     let event = WsOutboundEvent::RoleUpdate {
         old: old_role_obj,
         new: new_role_obj.clone(),
     };
 
-    fire_event(format!("role_{}_{}", role_id, guild_id), &event).await?;
+    fire_event(&event).await?;
     Ok(crate::Json {
         obj: new_role_obj,
         code: 200,

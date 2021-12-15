@@ -61,7 +61,7 @@ pub async fn edit_guild(
         new: new_guild_obj.clone(),
     };
 
-    fire_event(format!("guild_{}", guild_id), &event).await?;
+    fire_event(&event).await?;
     Ok(crate::Json {
         obj: new_guild_obj,
         code: 200,

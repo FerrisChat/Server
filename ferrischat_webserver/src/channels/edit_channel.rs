@@ -44,7 +44,7 @@ pub async fn edit_channel(
         new: new.clone(),
     };
 
-    fire_event(format!("channel_{}_{}", channel_id, new.guild_id), &event).await?;
+    fire_event(&event).await?;
 
     Ok(Json {
         obj: new,
