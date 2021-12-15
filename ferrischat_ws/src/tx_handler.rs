@@ -95,7 +95,6 @@ pub async fn tx_handler(
                 } else {
                     continue;
                 };
-                let bigdecimal_uid = u128_to_bigdecimal!(uid);
 
                 let n = match msg.get_channel::<String>().ok() {
                     Some(n) => n,
@@ -114,62 +113,34 @@ pub async fn tx_handler(
                     }
                 };
                 let mut names = n.split('_');
-                let ret = match names.next() {
-                    Some("channel") => {
-                        if let (Some(Ok(guild_id)), Some(Ok(channel_id))) =
-                            (names.next().map(str::parse), names.next().map(str::parse))
-                        {
-                            handle_channel_tx(
-                                db,
-                                &outbound_message,
-                                bigdecimal_uid,
-                                channel_id,
-                                guild_id,
-                            )
-                            .await
-                        } else {
-                            continue;
-                        }
+                let item_name = if let Some(n) = names.next() {
+                    n
+                } else {
+                    warn!(obj = %n, "event name was missing a type");
+                    continue;
+                };
+                let obj_id = match names.next().map(str::parse::<u128>) {
+                    Some(Ok(id)) => id,
+                    Some(Err(e)) => {
+                        warn!(obj = %n, "failed to parse object ID as u128: {}", e);
+                        continue;
                     }
-                    Some("message") => {
-                        // message event format: message_{channel ID}_{guild ID}
-                        if let (Some(Ok(channel_id)), Some(Ok(guild_id))) =
-                            (names.next().map(str::parse), names.next().map(str::parse))
-                        {
-                            handle_message_tx(
-                                db,
-                                &outbound_message,
-                                bigdecimal_uid,
-                                channel_id,
-                                guild_id,
-                            )
-                            .await
-                        } else {
-                            continue;
-                        }
+                    None => {
+                        warn!(obj = %n, "object was missing an ID");
+                        continue;
                     }
-                    Some("guild") => {
-                        if let Some(Ok(guild_id)) = names.next().map(str::parse) {
-                            handle_guild_tx(db, &outbound_message, bigdecimal_uid, guild_id).await
-                        } else {
-                            continue;
-                        }
+                };
+                let ret = match item_name {
+                    "channel" => handle_channel_tx(db, &outbound_message, uid, obj_id).await,
+                    "message" => handle_message_tx(db, &outbound_message, uid, obj_id).await,
+                    // note we don't handle the special `gc` case here
+                    "guild" => handle_guild_tx(db, &outbound_message, uid, obj_id).await,
+                    "member" => handle_member_tx(db, &outbound_message, uid, obj_id).await,
+                    "invite" => handle_invite_tx(db, &outbound_message, uid, obj_id).await,
+                    t => {
+                        warn!("unknown event type {}", t);
+                        continue;
                     }
-                    Some("member") => {
-                        if let Some(Ok(guild_id)) = names.next().map(str::parse) {
-                            handle_member_tx(db, &outbound_message, bigdecimal_uid, guild_id).await
-                        } else {
-                            continue;
-                        }
-                    }
-                    Some("invite") => {
-                        if let Some(Ok(guild_id)) = names.next().map(str::parse) {
-                            handle_invite_tx(db, &outbound_message, bigdecimal_uid, guild_id).await
-                        } else {
-                            continue;
-                        }
-                    }
-                    Some(_) | None => continue,
                 };
                 match ret {
                     Ok(true) => {
