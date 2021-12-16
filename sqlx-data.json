@@ -111,7 +111,7 @@
         {
           "ordinal": 4,
           "name": "permissions",
-          "type_info": "Int8"
+          "type_info": "Bytea"
         },
         {
           "ordinal": 5,
@@ -325,7 +325,7 @@
       "columns": [],
       "parameters": {
         "Left": [
-          "Int8",
+          "Bytea",
           "Numeric"
         ]
       },
@@ -553,7 +553,7 @@
         {
           "ordinal": 4,
           "name": "permissions",
-          "type_info": "Int8"
+          "type_info": "Bytea"
         },
         {
           "ordinal": 5,
@@ -1123,7 +1123,7 @@
           "Varchar",
           "Int4",
           "Int2",
-          "Int8",
+          "Bytea",
           "Numeric"
         ]
       },
@@ -1365,7 +1365,7 @@
         {
           "ordinal": 4,
           "name": "permissions",
-          "type_info": "Int8"
+          "type_info": "Bytea"
         },
         {
           "ordinal": 5,
