@@ -1,14 +1,12 @@
 use crate::auth::generate_random_bits;
 use crate::WebServerError;
 use axum::extract::Path;
-use check_if_email_exists::{check_email, CheckEmailInput, Reachable};
 use ferrischat_common::types::{ErrorJson, SuccessJson};
 use ferrischat_redis::{redis::AsyncCommands, REDIS_MANAGER};
 use lettre::{
     transport::smtp::authentication::Credentials, AsyncSmtpTransport, AsyncTransport, Message,
     Tokio1Executor,
 };
-use tokio::time::Duration;
 
 /// POST /v0/verify
 /// Requires only an authorization token.
@@ -34,34 +32,6 @@ pub async fn send_verification_email(
     .verified
     {
         return Err(ErrorJson::new_409("User is already verified!".to_string()).into());
-    }
-
-    // Makes a call to the email checker to avoid sending to completely fake emails
-    let mut checker_input = CheckEmailInput::new(vec![user_email.clone()]);
-    checker_input.set_smtp_timeout(Duration::new(5, 0));
-    let checked_email_vec = check_email(&checker_input).await;
-    let checked_email = checked_email_vec.get(0).ok_or_else(|| {
-        ErrorJson::new_500(
-            "zero emails checked".to_string(),
-            true,
-            Some(
-                "https://github.com/FerrisChat/Server/issues/new?assignees=tazz4843&labels=bug\
-            &template=api_bug_report.yml&title=%5B500%5D%3A+zero+emails+checked"
-                    .to_string(),
-            ),
-        )
-    })?;
-    if !checked_email.syntax.is_valid_syntax {
-        return Err(WebServerError::from(ErrorJson::new_409(format!(
-            "Email {} is invalid.",
-            user_email
-        ))));
-    }
-
-    if checked_email.is_reachable == Reachable::Invalid {
-        return Err(WebServerError::from(ErrorJson::new_409(
-            "Email deemed unsafe to send to. Is it a real email?".to_string(),
-        )));
     }
 
     // Get configurations, they're set in redis for speed reasons. Set them with redis-cli `set config:email:<setting> <value>`
