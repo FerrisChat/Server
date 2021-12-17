@@ -62,7 +62,7 @@ pub async fn get_me(
                         None => continue,
                     };
 
-                    let avatar = Some(x.avatar.clone());
+                    let avatar = x.avatar.clone();
 
                     let owner_id_ = x
                         .owner_id

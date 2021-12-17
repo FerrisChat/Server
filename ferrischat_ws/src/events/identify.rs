@@ -60,7 +60,7 @@ pub async fn handle_identify_rx<'a>(
                     }))
                 }
             };
-            let avatar = Some(x.avatar);
+            let avatar = x.avatar;
 
             let owner_id = match x
                 .owner_id
