@@ -40,6 +40,7 @@ pub async fn delete_guild(
             guild: None,
         }]),
         roles: None,
+        avatar: guild_resp.avatar,
     };
 
     let event = WsOutboundEvent::GuildDelete {

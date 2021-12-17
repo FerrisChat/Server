@@ -33,7 +33,8 @@ pub async fn get_me(
                         SELECT
                             id AS "id!",
                             owner_id AS "owner_id!",
-                            name AS "name!"
+                            name AS "name!",
+                            avatar AS "avatar!"
                         FROM
                             guilds
                         INNER JOIN
@@ -61,6 +62,8 @@ pub async fn get_me(
                         None => continue,
                     };
 
+                    let avatar = Some(x.avatar.clone());
+
                     let owner_id_ = x
                         .owner_id
                         .with_scale(0)
@@ -76,6 +79,7 @@ pub async fn get_me(
                     let g = Guild {
                         id,
                         owner_id,
+                        avatar,
                         name: x.name.clone(),
                         channels: Some(
                             sqlx::query!(
