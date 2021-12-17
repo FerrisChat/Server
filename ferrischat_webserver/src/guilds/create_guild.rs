@@ -19,10 +19,11 @@ pub async fn create_guild(
     let GuildCreateJson { name } = guild_info.0;
 
     sqlx::query!(
-        "INSERT INTO guilds VALUES ($1, $2, $3)",
+        "INSERT INTO guilds(id, owner_id, name, flags) VALUES ($1, $2, $3, $4)",
         bigint_guild_id,
         bigint_user_id,
-        name
+        name,
+        0
     )
     .execute(db)
     .await?;
