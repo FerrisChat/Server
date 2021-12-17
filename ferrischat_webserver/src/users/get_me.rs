@@ -34,7 +34,7 @@ pub async fn get_me(
                             id AS "id!",
                             owner_id AS "owner_id!",
                             name AS "name!",
-                            avatar AS "avatar"
+                            avatar
                         FROM
                             guilds
                         INNER JOIN
