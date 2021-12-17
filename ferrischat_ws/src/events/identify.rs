@@ -79,7 +79,7 @@ pub async fn handle_identify_rx<'a>(
 
             let members = {
                 let resp = sqlx::query!(
-                                "SELECT m.*, u.name AS name, u.discriminator AS discriminator, u.flags AS flags, u.pronouns AS pronouns FROM members m \
+                                "SELECT m.*, u.avatar AS avatar, u.name AS name, u.discriminator AS discriminator, u.flags AS flags, u.pronouns AS pronouns FROM members m \
                                 CROSS JOIN LATERAL (SELECT * FROM users u WHERE id = m.user_id) AS u WHERE guild_id = $1",
                                 x.id.clone())
                     .fetch_all(db)
@@ -99,7 +99,7 @@ pub async fn handle_identify_rx<'a>(
                                 user: Some(ferrischat_common::types::User {
                                     id: user_id,
                                     name: x.name.clone(),
-                                    avatar: None,
+                                    avatar: x.avatar.clone(),
                                     guilds: None,
                                     flags: ferrischat_common::types::UserFlags::from_bits_truncate(
                                         x.flags,
@@ -158,7 +158,7 @@ pub async fn handle_identify_rx<'a>(
         Ok(u) => ferrischat_common::types::User {
             id,
             name: u.name,
-            avatar: None,
+            avatar: u.avatar,
             guilds,
             flags: ferrischat_common::types::UserFlags::from_bits_truncate(u.flags),
             discriminator: u.discriminator,
