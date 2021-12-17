@@ -35,7 +35,8 @@ pub async fn get_user(
                             id AS "id!",
                             owner_id AS "owner_id!",
                             name AS "name!",
-                            avatar
+                            avatar,
+                            flags AS "flags!"
                         FROM 
                             guilds
                         INNER JOIN
@@ -64,6 +65,7 @@ pub async fn get_user(
                     };
 
                     let avatar = x.avatar.clone();
+                    let flags = x.flags.clone();
 
                     let owner_id_ = x
                         .owner_id
@@ -109,7 +111,7 @@ pub async fn get_user(
                             })
                             .collect(),
                         ),
-                        flags: GuildFlags::empty(),
+                        flags: GuildFlags::from_bits_truncate(flags),
                         members: {
                             let resp =
                                 sqlx::query!("SELECT * FROM members WHERE guild_id = $1", x.id)

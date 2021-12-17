@@ -104,7 +104,7 @@ pub async fn get_guild(
             id: bigdecimal_to_u128!(guild.id),
             owner_id: bigdecimal_to_u128!(guild.owner_id),
             name: guild.name,
-            flags: GuildFlags::empty(),
+            flags: GuildFlags::from_bits_truncate(guild.flags),
             channels,
             members,
             roles: None,
