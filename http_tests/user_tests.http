@@ -2,7 +2,7 @@ POST http://localhost:8080/api/v0/users
 # should return 400 Bad Request
 
 ###
-POST http://localhost:8080/api/v0/users
+POST http://localhost/v0/users
 Content-Type: application/json
 
 {
