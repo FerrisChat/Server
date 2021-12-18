@@ -5,7 +5,7 @@ use ferrischat_common::request_json::ChannelUpdateJson;
 use ferrischat_common::types::{Channel, ErrorJson};
 use ferrischat_common::ws::WsOutboundEvent;
 
-/// PATCH `/api/v0/channels/{channel_id}`
+/// PATCH `/v0/channels/{channel_id}`
 pub async fn edit_channel(
     Path(channel_id): Path<u128>,
     channel_info: axum::extract::Json<ChannelUpdateJson>,

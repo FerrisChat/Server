@@ -2,7 +2,7 @@ use crate::WebServerError;
 use ferrischat_common::types::{Channel, ErrorJson, Guild, GuildFlags, Member, User, UserFlags};
 use num_traits::cast::ToPrimitive;
 
-/// GET `/api/v0/users/me`
+/// GET `/v0/users/me`
 pub async fn get_me(
     crate::Authorization(authorized_user): crate::Authorization,
 ) -> Result<crate::Json<User>, WebServerError> {

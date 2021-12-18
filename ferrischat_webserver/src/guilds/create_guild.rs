@@ -6,7 +6,7 @@ use ferrischat_common::types::{Guild, GuildFlags, Member, ModelType};
 use ferrischat_common::ws::WsOutboundEvent;
 use ferrischat_snowflake_generator::generate_snowflake;
 
-/// POST /api/v0/guilds/
+/// POST /v0/guilds/
 pub async fn create_guild(
     auth: crate::Authorization,
     guild_info: Json<GuildCreateJson>,

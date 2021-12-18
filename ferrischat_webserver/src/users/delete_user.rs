@@ -2,7 +2,7 @@ use crate::WebServerError;
 use axum::extract::Path;
 use ferrischat_common::types::ErrorJson;
 
-/// DELETE `/api/v0/users/{user_id}`
+/// DELETE `/v0/users/{user_id}`
 /// Deletes the authenticated user
 pub async fn delete_user(
     Path(user_id): Path<u128>,

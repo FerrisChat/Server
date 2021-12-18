@@ -4,7 +4,7 @@ use axum::extract::Path;
 use ferrischat_common::types::{ErrorJson, Guild, GuildFlags, Member};
 use ferrischat_common::ws::WsOutboundEvent;
 
-/// DELETE `/api/v0/guilds/{guild_id}`
+/// DELETE `/v0/guilds/{guild_id}`
 pub async fn delete_guild(
     Path(guild_id): Path<u128>,
     auth: crate::Authorization,

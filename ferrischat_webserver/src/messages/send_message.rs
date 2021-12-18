@@ -6,7 +6,7 @@ use ferrischat_common::types::{Channel, ErrorJson, Message, ModelType, User, Use
 use ferrischat_common::ws::WsOutboundEvent;
 use ferrischat_snowflake_generator::generate_snowflake;
 
-/// POST `/api/v0/channels/{channel_id}/messages`
+/// POST `/v0/channels/{channel_id}/messages`
 pub async fn create_message(
     auth: crate::Authorization,
     json: Json<MessageCreateJson>,

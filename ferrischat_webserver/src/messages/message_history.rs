@@ -3,7 +3,7 @@ use axum::extract::{Path, Query};
 use ferrischat_common::request_json::GetMessageHistoryParams;
 use ferrischat_common::types::{Channel, ErrorJson, Message, MessageHistory, User, UserFlags};
 
-/// GET `/api/v0/channels/{channel_id}/messages`
+/// GET `/v0/channels/{channel_id}/messages`
 pub async fn get_message_history(
     Path(channel_id): Path<u128>,
     _: crate::Authorization,

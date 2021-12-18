@@ -3,7 +3,7 @@ use axum::extract::Path;
 use ferrischat_common::types::{Channel, ErrorJson, Guild, GuildFlags, Member, User, UserFlags};
 use num_traits::cast::ToPrimitive;
 
-/// GET `/api/v0/users/{user_id}`
+/// GET `/v0/users/{user_id}`
 pub async fn get_user(
     Path(user_id): Path<u128>,
     crate::Authorization(authorized_user): crate::Authorization,

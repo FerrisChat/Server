@@ -9,7 +9,7 @@ use ferrischat_common::ws::WsOutboundEvent;
 use ferrischat_macros::get_db_or_fail;
 use ferrischat_snowflake_generator::generate_snowflake;
 
-/// POST `/api/v0/guilds/{guild_id}/roles`
+/// POST `/v0/guilds/{guild_id}/roles`
 pub async fn create_role(
     _: crate::Authorization,
     role_info: Json<RoleCreateJson>,
