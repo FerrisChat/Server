@@ -46,8 +46,8 @@ pub async fn edit_guild(
             avatar,
             bigint_guild_id
         )
-            .execute(db)
-            .await?;
+        .execute(db)
+        .await?;
     }
 
     let guild = sqlx::query!("SELECT * FROM guilds WHERE id = $1", bigint_guild_id)

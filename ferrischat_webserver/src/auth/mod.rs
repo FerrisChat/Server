@@ -2,14 +2,17 @@ mod auth_struct;
 mod bot_get_token;
 mod get_token;
 mod init_rng;
+mod reset_password;
 mod token_gen;
 
 pub use auth_struct::Authorization;
 pub use bot_get_token::*;
 pub use get_token::*;
 pub use init_rng::*;
+pub use reset_password::*;
 pub use token_gen::*;
 
+use axum::routing::get;
 use axum::routing::post;
 use axum::Router;
 
@@ -23,4 +26,9 @@ pub fn generate_auth_routes() -> axum::Router {
         )
         // POST   /auth
         .route(expand_version!("auth"), post(get_token))
+        .route(expand_version!("auth/reset"), post(reset_password))
+        .route(
+            expand_version!("auth/reset/:code"),
+            get(verify_password_reset),
+        )
 }
