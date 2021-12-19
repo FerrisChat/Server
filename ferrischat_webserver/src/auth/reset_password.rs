@@ -141,7 +141,7 @@ pub async fn verify_password_reset(
         u128_to_bigdecimal!(id_and_hashed_password_as_vec[1]
             .to_string()
             .parse::<sqlx::types::BigDecimal>()
-            .unwrap()),
+            .map_err(|e| ErrorJson::new_500(format!("failed to parse user ID: {}", e), false, None)))?),
     )
     .execute(db)
     .await?;
