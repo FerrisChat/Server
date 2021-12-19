@@ -140,7 +140,7 @@ pub async fn verify_password_reset(
         id_and_hashed_password_as_vec[0],
         u128_to_bigdecimal!(id_and_hashed_password_as_vec[1]
             .to_string()
-            .parse::<u128>()
+            .parse::<sqlx::types::BigDecimal>()
             .unwrap()),
     )
     .execute(db)
