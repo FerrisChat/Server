@@ -10,23 +10,25 @@ use lettre::{
     Tokio1Executor,
 };
 
-/// POST /v0/auth/reset
-/// Requires an authtoken and a new password encoded in JSON, like: ```
+/// POST /v0/auth/reset/{user_id}
+/// Requires a new password encoded in JSON, like:
+/// ```json
 /// {
-/// "password": "ASecurePassword"
-/// }```
+///   "password": "ASecurePassword"
+/// }
+/// ```
 pub async fn reset_password(
+    Path(user_id): Path<u128>,
     Json(PasswordResetJson { password }): Json<PasswordResetJson>,
-    crate::Authorization(authorized_user): crate::Authorization,
 ) -> Result<crate::Json<SuccessJson>, WebServerError> {
     let db = get_db_or_fail!();
     let user = sqlx::query!(
         "SELECT verified, id, email FROM users WHERE id = $1",
-        u128_to_bigdecimal!(authorized_user)
+        u128_to_bigdecimal!(user_id)
     )
-    // you can safely assert that the user already exists because the authorization would've failed otherwise
-    .fetch_one(db)
-    .await?;
+    .fetch_optional(db)
+    .await?
+    .ok_or_else(|| ErrorJson::new_404("user does not exist".to_string()))?;
 
     if !user.verified {
         return Err(ErrorJson::new_403(

@@ -26,9 +26,8 @@ pub fn generate_auth_routes() -> axum::Router {
         )
         // POST   /auth
         .route(expand_version!("auth"), post(get_token))
-        .route(expand_version!("auth/reset"), post(reset_password))
         .route(
-            expand_version!("auth/reset/:code"),
-            get(verify_password_reset),
+            expand_version!("auth/reset/:obj"),
+            post(reset_password).get(verify_password_reset),
         )
 }
