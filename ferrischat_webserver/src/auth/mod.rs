@@ -12,7 +12,6 @@ pub use init_rng::*;
 pub use reset_password::*;
 pub use token_gen::*;
 
-use axum::routing::get;
 use axum::routing::post;
 use axum::Router;
 

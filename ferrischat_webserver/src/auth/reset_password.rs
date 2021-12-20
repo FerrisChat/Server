@@ -10,7 +10,7 @@ use lettre::{
     Tokio1Executor,
 };
 
-/// POST /v0/auth/reset/{user_id}
+/// POST `/v0/auth/reset/{user_id}`
 /// Requires a new password encoded in JSON, like:
 /// ```json
 /// {
@@ -117,7 +117,7 @@ pub async fn reset_password(
     ))
 }
 
-/// GET /v0/auth/reset/{token}
+/// GET `/v0/auth/reset/{token}`
 /// Resets the user's password when they click the link sent to their email.
 pub async fn verify_password_reset(
     Path(token): Path<String>,
