@@ -71,7 +71,6 @@ pub async fn start_http() {
 
 #[inline]
 pub async fn start_ws() {
-    ferrischat_ws::init_ws().await;
     ferrischat_ws::init_ws_server().await;
 }
 

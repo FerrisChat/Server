@@ -6,11 +6,15 @@ use dashmap::DashMap;
 use ferrischat_redis::get_pubsub;
 use tokio::sync::oneshot::channel;
 
-/// Initialize the `WebSocket` by starting all services it depends on.
-///
-/// # Panics
-/// This function panics if it is called more than once.
-pub async fn init_ws() {
+#[allow(clippy::missing_panics_doc)]
+/// Initialize the `WebSocket` server.
+/// `init_ws` MUST be called before this, otherwise panics may occur due to missing dependencies.
+pub async fn init_ws_server() {
+    enum DieOrResult {
+        Die,
+        Result(std::io::Result<tokio::net::UnixStream>),
+    }
+
     // plop the DashMap into the UserId connection map first thing
     USERID_CONNECTION_MAP
         .set(DashMap::new())
@@ -23,22 +27,7 @@ pub async fn init_ws() {
         .set(tx)
         .expect("don't call `preload_ws()` more than once");
 
-    tokio::spawn(redis_event_handler(
-        get_pubsub()
-            .await
-            .expect("failed to open pubsub connection"),
-        rx,
-    ));
-}
-
-#[allow(clippy::missing_panics_doc)]
-/// Initialize the `WebSocket` server.
-/// `init_ws` MUST be called before this, otherwise panics may occur due to missing dependencies.
-pub async fn init_ws_server() {
-    enum DieOrResult {
-        Die,
-        Result(std::io::Result<tokio::net::UnixStream>),
-    }
+    tokio::spawn(redis_event_handler(get_pubsub(), rx));
 
     let listener = tokio::net::UnixListener::bind(format!(
         "{}/websocket.sock",
