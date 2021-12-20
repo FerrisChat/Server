@@ -6,7 +6,7 @@ use ferrischat_common::types::{ErrorJson, Role};
 use ferrischat_common::ws::WsOutboundEvent;
 use http::StatusCode;
 
-/// DELETE `/api/v0/guilds/{guild_id/roles/{role_id}`
+/// DELETE `/v0/guilds/{guild_id/roles/{role_id}`
 pub async fn delete_role(
     Path((guild_id, role_id)): Path<(u128, u128)>,
     _: crate::Authorization,
@@ -36,6 +36,6 @@ pub async fn delete_role(
         role: role_obj.clone(),
     };
 
-    fire_event(format!("role_{}_{}", role_id, guild_id), &event).await?;
+    fire_event(&event).await?;
     Ok(StatusCode::NO_CONTENT)
 }

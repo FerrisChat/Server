@@ -4,7 +4,7 @@ use ferrischat_common::types::ModelType;
 use ferrischat_snowflake_generator::generate_snowflake;
 use http::StatusCode;
 
-/// POST `/api/v0/guilds/{guild_id}/members/{user_id}/role/{role_id}`
+/// POST `/v0/guilds/{guild_id}/members/{user_id}/role/{role_id}`
 pub async fn add_member_role(
     Path((guild_id, user_id, role_id)): Path<(u128, u128, u128)>,
     _: crate::Authorization,

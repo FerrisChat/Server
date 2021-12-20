@@ -12,6 +12,15 @@ pub async fn invite_bot(
     let bigint_bot_id = u128_to_bigdecimal!(bot_id);
     let db = get_db_or_fail!();
     let bigint_guild_id = u128_to_bigdecimal!(guild_id);
+    let bigint_user_id = u128_to_bigdecimal!(auth.0);
+
+    let r = sqlx::query!("SELECT flags FROM users WHERE id = $1", bigint_user_id)
+        .fetch_one(db)
+        .await?;
+    let flags = UserFlags::from_bits_truncate(r.flags);
+    if flags.contains(UserFlags::BOT_ACCOUNT) {
+        return Err(ErrorJson::new_401("Bots cannot invite bots to guilds!".to_string()).into());
+    }
 
     let guild = sqlx::query!("SELECT * FROM guilds WHERE id = $1", bigint_guild_id)
         .fetch_optional(db)
@@ -69,7 +78,7 @@ pub async fn invite_bot(
         member: member_obj.clone(),
     };
 
-    fire_event(format!("member_add_{}", bot_id), &event).await?;
+    fire_event(&event).await?;
     Ok(crate::Json {
         obj: member_obj,
         code: 201,

@@ -3,7 +3,7 @@ use axum::extract::Path;
 use ferrischat_common::types::{Channel, ErrorJson, Guild, GuildFlags, Member, User, UserFlags};
 use num_traits::cast::ToPrimitive;
 
-/// GET `/api/v0/users/{user_id}`
+/// GET `/v0/users/{user_id}`
 pub async fn get_user(
     Path(user_id): Path<u128>,
     crate::Authorization(authorized_user): crate::Authorization,
@@ -34,7 +34,9 @@ pub async fn get_user(
                         SELECT 
                             id AS "id!",
                             owner_id AS "owner_id!",
-                            name AS "name!"
+                            name AS "name!",
+                            avatar,
+                            flags AS "flags!"
                         FROM 
                             guilds
                         INNER JOIN
@@ -62,6 +64,9 @@ pub async fn get_user(
                         None => continue,
                     };
 
+                    let avatar = x.avatar.clone();
+                    let flags = x.flags.clone();
+
                     let owner_id_ = x
                         .owner_id
                         .with_scale(0)
@@ -77,6 +82,7 @@ pub async fn get_user(
                     let g = Guild {
                         id,
                         owner_id,
+                        avatar,
                         name: x.name.clone(),
                         channels: Some(
                             sqlx::query!(
@@ -105,7 +111,7 @@ pub async fn get_user(
                             })
                             .collect(),
                         ),
-                        flags: GuildFlags::empty(),
+                        flags: GuildFlags::from_bits_truncate(flags),
                         members: {
                             let resp =
                                 sqlx::query!("SELECT * FROM members WHERE guild_id = $1", x.id)

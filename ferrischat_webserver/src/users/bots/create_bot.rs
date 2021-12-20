@@ -6,13 +6,21 @@ use ferrischat_snowflake_generator::generate_snowflake;
 use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
 
-/// POST `/api/v0/users/me/bots`
+/// POST `/v0/users/me/bots`
 /// Creates a `FerrisChat` bot with the given info
 pub async fn create_bot(
     auth: crate::Authorization,
     Json(BotCreateJson { username }): Json<BotCreateJson>,
 ) -> Result<crate::Json<User>, WebServerError> {
     let db = get_db_or_fail!();
+    let bigint_owner_id = u128_to_bigdecimal!(auth.0);
+    let r = sqlx::query!("SELECT flags FROM users WHERE id = $1", bigint_owner_id)
+        .fetch_one(db)
+        .await?;
+    let flags = UserFlags::from_bits_truncate(r.flags);
+    if flags.contains(UserFlags::BOT_ACCOUNT) {
+        return Err(ErrorJson::new_401("Bots cannot create/own bots!".to_string()).into());
+    }
     let node_id = get_node_id!();
     let user_id = generate_snowflake::<0>(ModelType::User as u8, node_id);
     let email = format!("{}@bots.ferris.chat", user_id);
@@ -44,7 +52,6 @@ pub async fn create_bot(
     };
     let hashed_password = ferrischat_auth::hash(password).await?;
     let bigint_bot_id = u128_to_bigdecimal!(user_id);
-    let bigint_owner_id = u128_to_bigdecimal!(auth.0);
 
     sqlx::query!(
         "INSERT INTO users VALUES ($1, $2, $3, $4, $5, $6)",

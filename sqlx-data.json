@@ -871,6 +871,26 @@
       ]
     }
   },
+  "871fab2f0549279f8c335552ba608f93bbce13c497f724fe44e66d69bbc70f96": {
+    "query": "SELECT flags FROM users WHERE id = $1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "flags",
+          "type_info": "Int8"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Numeric"
+        ]
+      },
+      "nullable": [
+        false
+      ]
+    }
+  },
   "878a86670eec24ecd8a7e1864d6edd105c177cfbab10a652a947c5491bc6c0ff": {
     "query": "SELECT (auth_token) FROM auth_tokens WHERE user_id = $1",
     "describe": {

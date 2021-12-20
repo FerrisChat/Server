@@ -59,7 +59,7 @@ pub async fn edit_message(
 
         Message {
             id: message_id,
-            channel: None,
+            channel: channel_obj.clone(),
             channel_id,
             author_id,
             content: resp.content,
@@ -89,7 +89,7 @@ pub async fn edit_message(
         )?;
     let new_msg_obj = Message {
         id: message_id,
-        channel: Some(channel_obj),
+        channel: channel_obj,
         channel_id,
         author_id: bigdecimal_to_u128!(message.author_id),
         content: message.content,
@@ -104,15 +104,7 @@ pub async fn edit_message(
         new: new_msg_obj.clone(),
     };
 
-    fire_event(
-        format!(
-            "message_{}_{}",
-            channel_id,
-            bigdecimal_to_u128!(channel.guild_id)
-        ),
-        &event,
-    )
-    .await?;
+    fire_event(&event).await?;
     Ok(crate::Json {
         obj: new_msg_obj,
         code: 200,

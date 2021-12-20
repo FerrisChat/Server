@@ -4,7 +4,7 @@ use axum::extract::Path;
 use ferrischat_common::types::{Channel, ErrorJson, Message, User, UserFlags};
 use ferrischat_common::ws::WsOutboundEvent;
 
-/// DELETE `/api/v0/channels/{channel_id}/messages/{message_id}`
+/// DELETE `/v0/channels/{channel_id}/messages/{message_id}`
 pub async fn delete_message(
     Path((channel_id, message_id)): Path<(u128, u128)>,
     _: crate::Authorization,
@@ -53,7 +53,7 @@ WHERE m.id = $1
 
     let msg_obj = Message {
         id: message_id,
-        channel: Some(channel_obj),
+        channel: channel_obj,
         channel_id,
         author_id,
         content: message.content,
@@ -85,14 +85,6 @@ WHERE m.id = $1
         message: msg_obj.clone(),
     };
 
-    fire_event(
-        format!(
-            "message_{}_{}",
-            channel_id,
-            bigdecimal_to_u128!(channel.guild_id)
-        ),
-        &event,
-    )
-    .await?;
+    fire_event(&event).await?;
     Ok(http::StatusCode::NO_CONTENT)
 }

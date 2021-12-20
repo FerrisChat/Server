@@ -4,7 +4,7 @@ use ferrischat_common::request_json::GetGuildUrlParams;
 use ferrischat_common::types::{Channel, ErrorJson, Guild, GuildFlags, Member, User, UserFlags};
 use num_traits::ToPrimitive;
 
-/// GET `/api/v0/guilds/{guild_id}`
+/// GET `/v0/guilds/{guild_id}`
 pub async fn get_guild(
     _: crate::Authorization,
     Path(guild_id): Path<u128>,
@@ -104,10 +104,11 @@ pub async fn get_guild(
             id: bigdecimal_to_u128!(guild.id),
             owner_id: bigdecimal_to_u128!(guild.owner_id),
             name: guild.name,
-            flags: GuildFlags::empty(),
+            flags: GuildFlags::from_bits_truncate(guild.flags),
             channels,
             members,
             roles: None,
+            avatar: guild.avatar,
         },
         code: 200,
     })

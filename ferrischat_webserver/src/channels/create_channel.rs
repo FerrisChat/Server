@@ -8,7 +8,7 @@ use ferrischat_common::ws::WsOutboundEvent;
 use ferrischat_macros::get_db_or_fail;
 use ferrischat_snowflake_generator::generate_snowflake;
 
-/// POST `/api/v0/guilds/{guild_id/channels`
+/// POST `/v0/guilds/{guild_id/channels`
 pub async fn create_channel(
     _: crate::Authorization,
     channel_info: JsonInput<ChannelCreateJson>,
@@ -43,7 +43,7 @@ pub async fn create_channel(
         channel: channel_obj.clone(),
     };
 
-    fire_event(format!("channel_{}_{}", guild_id, channel_id), &event).await?;
+    fire_event(&event).await?;
 
     Ok(crate::Json {
         obj: channel_obj,

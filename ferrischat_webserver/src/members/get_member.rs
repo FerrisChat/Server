@@ -2,7 +2,7 @@ use crate::WebServerError;
 use axum::extract::Path;
 use ferrischat_common::types::{ErrorJson, Member, User, UserFlags};
 
-/// GET `/api/v0/guilds/{guild_id}/members/{member_id}`
+/// GET `/v0/guilds/{guild_id}/members/{member_id}`
 pub async fn get_member(
     Path((guild_id, member_id)): Path<(u128, u128)>,
     _: crate::Authorization,

@@ -2,7 +2,7 @@ use crate::WebServerError;
 use axum::extract::Path;
 use ferrischat_common::types::ErrorJson;
 
-/// DELETE `/api/v0/users/me/bots/{bot_id}`
+/// DELETE `/v0/users/me/bots/{bot_id}`
 /// Deletes the bot
 pub async fn delete_bot(
     Path((user_id, bot_id)): Path<(u128, u128)>,

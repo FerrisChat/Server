@@ -4,7 +4,7 @@ use axum::extract::Path;
 use ferrischat_common::types::{ErrorJson, Member};
 use ferrischat_common::ws::WsOutboundEvent;
 
-/// DELETE `/api/v0/guilds/{guild_id}/members/{member_id}`
+/// DELETE `/v0/guilds/{guild_id}/members/{member_id}`
 pub async fn delete_member(
     Path((guild_id, member_id)): Path<(u128, u128)>,
     _: crate::Authorization,
@@ -47,6 +47,6 @@ pub async fn delete_member(
 
     let event = WsOutboundEvent::MemberDelete { member: member_obj };
 
-    fire_event(format!("member_{}", guild_id), &event).await?;
+    fire_event(&event).await?;
     Ok(http::StatusCode::NO_CONTENT)
 }

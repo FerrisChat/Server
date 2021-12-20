@@ -36,7 +36,7 @@ pub async fn handle_identify_rx<'a>(
 
     let guilds = {
         let d = sqlx::query!(
-            r#"SELECT id AS "id!", owner_id AS "owner_id!", name AS "name!" FROM guilds INNER JOIN members m on guilds.id = m.guild_id WHERE m.user_id = $1"#,
+            r#"SELECT id AS "id!", owner_id AS "owner_id!", name AS "name!", avatar, flags AS "flags!" FROM guilds INNER JOIN members m on guilds.id = m.guild_id WHERE m.user_id = $1"#,
             bigdecimal_user_id
         )
                 .fetch_all(db)
@@ -60,6 +60,8 @@ pub async fn handle_identify_rx<'a>(
                     }))
                 }
             };
+            let avatar = x.avatar;
+            let flags = x.flags;
 
             let owner_id = match x
                 .owner_id
@@ -79,7 +81,7 @@ pub async fn handle_identify_rx<'a>(
 
             let members = {
                 let resp = sqlx::query!(
-                                "SELECT m.*, u.name AS name, u.discriminator AS discriminator, u.flags AS flags, u.pronouns AS pronouns FROM members m \
+                                "SELECT m.*, u.avatar AS avatar, u.name AS name, u.discriminator AS discriminator, u.flags AS flags, u.pronouns AS pronouns FROM members m \
                                 CROSS JOIN LATERAL (SELECT * FROM users u WHERE id = m.user_id) AS u WHERE guild_id = $1",
                                 x.id.clone())
                     .fetch_all(db)
@@ -99,7 +101,7 @@ pub async fn handle_identify_rx<'a>(
                                 user: Some(ferrischat_common::types::User {
                                     id: user_id,
                                     name: x.name.clone(),
-                                    avatar: None,
+                                    avatar: x.avatar.clone(),
                                     guilds: None,
                                     flags: ferrischat_common::types::UserFlags::from_bits_truncate(
                                         x.flags,
@@ -146,9 +148,10 @@ pub async fn handle_identify_rx<'a>(
                 owner_id,
                 name: x.name.clone(),
                 channels,
-                flags: ferrischat_common::types::GuildFlags::empty(),
+                flags: ferrischat_common::types::GuildFlags::from_bits_truncate(flags),
                 members,
                 roles: None,
+                avatar,
             });
         }
         Some(guilds)
@@ -158,7 +161,7 @@ pub async fn handle_identify_rx<'a>(
         Ok(u) => ferrischat_common::types::User {
             id,
             name: u.name,
-            avatar: None,
+            avatar: u.avatar,
             guilds,
             flags: ferrischat_common::types::UserFlags::from_bits_truncate(u.flags),
             discriminator: u.discriminator,

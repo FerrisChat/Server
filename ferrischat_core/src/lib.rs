@@ -74,3 +74,11 @@ pub async fn start_ws() {
     ferrischat_ws::init_ws().await;
     ferrischat_ws::init_ws_server().await;
 }
+
+pub async fn start_both() {
+    let future1 = tokio::spawn(start_ws());
+    let future2 = tokio::spawn(start_http());
+    let (r1, r2) = futures::future::join(future1, future2).await;
+    r1.expect("failed to spawn WebSocket server");
+    r2.expect("failed to spawn HTTP server");
+}

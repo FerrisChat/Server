@@ -4,7 +4,7 @@ use axum::extract::Path;
 use ferrischat_common::types::{Channel, ErrorJson, Pronouns, User, UserFlags};
 use ferrischat_common::ws::WsOutboundEvent;
 
-/// POST `/api/v0/channels/{channel_id}/typing`
+/// POST `/v0/channels/{channel_id}/typing`
 pub async fn typing_start(
     Path(channel_id): Path<u128>,
     crate::Authorization(authorized_user): crate::Authorization,
@@ -45,7 +45,7 @@ pub async fn typing_start(
         user: user_obj,
     };
 
-    fire_event(format!("typing_{}", guild_id), &event).await?;
+    fire_event(&event).await?;
 
     Ok(http::StatusCode::NO_CONTENT)
 }

@@ -6,7 +6,7 @@ use ferrischat_common::types::{Channel, ErrorJson, Message, ModelType, User, Use
 use ferrischat_common::ws::WsOutboundEvent;
 use ferrischat_snowflake_generator::generate_snowflake;
 
-/// POST `/api/v0/channels/{channel_id}/messages`
+/// POST `/v0/channels/{channel_id}/messages`
 pub async fn create_message(
     auth: crate::Authorization,
     json: Json<MessageCreateJson>,
@@ -76,7 +76,7 @@ pub async fn create_message(
     let msg_obj = Message {
         id: message_id,
         content: Some(content),
-        channel: Some(channel_obj),
+        channel: channel_obj,
         channel_id,
         author_id,
         author: Some(author),
@@ -89,15 +89,7 @@ pub async fn create_message(
         message: msg_obj.clone(),
     };
 
-    fire_event(
-        format!(
-            "message_{}_{}",
-            channel_id,
-            bigdecimal_to_u128!(channel.guild_id)
-        ),
-        &event,
-    )
-    .await?;
+    fire_event(&event).await?;
 
     Ok(crate::Json {
         obj: msg_obj,

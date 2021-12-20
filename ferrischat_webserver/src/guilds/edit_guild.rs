@@ -8,7 +8,7 @@ use ferrischat_common::ws::WsOutboundEvent;
 
 pub async fn edit_guild(
     Path(guild_id): Path<u128>,
-    Json(GuildUpdateJson { name }): Json<GuildUpdateJson>,
+    Json(GuildUpdateJson { name, avatar }): Json<GuildUpdateJson>,
     _: crate::Authorization,
 ) -> Result<crate::Json<Guild>, WebServerError> {
     let db = get_db_or_fail!();
@@ -27,12 +27,23 @@ pub async fn edit_guild(
         channels: None,
         members: None,
         roles: None,
+        avatar: guild.avatar,
     };
 
     if let Some(name) = name {
         sqlx::query!(
             "UPDATE guilds SET name = $1 WHERE id = $2",
             name,
+            bigint_guild_id
+        )
+        .execute(db)
+        .await?;
+    }
+
+    if let Some(avatar) = avatar {
+        sqlx::query!(
+            "UPDATE guilds SET avatar = $1 WHERE id = $2",
+            avatar,
             bigint_guild_id
         )
         .execute(db)
@@ -47,10 +58,11 @@ pub async fn edit_guild(
         id: bigdecimal_to_u128!(guild.id),
         owner_id: bigdecimal_to_u128!(guild.owner_id),
         name: guild.name,
-        flags: GuildFlags::empty(),
+        flags: GuildFlags::from_bits_truncate(guild.flags),
         channels: None,
         members: None,
         roles: None,
+        avatar: guild.avatar,
     };
 
     // TODO: impl Eq for all types
@@ -61,7 +73,7 @@ pub async fn edit_guild(
         new: new_guild_obj.clone(),
     };
 
-    fire_event(format!("guild_{}", guild_id), &event).await?;
+    fire_event(&event).await?;
     Ok(crate::Json {
         obj: new_guild_obj,
         code: 200,
