@@ -9,7 +9,3 @@ host="localhost"
 port=6379
 user=""
 password=""
-
-[tls]
-private_key_file = "/home/hydro/certs/api/privkey.pem" # You'll need to set this yourself
-certificate_file = "/home/hydro/certs/api/fullchain.pem" # Same here
