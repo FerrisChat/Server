@@ -125,7 +125,7 @@ pub async fn verify_password_reset(
     let db = get_db_or_fail!();
 
     let redis_key = format!("password-reset:{}", token);
-    let id_and_hashed_password_as_string = ferrischat_redis::redis::cmd("GETDEL")
+    let id_hashed_password = ferrischat_redis::redis::cmd("GETDEL")
         .arg(redis_key)
         .query_async::<_, Option<String>>(
             &mut REDIS_MANAGER
@@ -138,19 +138,28 @@ pub async fn verify_password_reset(
         .ok_or_else(|| {
             ErrorJson::new_404("This token has expired or was not found.".to_string())
         })?;
-    let id_and_hashed_password_as_vec: Vec<&str> =
-        id_and_hashed_password_as_string.split("||||").collect();
-    // Tell the database to set their verified field to true! The user is now verified.
-    sqlx::query!(
-        "UPDATE users SET password = $1 WHERE id = $2",
-        id_and_hashed_password_as_vec[0],
-        u128_to_bigdecimal!(id_and_hashed_password_as_vec[1]
-            .to_string()
-            .parse::<sqlx::types::BigDecimal>()
-            .map_err(|e| ErrorJson::new_500(format!("failed to parse user ID: {}", e), false, None)))?),
-    )
-    .execute(db)
-    .await?;
+    let mut id_hashed_password = id_hashed_password.split("||||");
+    let password = id_hashed_password.next().ok_or_else(|| {
+        ErrorJson::new_500(
+            "password not found in internal representation".to_string(),
+            false,
+            None,
+        )
+    })?;
+    let id = id_hashed_password
+        .next()
+        .ok_or_else(|| {
+            ErrorJson::new_500(
+                "id not found in internal representation".to_string(),
+                false,
+                None,
+            )
+        })?
+        .parse::<sqlx::types::BigDecimal>()
+        .map_err(|e| ErrorJson::new_500(format!("failed to parse user ID: {}", e), false, None))?;
+    sqlx::query!("UPDATE users SET password = $1 WHERE id = $2", password, id)
+        .execute(db)
+        .await?;
     Ok(crate::Json::new(
         SuccessJson::new("Changed password. You can close this page.".to_string()),
         200,
