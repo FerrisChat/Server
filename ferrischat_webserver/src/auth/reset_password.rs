@@ -118,7 +118,7 @@ pub async fn reset_password(
 }
 
 /// GET /v0/auth/reset/{token}
-/// Verifies the user's email when they click the link mailed to them.
+/// Resets the user's password when they click the link sent to their email.
 pub async fn verify_password_reset(
     Path(token): Path<String>,
 ) -> Result<crate::Json<SuccessJson>, WebServerError> {
