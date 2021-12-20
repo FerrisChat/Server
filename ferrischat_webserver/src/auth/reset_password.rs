@@ -76,7 +76,11 @@ pub async fn reset_password(
     // TODO HTML rather then plaintext
     // Also encodes the email to be URL-safe, however some work is needed on it still
     let default_email = format!(
-        "Hey!\n\nWe see you have requested to reset your password. Click here to do so: https://api.ferris.chat/v0/auth/reset/{}.\n\nIf you did not request this, your account may be compromised.\n\n- FerrisChat Team\nhello@ferris.chat",
+        "Hey!\n\n\
+        We see you have requested to reset your password. Click here to do so: https://api.ferris.chat/v0/auth/reset/{}.\n\n\
+        If you did not request this, you can safely ignore it.\n\n\
+        - FerrisChat Team\n\
+        hello@ferris.chat",
         urlencoding::encode(&*token)
     );
 
