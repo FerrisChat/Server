@@ -8,7 +8,7 @@ use uuid::Uuid;
 
 pub(super) async fn handle_unsubscribe(
     pubsub_conn: Arc<RedisSub>,
-    event_channel_to_uuid_map: Arc<DashMap<String, DashSet<Uuid>, RandomState>>,
+    event_channel_to_uuid_map: Arc<DashMap<String, DashSet<Uuid, RandomState>, RandomState>>,
     uuid_to_sender_map: Arc<DashMap<Uuid, Sender<Option<RedisMessage>>, RandomState>>,
     to_unsub: Arc<DashSet<Uuid, RandomState>>,
 ) {

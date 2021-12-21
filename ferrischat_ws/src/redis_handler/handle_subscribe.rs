@@ -8,7 +8,7 @@ use uuid::Uuid;
 
 pub(super) async fn handle_subscribe(
     pubsub_conn: Arc<RedisSub>,
-    event_channel_to_uuid_map: Arc<DashMap<String, DashSet<Uuid>, RandomState>>,
+    event_channel_to_uuid_map: Arc<DashMap<String, DashSet<Uuid, RandomState>, RandomState>>,
     uuid_to_sender_map: Arc<DashMap<Uuid, Sender<Option<RedisMessage>>, RandomState>>,
     channel: String,
     sender: Sender<Option<RedisMessage>>,
@@ -39,7 +39,7 @@ pub(super) async fn handle_subscribe(
         } else {
             debug!(channel = %channel, uuid = %channel_id, "new subscriber is being added to new channel set");
             event_channel_to_uuid_map.insert(channel, {
-                let s = DashSet::with_capacity(1);
+                let s = DashSet::with_capacity_and_hasher(1, RandomState::new());
                 s.insert(channel_id);
                 s
             });

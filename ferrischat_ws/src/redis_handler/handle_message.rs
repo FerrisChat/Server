@@ -7,7 +7,7 @@ use tokio::sync::mpsc::Sender;
 use uuid::Uuid;
 
 pub(super) async fn handle_message(
-    event_channel_to_uuid_map: Arc<DashMap<String, DashSet<Uuid>, RandomState>>,
+    event_channel_to_uuid_map: Arc<DashMap<String, DashSet<Uuid, RandomState>, RandomState>>,
     uuid_to_sender_map: Arc<DashMap<Uuid, Sender<Option<RedisMessage>>, RandomState>>,
     to_unsub: Arc<DashSet<Uuid, RandomState>>,
     redis_message: Message,
