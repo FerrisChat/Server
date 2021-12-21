@@ -6,8 +6,8 @@ pub use deadpool_redis;
 use deadpool_redis::{Config, Pool, Runtime};
 use ferrischat_config::GLOBAL_CONFIG;
 pub use redis;
-use redis::aio::PubSub;
-use redis::{Client, RedisResult};
+pub use redis_subscribe;
+use redis_subscribe::RedisSub;
 use std::lazy::SyncOnceCell as OnceCell;
 use sysinfo::{ProcessExt, RefreshKind, Signal, System, SystemExt};
 
@@ -202,18 +202,8 @@ pub async fn load_redis() {
     });
 }
 
-/// Load the Redis pool, change it to `PubSub`, and return it.
-///
-/// # Errors
-/// Returns whatever error Redis itself returns.
-pub async fn get_pubsub() -> RedisResult<PubSub> {
-    Ok(Client::open(
-        REDIS_LOCATION
-            .get()
-            .expect("failed to get redis location: was load_redis called before getting pubsub?")
-            .to_string(),
-    )?
-    .get_tokio_connection()
-    .await?
-    .into_pubsub())
+/// Load the Redis pool as a `RedisSub` object.
+#[must_use]
+pub fn get_pubsub() -> RedisSub {
+    RedisSub::new("127.0.0.1:6379")
 }

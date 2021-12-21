@@ -1,12 +1,13 @@
+use crate::event::RedisMessage;
 #[allow(clippy::wildcard_imports)]
 use crate::events::*;
 use crate::USERID_CONNECTION_MAP;
 use ferrischat_common::ws::WsOutboundEvent;
-use ferrischat_redis::redis::Msg;
 use futures_util::stream::SplitSink;
 use futures_util::SinkExt;
 use num_traits::ToPrimitive;
 use tokio::net::UnixStream;
+use tokio::sync::mpsc::Receiver;
 use tokio_tungstenite::tungstenite::protocol::frame::coding::CloseCode;
 use tokio_tungstenite::tungstenite::protocol::CloseFrame;
 use tokio_tungstenite::tungstenite::Message;
@@ -16,7 +17,7 @@ use uuid::Uuid;
 pub async fn tx_handler(
     mut tx: SplitSink<WebSocketStream<UnixStream>, Message>,
     mut closer_rx: futures::channel::oneshot::Receiver<Option<CloseFrame<'_>>>,
-    mut inter_rx: tokio::sync::mpsc::Receiver<WsOutboundEvent>,
+    mut inter_rx: Receiver<WsOutboundEvent>,
     conn_id: Uuid,
 ) -> (
     Option<CloseFrame<'_>>,
@@ -25,10 +26,10 @@ pub async fn tx_handler(
     enum TransmitType<'t> {
         InterComm(Box<Option<WsOutboundEvent>>),
         Exit(Option<CloseFrame<'t>>),
-        Redis(Option<Msg>),
+        Redis(Option<RedisMessage>),
     }
 
-    let mut redis_rx: Option<tokio::sync::mpsc::Receiver<Option<Msg>>> = None;
+    let mut redis_rx: Option<Receiver<Option<RedisMessage>>> = None;
 
     let db = match ferrischat_db::DATABASE_POOL.get() {
         Some(db) => db,
@@ -89,29 +90,28 @@ pub async fn tx_handler(
                 None => break None,
             },
             TransmitType::Exit(reason) => break reason,
-            TransmitType::Redis(Some(msg)) => {
+            TransmitType::Redis(Some(mut msg)) => {
                 let uid = if let Some(uid) = uid_conn_map.get(&conn_id) {
                     *(uid.value())
                 } else {
                     continue;
                 };
 
-                let n = match msg.get_channel::<String>().ok() {
-                    Some(n) => n,
-                    None => continue,
-                };
-                let outbound_message = match simd_json::serde::from_reader::<_, WsOutboundEvent>(
-                    msg.get_payload_bytes(),
-                ) {
-                    Ok(msg) => msg,
-                    Err(e) => {
-                        break Some(CloseFrame {
-                            code: CloseCode::from(5005),
-                            reason: format!("Internal JSON representation decoding failed: {}", e)
+                let n = msg.channel;
+                let outbound_message =
+                    match simd_json::serde::from_str::<WsOutboundEvent>(&mut msg.message) {
+                        Ok(msg) => msg,
+                        Err(e) => {
+                            break Some(CloseFrame {
+                                code: CloseCode::from(5005),
+                                reason: format!(
+                                    "Internal JSON representation decoding failed: {}",
+                                    e
+                                )
                                 .into(),
-                        })
-                    }
-                };
+                            })
+                        }
+                    };
                 let mut names = n.split('_');
                 let item_name = if let Some(n) = names.next() {
                     n
@@ -144,19 +144,7 @@ pub async fn tx_handler(
                 };
                 match ret {
                     Ok(true) => {
-                        let payload = match msg.get_payload::<String>() {
-                            Ok(p) => p,
-                            Err(e) => {
-                                break Some(CloseFrame {
-                                    code: CloseCode::from(5008),
-                                    reason: format!(
-                                        "Failed to deserialize message payload into String: {}",
-                                        e
-                                    )
-                                    .into(),
-                                });
-                            }
-                        };
+                        let payload = msg.message;
                         if let Err(e) = tx.feed(Message::Text(payload)).await {
                             warn!("Error while sending message to WebSocket client: {:?}", e);
                         }

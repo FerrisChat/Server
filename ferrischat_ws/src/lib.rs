@@ -3,13 +3,14 @@
 #![feature(box_syntax)]
 
 use dashmap::DashMap;
-use ferrischat_redis::redis::Msg;
 pub use init::*;
 use std::lazy::SyncOnceCell as OnceCell;
+use tokio::sync::mpsc::Sender;
 use uuid::Uuid;
 
 mod config;
 mod error_handling;
+mod event;
 mod events;
 mod handle_connection;
 mod init;
@@ -26,6 +27,5 @@ extern crate tracing;
 static USERID_CONNECTION_MAP: OnceCell<DashMap<Uuid, u128>> = OnceCell::new();
 
 // ignore the name
-static SUB_TO_ME: OnceCell<
-    tokio::sync::mpsc::Sender<(String, tokio::sync::mpsc::Sender<Option<Msg>>)>,
-> = OnceCell::new();
+static SUB_TO_ME: OnceCell<Sender<(String, Sender<Option<crate::event::RedisMessage>>)>> =
+    OnceCell::new();
