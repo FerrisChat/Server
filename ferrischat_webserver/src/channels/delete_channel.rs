@@ -4,7 +4,7 @@ use axum::extract::Path;
 use ferrischat_common::types::{Channel, ErrorJson};
 use ferrischat_common::ws::WsOutboundEvent;
 
-/// DELETE `/api/v0/channels/{channel_id}`
+/// DELETE `/v0/channels/{channel_id}`
 pub async fn delete_channel(
     Path(channel_id): Path<u128>,
     _: crate::Authorization,

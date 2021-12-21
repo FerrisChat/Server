@@ -11,7 +11,7 @@ name: "SQLx Checks"
 jobs:
   sqlx_check_ws:
     name: "SQLx Check (WebSocket)"
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
 
     services:
       postgres:
@@ -59,7 +59,7 @@ jobs:
         run: "diff -q sqlx-data.json sqlx-data.json.old || { git config user.name github-actions; git config user.email github-actions@github.com; git add sqlx-data.json; git commit -m \"automated sqlx-data.json update\"; git push; }"
   sqlx_check_http:
     name: "SQLx Check (HTTP)"
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
 
     services:
       postgres:

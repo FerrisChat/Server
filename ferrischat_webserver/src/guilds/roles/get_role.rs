@@ -3,7 +3,7 @@ use axum::extract::Path;
 use ferrischat_common::perms::Permissions;
 use ferrischat_common::types::{ErrorJson, Role};
 
-/// GET `/api/v0/guilds/{guild_id/roles/{role_id}`
+/// GET `/v0/guilds/{guild_id/roles/{role_id}`
 pub async fn get_role(
     Path(role_id): Path<u128>,
     _: crate::Authorization,

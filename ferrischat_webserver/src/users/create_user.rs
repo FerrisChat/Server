@@ -5,7 +5,7 @@ use ferrischat_common::types::{ErrorJson, ModelType, User, UserFlags};
 use ferrischat_snowflake_generator::generate_snowflake;
 use rand::Rng;
 
-/// POST /api/v0/users/
+/// POST /v0/users/
 /// Creates a ferrischat user with the given info
 pub async fn create_user(
     user_data: Json<UserCreateJson>,

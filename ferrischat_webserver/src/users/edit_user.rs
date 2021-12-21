@@ -3,7 +3,7 @@ use axum::extract::Json;
 use ferrischat_common::request_json::UserUpdateJson;
 use ferrischat_common::types::{ErrorJson, User, UserFlags};
 
-/// PATCH `/api/v0/users/me`
+/// PATCH `/v0/users/me`
 /// Modifies the authenticated user
 pub async fn edit_user(
     Json(UserUpdateJson {

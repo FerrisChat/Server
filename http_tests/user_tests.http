@@ -1,8 +1,8 @@
-POST http://localhost:8080/api/v0/users
+POST http://localhost:8080/v0/users
 # should return 400 Bad Request
 
 ###
-POST http://localhost:8080/api/v0/users
+POST http://localhost/v0/users
 Content-Type: application/json
 
 {
@@ -12,5 +12,5 @@ Content-Type: application/json
 }
 
 ###
-GET http://localhost:8080/api/v0/users/977236304859224692567566188544
+GET http://localhost:8080/v0/users/977236304859224692567566188544
 Authorization: OTc3MjM2MzA0ODU5MjI0NjkyNTY3NTY2MTg4NTQ0.M0Md1oxcy4EwsPds7dZ3yPo2hpSk8VgM3Rv8nJuf9MLl_zHZ0YIWgTAOGU8NXG0CCEVf_yPbcJWZlQKyQs1neFmgIbEYNHhFC17AMi7c8KoJ8rGq1-8viBU9EXUUxVxGOZ1b6iDuYp0t6KpZQWNlVldoYocA1Gkp9QzK-jQ_CIlCXxH1UPkgnw55MQ6Vd0_Wcgdh4sg7iS9gQgB87lPJslSg9rTJePwRfJX4DzlYU81wKjQZkgTVsv1y396ClfV1rMdjUWy_k8Ul0r8EZ13AxKgbdGZLbLSzHZdLIrcnT8IysTBbxewaBqUMsldp-4yz2lqKPQthFJ0h3-C6p2GVvg==

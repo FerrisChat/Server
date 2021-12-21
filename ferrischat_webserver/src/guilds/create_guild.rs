@@ -6,7 +6,7 @@ use ferrischat_common::types::{Guild, GuildFlags, Member, ModelType};
 use ferrischat_common::ws::WsOutboundEvent;
 use ferrischat_snowflake_generator::generate_snowflake;
 
-/// POST /api/v0/guilds/
+/// POST /v0/guilds/
 pub async fn create_guild(
     auth: crate::Authorization,
     guild_info: Json<GuildCreateJson>,
@@ -19,10 +19,11 @@ pub async fn create_guild(
     let GuildCreateJson { name } = guild_info.0;
 
     sqlx::query!(
-        "INSERT INTO guilds VALUES ($1, $2, $3)",
+        "INSERT INTO guilds(id, owner_id, name, flags) VALUES ($1, $2, $3, $4)",
         bigint_guild_id,
         bigint_user_id,
-        name
+        name,
+        0
     )
     .execute(db)
     .await?;
@@ -48,6 +49,7 @@ pub async fn create_guild(
             guild: None,
         }]),
         roles: None,
+        avatar: None,
     };
 
     let event = WsOutboundEvent::GuildCreate {

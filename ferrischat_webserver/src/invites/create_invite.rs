@@ -7,7 +7,7 @@ use ferrischat_common::types::{ErrorJson, Invite};
 use ferrischat_common::ws::WsOutboundEvent;
 use sqlx::types::time::OffsetDateTime;
 
-/// POST `/api/v0/guilds/{guild_id}/invites`
+/// POST `/v0/guilds/{guild_id}/invites`
 pub async fn create_invite(
     auth: crate::Authorization,
     Path(guild_id): Path<u128>,

@@ -4,7 +4,7 @@ use axum::extract::Path;
 use ferrischat_common::types::{Channel, ErrorJson, Pronouns, User, UserFlags};
 use ferrischat_common::ws::WsOutboundEvent;
 
-/// DELETE `/api/v0/channels/{channel_id}/typing`
+/// DELETE `/v0/channels/{channel_id}/typing`
 pub async fn typing_end(
     Path(channel_id): Path<u128>,
     crate::Authorization(authorized_user): crate::Authorization,

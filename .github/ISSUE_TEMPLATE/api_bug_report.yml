@@ -14,7 +14,7 @@ body:
     attributes:
       label: API Endpoint
       description: What API endpoint did you discover this on?
-      placeholder: ex. /api/v0/guilds/{guild_id}
+      placeholder: ex. /v0/guilds/{guild_id}
     validations:
       required: true
   - type: textarea
