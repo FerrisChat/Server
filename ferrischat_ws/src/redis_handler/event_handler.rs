@@ -65,8 +65,8 @@ pub async fn event_handler(
 
                 ResHandler::NewSub(Some(item)) => {
                     let p1 = Arc::clone(&pubsub_conn);
-                    let p2 = Arc::clone(&uuid_to_sender_map);
-                    let p3 = Arc::clone(&event_channel_to_uuid_map);
+                    let p2 = Arc::clone(&event_channel_to_uuid_map);
+                    let p3 = Arc::clone(&uuid_to_sender_map);
                     let (p4, p5) = item;
 
                     tokio::spawn(handle_subscribe(p1, p2, p3, p4, p5));
