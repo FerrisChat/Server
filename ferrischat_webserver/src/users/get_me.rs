@@ -34,7 +34,7 @@ pub async fn get_me(
                             id AS "id!",
                             owner_id AS "owner_id!",
                             name AS "name!",
-                            avatar,
+                            icon,
                             flags AS "flags!"
                         FROM
                             guilds
@@ -63,7 +63,7 @@ pub async fn get_me(
                         None => continue,
                     };
 
-                    let avatar = x.avatar.clone();
+                    let icon = x.icon.clone();
                     let flags = x.flags;
 
                     let owner_id_ = x
@@ -81,7 +81,7 @@ pub async fn get_me(
                     let g = Guild {
                         id,
                         owner_id,
-                        avatar,
+                        icon,
                         name: x.name.clone(),
                         channels: Some(
                             sqlx::query!(

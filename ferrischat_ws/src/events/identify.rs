@@ -36,7 +36,7 @@ pub async fn handle_identify_rx<'a>(
 
     let guilds = {
         let d = sqlx::query!(
-            r#"SELECT id AS "id!", owner_id AS "owner_id!", name AS "name!", avatar, flags AS "flags!" FROM guilds INNER JOIN members m on guilds.id = m.guild_id WHERE m.user_id = $1"#,
+            r#"SELECT id AS "id!", owner_id AS "owner_id!", name AS "name!", icon, flags AS "flags!" FROM guilds INNER JOIN members m on guilds.id = m.guild_id WHERE m.user_id = $1"#,
             bigdecimal_user_id
         )
                 .fetch_all(db)
@@ -60,7 +60,7 @@ pub async fn handle_identify_rx<'a>(
                     }))
                 }
             };
-            let avatar = x.avatar;
+            let icon = x.icon;
             let flags = x.flags;
 
             let owner_id = match x
@@ -151,7 +151,7 @@ pub async fn handle_identify_rx<'a>(
                 flags: ferrischat_common::types::GuildFlags::from_bits_truncate(flags),
                 members,
                 roles: None,
-                avatar,
+                icon,
             });
         }
         Some(guilds)

@@ -510,9 +510,9 @@ dependencies = [
 
 [[package]]
 name = "fastrand"
-version = "1.5.0"
+version = "1.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b394ed3d285a429378d3b384b9eb1285267e7df4b166df24b7a6939a04dc392e"
+checksum = "779d043b6a0b90cc4c0ed7ee380a6504394cee7efd7db050e3774eee387324b2"
 dependencies = [
  "instant",
 ]
@@ -534,7 +534,7 @@ dependencies = [
 [[package]]
 name = "ferrischat_common"
 version = "0.2.0"
-source = "git+https://github.com/FerrisChat/Common.git?branch=master#fa79df9f12ed9e2aca0f844cb4327ea2e3b1b58d"
+source = "git+https://github.com/FerrisChat/Common.git?branch=master#f6bd6b0531b20b9fa2746fac316312a2967d2157"
 dependencies = [
  "bitflags",
  "serde",
@@ -1284,9 +1284,9 @@ dependencies = [
 
 [[package]]
 name = "num_cpus"
-version = "1.13.0"
+version = "1.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "05499f3756671c15885fee9034446956fff3f243d6077b91e5767df161f766b3"
+checksum = "19e64526ebdee182341572e50e9ad03965aa510cd94427a4549448f285e957a1"
 dependencies = [
  "hermit-abi",
  "libc",

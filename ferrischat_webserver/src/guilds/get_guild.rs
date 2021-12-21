@@ -108,7 +108,7 @@ pub async fn get_guild(
             channels,
             members,
             roles: None,
-            avatar: guild.avatar,
+            icon: guild.icon,
         },
         code: 200,
     })
