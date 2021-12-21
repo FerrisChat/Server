@@ -1,4 +1,5 @@
 use crate::event::RedisMessage;
+use ahash::RandomState;
 use dashmap::{DashMap, DashSet};
 use ferrischat_redis::redis_subscribe::RedisSub;
 use std::sync::Arc;
@@ -7,8 +8,8 @@ use uuid::Uuid;
 
 pub(super) async fn handle_subscribe(
     pubsub_conn: Arc<RedisSub>,
-    uuid_to_sender_map: Arc<DashMap<Uuid, Sender<Option<RedisMessage>>>>,
-    event_channel_to_uuid_map: Arc<DashMap<String, DashSet<Uuid>>>,
+    event_channel_to_uuid_map: Arc<DashMap<String, DashSet<Uuid>, RandomState>>,
+    uuid_to_sender_map: Arc<DashMap<Uuid, Sender<Option<RedisMessage>>, RandomState>>,
     channel: String,
     sender: Sender<Option<RedisMessage>>,
 ) {

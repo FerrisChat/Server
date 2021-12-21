@@ -3,6 +3,7 @@ use super::handle_message::handle_message;
 use super::handle_subscribe::handle_subscribe;
 use super::handle_unsubscribe::handle_unsubscribe;
 use crate::event::RedisMessage;
+use ahash::RandomState;
 use dashmap::{DashMap, DashSet};
 use ferrischat_redis::redis_subscribe::Message;
 use futures_util::StreamExt;
@@ -15,9 +16,9 @@ pub async fn event_handler(
     mut rx: Receiver<(String, Sender<Option<RedisMessage>>)>,
 ) {
     let pubsub_conn = Arc::new(pubsub_conn);
-    let to_unsub = Arc::new(DashSet::new());
-    let event_channel_to_uuid_map = Arc::new(DashMap::new());
-    let uuid_to_sender_map = Arc::new(DashMap::new());
+    let to_unsub = Arc::new(DashSet::with_hasher(RandomState::new()));
+    let event_channel_to_uuid_map = Arc::new(DashMap::with_hasher(RandomState::new()));
+    let uuid_to_sender_map = Arc::new(DashMap::with_hasher(RandomState::new()));
 
     'outer: loop {
         let mut s = pubsub_conn
