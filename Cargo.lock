@@ -64,27 +64,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "async-stream"
-version = "0.3.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "171374e7e3b2504e0e5236e3b59260560f9fe94bfe9ac39ba5e4e929c5590625"
-dependencies = [
- "async-stream-impl",
- "futures-core",
-]
-
-[[package]]
-name = "async-stream-impl"
-version = "0.3.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "648ed8c8d2ce5409ccd57453d9d1b214b342a0d69376a6feda1fd6cae3299308"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
 name = "async-trait"
 version = "0.1.52"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -555,7 +534,7 @@ dependencies = [
 [[package]]
 name = "ferrischat_common"
 version = "0.2.0"
-source = "git+https://github.com/FerrisChat/Common.git?branch=master#cac13c078d2b35351c435c3f6a018beddcbf855b"
+source = "git+https://github.com/FerrisChat/Common.git?branch=master#f6bd6b0531b20b9fa2746fac316312a2967d2157"
 dependencies = [
  "bitflags",
  "serde",
@@ -612,7 +591,6 @@ dependencies = [
  "ferrischat_config",
  "rand",
  "redis",
- "redis-subscribe",
  "sysinfo",
  "tokio",
 ]
@@ -1520,20 +1498,6 @@ dependencies = [
  "tokio",
  "tokio-util",
  "url",
-]
-
-[[package]]
-name = "redis-subscribe"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "af4fb01da37cc17fe4d1ce9ec28f1e710f747f6f7e3979052d3950d12fdbd0a8"
-dependencies = [
- "async-stream",
- "nom",
- "rand",
- "tokio",
- "tokio-stream",
- "tracing",
 ]
 
 [[package]]
