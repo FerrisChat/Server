@@ -65,7 +65,7 @@ pub async fn get_user(
                     };
 
                     let avatar = x.avatar.clone();
-                    let flags = x.flags.clone();
+                    let flags = x.flags;
 
                     let owner_id_ = x
                         .owner_id
