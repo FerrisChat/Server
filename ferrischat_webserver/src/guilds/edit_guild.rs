@@ -8,7 +8,7 @@ use ferrischat_common::ws::WsOutboundEvent;
 
 pub async fn edit_guild(
     Path(guild_id): Path<u128>,
-    Json(GuildUpdateJson { name, avatar }): Json<GuildUpdateJson>,
+    Json(GuildUpdateJson { name, icon }): Json<GuildUpdateJson>,
     _: crate::Authorization,
 ) -> Result<crate::Json<Guild>, WebServerError> {
     let db = get_db_or_fail!();
@@ -27,7 +27,7 @@ pub async fn edit_guild(
         channels: None,
         members: None,
         roles: None,
-        avatar: guild.avatar,
+        icon: guild.icon,
     };
 
     if let Some(name) = name {
@@ -40,10 +40,10 @@ pub async fn edit_guild(
         .await?;
     }
 
-    if let Some(avatar) = avatar {
+    if let Some(icon) = icon {
         sqlx::query!(
-            "UPDATE guilds SET avatar = $1 WHERE id = $2",
-            avatar,
+            "UPDATE guilds SET icon = $1 WHERE id = $2",
+            icon,
             bigint_guild_id
         )
         .execute(db)
@@ -62,7 +62,7 @@ pub async fn edit_guild(
         channels: None,
         members: None,
         roles: None,
-        avatar: guild.avatar,
+        icon: guild.icon,
     };
 
     // TODO: impl Eq for all types
