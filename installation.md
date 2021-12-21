@@ -36,4 +36,4 @@ Then you can actually build the server!
 RUSTFLAGS="-Ctarget-cpu=native --emit=asm" cargo build --release --bin both
 sudo mv ./target/release/both /etc/ferrischat/server
 ```
-Now you can set up the server to run as a service using [this service file](https://github.com/FerrisChat/scripts/blob/main/host/ferrischat_selfhost.service) and [this config](https://github.com/FerrisChat/Server/blob/develop/config.example.toml), which should go in /etc/ferrischat/config.toml and be owned by the `ferris` user.
+Now you can set up the server to run as a service using [this service file](https://github.com/FerrisChat/scripts/blob/main/host/ferrischat_selfhost.service) and [this config](https://github.com/FerrisChat/Server/blob/develop/config.example.toml), which should go in /etc/ferrischat/config.toml and be owned by the `ferris` user. You also need to add an Nginx config file, an example of which can be found [here](https://github.com/FerrisChat/Server/blob/develop/ferrischat-nginx.conf).
