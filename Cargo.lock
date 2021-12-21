@@ -648,6 +648,7 @@ dependencies = [
 name = "ferrischat_ws"
 version = "0.1.0"
 dependencies = [
+ "ahash",
  "dashmap",
  "ferrischat_auth",
  "ferrischat_common",
