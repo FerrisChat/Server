@@ -1,113 +1,16 @@
 use crate::event::RedisMessage;
 use ferrischat_redis::redis_subscribe::{Message, RedisSub};
 use futures_util::StreamExt;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use tokio::sync::mpsc::{Receiver, Sender};
 use uuid::Uuid;
-
-async fn sub_to_new_channel(
-    pubsub_conn: &RedisSub,
-    channel: String,
-    sender: Sender<Option<RedisMessage>>,
-    event_channel_to_uuid_map: &mut HashMap<String, Vec<Uuid>>,
-    uuid_to_sender_map: &mut HashMap<Uuid, Sender<Option<RedisMessage>>>,
-) {
-    let channel_id = Uuid::new_v4();
-    debug!(
-        channel = %channel,
-        uuid = %channel_id,
-        "new subscriber detected"
-    );
-
-    if let Err(e) = pubsub_conn.psubscribe(channel.clone()).await {
-        error!(
-            channel = %channel,
-            uuid = %channel_id,
-            "failed to subscribe to Redis channel: {:?}",
-            e
-        );
-        // drop the sender as a way of letting the other end know subscription failed
-    } else {
-        if let Some(x) = event_channel_to_uuid_map.get_mut(&channel) {
-            debug!(
-                channel = %channel,
-                uuid = %channel_id,
-                "new subscriber is being added to existing channel set"
-            );
-            x.push(channel_id);
-        } else {
-            debug!(channel = %channel, uuid = %channel_id, "new subscriber is being added to new channel set");
-            event_channel_to_uuid_map.insert(channel, vec![channel_id]);
-        }
-
-        assert!(uuid_to_sender_map.insert(channel_id, sender).is_none());
-    }
-}
-
-#[allow(clippy::cognitive_complexity)]
-fn check_message(msg: &Message) -> bool {
-    match msg {
-        Message::Subscription {
-            channel,
-            subscriptions,
-        } => {
-            debug!(%subscriptions, "subscribed to new channel {}", channel);
-            true
-        }
-        Message::Unsubscription {
-            channel,
-            subscriptions,
-        } => {
-            debug!(%subscriptions, "unsubscribed from existing channel {}", channel);
-            true
-        }
-        Message::Message { channel, .. } => {
-            debug!(%channel, "got new message");
-            false
-        }
-
-        Message::PatternSubscription {
-            channel,
-            subscriptions,
-        } => {
-            debug!(%subscriptions, "subscribed to new pattern {}", channel);
-            true
-        }
-        Message::PatternUnsubscription {
-            channel,
-            subscriptions,
-        } => {
-            debug!(%subscriptions, "unsubscribed from existing pattern {}", channel);
-            true
-        }
-        Message::PatternMessage {
-            pattern, channel, ..
-        } => {
-            debug!(%channel, %pattern, "got new pattern message");
-            false
-        }
-
-        Message::Connected => {
-            info!("reconnected to Redis pubsub");
-            true
-        }
-        Message::Disconnected(e) => {
-            error!("disconnected from Redis pubsub: {:?}", e);
-            false
-        }
-        Message::Error(e) => {
-            error!("Redis pubsub error: {:?}", e);
-            true
-        }
-    }
-}
 
 // this function is entirely self-contained: as long as it fires events properly it will work
 pub async fn redis_event_handler(
     pubsub_conn: ferrischat_redis::redis_subscribe::RedisSub,
     mut rx: Receiver<(String, Sender<Option<RedisMessage>>)>,
 ) {
-    let mut to_unsub = Vec::new();
+    let mut to_unsub = HashSet::new();
     let mut event_channel_to_uuid_map = HashMap::new();
     let mut uuid_to_sender_map = HashMap::new();
 
@@ -179,7 +82,7 @@ pub async fn redis_event_handler(
                                 %pattern, %channel, %uuid,
                                 "failed to fire event, garbage collecting time"
                             );
-                            to_unsub.push(*uuid);
+                            to_unsub.insert(*uuid);
                         };
                     } else {
                         warn!(
@@ -205,29 +108,28 @@ pub async fn redis_event_handler(
 
 async fn unsubscribe_from_channels(
     pubsub_conn: &RedisSub,
-    event_channel_to_uuid_map: &mut HashMap<String, Vec<Uuid>>,
+    event_channel_to_uuid_map: &mut HashMap<String, HashSet<Uuid>>,
     uuid_to_sender_map: &mut HashMap<Uuid, Sender<Option<RedisMessage>>>,
-    to_unsub: &mut Vec<Uuid>,
+    to_unsub: &mut HashSet<Uuid>,
 ) {
     // if any, remove nonexistent subscriptions
 
-    let mut positions = Vec::with_capacity(to_unsub.len());
+    let mut channels = Vec::with_capacity(to_unsub.len());
     'outer: for (channel, map) in &*event_channel_to_uuid_map {
         for x in &*to_unsub {
-            if let Some(pos) = map.iter().position(|n| n == x) {
-                positions.push((channel.clone(), pos));
-                if to_unsub.len() == positions.len() {
+            if map.contains(x) {
+                channels.push((channel.clone(), x));
+                if to_unsub.len() == channels.len() {
                     break 'outer;
                 }
             }
         }
     }
 
-    let mut unsub = Vec::with_capacity(positions.len());
-    for (channel, idx) in positions {
+    let mut unsub = Vec::with_capacity(channels.len());
+    for (channel, uuid) in channels {
         if let Some(x) = event_channel_to_uuid_map.get_mut(&channel) {
-            // we do not care about ordering, so we use this function which is O(1) not O(n)
-            x.swap_remove(idx);
+            x.remove(uuid);
 
             if x.is_empty() {
                 // we're using a mutable ref in the loop so we can't just remove it here
@@ -249,4 +151,105 @@ async fn unsubscribe_from_channels(
     }
 
     to_unsub.clear();
+}
+
+async fn sub_to_new_channel(
+    pubsub_conn: &RedisSub,
+    channel: String,
+    sender: Sender<Option<RedisMessage>>,
+    event_channel_to_uuid_map: &mut HashMap<String, HashSet<Uuid>>,
+    uuid_to_sender_map: &mut HashMap<Uuid, Sender<Option<RedisMessage>>>,
+) {
+    let channel_id = Uuid::new_v4();
+    debug!(
+        channel = %channel,
+        uuid = %channel_id,
+        "new subscriber detected"
+    );
+
+    if let Err(e) = pubsub_conn.psubscribe(channel.clone()).await {
+        error!(
+            channel = %channel,
+            uuid = %channel_id,
+            "failed to subscribe to Redis channel: {:?}",
+            e
+        );
+        // drop the sender as a way of letting the other end know subscription failed
+    } else {
+        if let Some(x) = event_channel_to_uuid_map.get_mut(&channel) {
+            debug!(
+                channel = %channel,
+                uuid = %channel_id,
+                "new subscriber is being added to existing channel set"
+            );
+            x.insert(channel_id);
+        } else {
+            debug!(channel = %channel, uuid = %channel_id, "new subscriber is being added to new channel set");
+            event_channel_to_uuid_map.insert(channel, {
+                let mut s = HashSet::with_capacity(1);
+                s.insert(channel_id);
+                s
+            });
+        }
+
+        assert!(uuid_to_sender_map.insert(channel_id, sender).is_none());
+    }
+}
+
+#[allow(clippy::cognitive_complexity)]
+fn check_message(msg: &Message) -> bool {
+    match msg {
+        Message::Subscription {
+            channel,
+            subscriptions,
+        } => {
+            debug!(%subscriptions, "subscribed to new channel {}", channel);
+            true
+        }
+        Message::Unsubscription {
+            channel,
+            subscriptions,
+        } => {
+            debug!(%subscriptions, "unsubscribed from existing channel {}", channel);
+            true
+        }
+        Message::Message { channel, .. } => {
+            debug!(%channel, "got new message");
+            false
+        }
+
+        Message::PatternSubscription {
+            channel,
+            subscriptions,
+        } => {
+            debug!(%subscriptions, "subscribed to new pattern {}", channel);
+            true
+        }
+        Message::PatternUnsubscription {
+            channel,
+            subscriptions,
+        } => {
+            debug!(%subscriptions, "unsubscribed from existing pattern {}", channel);
+            true
+        }
+        Message::PatternMessage {
+            pattern, channel, ..
+        } => {
+            debug!(%channel, %pattern, "got new pattern message");
+            false
+        }
+
+        Message::Connected => {
+            info!("reconnected to Redis pubsub");
+            true
+        }
+        Message::Disconnected(e) => {
+            error!("disconnected from Redis pubsub: {:?}", e);
+            false
+        }
+        Message::Error(e) => {
+            error!("Redis pubsub error: {:?}", e);
+            true
+        }
+    }
 }
