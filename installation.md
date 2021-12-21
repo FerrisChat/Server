@@ -3,7 +3,7 @@
 FerrisChat requires Rust's `-Ctarget-cpu=native` to be set, which means we do not provide pre-built binaries.
 ```bash
 sudo apt update
-sudo apt install git curl nginx gcc libssl-dev pkg-config postgresql-13 redis-server
+sudo apt install git curl nginx gcc libssl-dev postgresql-13 redis-server
 sudo useradd --system ferris
 sudo mkdir /etc/ferrischat && sudo chown -R ferris:ferris /etc/ferrischat
 ```
