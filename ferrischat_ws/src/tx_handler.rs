@@ -87,7 +87,12 @@ pub async fn tx_handler(
                         error!("failed to send message: {:?}", e);
                     }
                 }
-                None => break None,
+                None => {
+                    break Some(CloseFrame {
+                        code: CloseCode::from(1000),
+                        reason: "normal close".into(),
+                    })
+                }
             },
             TransmitType::Exit(reason) => break reason,
             TransmitType::Redis(Some(mut msg)) => {
