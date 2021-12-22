@@ -19,22 +19,31 @@ fn decode_event<'a>(
     msg: Result<Message, Error>,
 ) -> Result<Option<WsInboundEvent>, Option<CloseFrame<'a>>> {
     match msg {
-        Ok(Message::Text(t)) => Ok(Some(
-            match simd_json::serde::from_slice(&mut t.into_bytes()[..]) {
-                Ok(d) => d,
-                Err(e) => {
-                    return Err(Some(CloseFrame {
-                        code: CloseCode::from(2001),
-                        reason: format!("invalid JSON found: {}", e).into(),
-                    }))
-                }
-            },
-        )),
-        Ok(Message::Binary(_)) => Err(Some(CloseFrame {
-            code: CloseCode::Unsupported,
-            reason: "Binary data sent: only text supported at the moment".into(),
-        })),
-        Ok(Message::Ping(_) | Message::Pong(_)) => Ok(None),
+        Ok(Message::Text(t)) => {
+            debug!("got text payload");
+            Ok(Some(
+                match simd_json::serde::from_slice(&mut t.into_bytes()[..]) {
+                    Ok(d) => d,
+                    Err(e) => {
+                        return Err(Some(CloseFrame {
+                            code: CloseCode::from(2001),
+                            reason: format!("invalid JSON found: {}", e).into(),
+                        }));
+                    }
+                },
+            ))
+        }
+        Ok(Message::Binary(_)) => {
+            debug!("got binary payload");
+            Err(Some(CloseFrame {
+                code: CloseCode::Unsupported,
+                reason: "Binary data sent: only text supported at the moment".into(),
+            }))
+        }
+        Ok(Message::Ping(_) | Message::Pong(_)) => {
+            debug!("got ping/pong payload");
+            Ok(None)
+        }
         Ok(Message::Close(_)) => Err(None),
         Err(e) => return Err(Some(handle_error(e))),
     }
