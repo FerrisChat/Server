@@ -167,9 +167,6 @@ pub async fn tx_handler(
                 })
             }
         }
-        if let Err(e) = tx.flush().await {
-            warn!("failed to flush client WebSocket: {:?}", e);
-        }
 
         if redis_rx.is_none() {
             let uid_conn_map = match USERID_CONNECTION_MAP.get() {
@@ -240,7 +237,9 @@ pub async fn tx_handler(
                 };
             };
         }
-        let _tx = tx.flush().await;
+        if let Err(e) = tx.flush().await {
+            warn!("error while flushing client websocket: {:?}", e);
+        }
     };
 
     (ret, tx)
