@@ -5,7 +5,7 @@ use ferrischat_common::types::{ErrorJson, Invite};
 /// GET `/v0/guilds/{guild_id}/invites`
 pub async fn get_guild_invites(
     Path(guild_id): Path<u128>,
-    crate::Authorization(authorized_user): crate::Authorization,
+    crate::Authorization(authorized_user, ..): crate::Authorization,
 ) -> Result<crate::Json<Vec<Invite>>, WebServerError> {
     let db = get_db_or_fail!();
     let bigint_guild_id = u128_to_bigdecimal!(guild_id);

@@ -12,7 +12,7 @@ pub async fn edit_bot(
     Json(BotUpdateJson {
         username, avatar, ..
     }): Json<BotUpdateJson>,
-    auth: crate::Authorization,
+    crate::Authorization(auth_user, ..): crate::Authorization,
 ) -> Result<crate::Json<User>, WebServerError> {
     let bigint_bot_id = u128_to_bigdecimal!(bot_id);
 
@@ -29,7 +29,7 @@ pub async fn edit_bot(
 
     let owner_id = bigdecimal_to_u128!(bigint_owner_id);
 
-    if owner_id != auth.0 {
+    if owner_id != auth_user {
         return Err(ErrorJson::new_403("you are not the owner of this bot".to_string()).into());
     }
 

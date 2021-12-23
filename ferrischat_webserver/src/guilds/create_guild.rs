@@ -8,14 +8,14 @@ use ferrischat_snowflake_generator::generate_snowflake;
 
 /// POST /v0/guilds/
 pub async fn create_guild(
-    auth: crate::Authorization,
+    crate::Authorization(user_id, ..): crate::Authorization,
     guild_info: Json<GuildCreateJson>,
 ) -> Result<crate::Json<Guild>, WebServerError> {
     let db = get_db_or_fail!();
     let node_id = get_node_id!();
     let guild_id = generate_snowflake::<0>(ModelType::Guild as u8, node_id);
     let bigint_guild_id = u128_to_bigdecimal!(guild_id);
-    let bigint_user_id = u128_to_bigdecimal!(auth.0);
+    let bigint_user_id = u128_to_bigdecimal!(user_id);
     let GuildCreateJson { name } = guild_info.0;
 
     sqlx::query!(
@@ -38,13 +38,13 @@ pub async fn create_guild(
 
     let guild_obj = Guild {
         id: guild_id,
-        owner_id: auth.0,
+        owner_id: user_id,
         name,
         channels: None,
         flags: GuildFlags::empty(),
         members: Some(vec![Member {
             guild_id: Some(guild_id),
-            user_id: Some(auth.0),
+            user_id: Some(user_id),
             user: None,
             guild: None,
         }]),

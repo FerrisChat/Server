@@ -11,7 +11,7 @@ use lettre::{
 /// POST /v0/verify
 /// Requires only an authorization token.
 pub async fn send_verification_email(
-    crate::Authorization(authorized_user): crate::Authorization,
+    crate::Authorization(authorized_user, ..): crate::Authorization,
 ) -> Result<crate::Json<SuccessJson>, WebServerError> {
     let db = get_db_or_fail!();
     let bigint_user_id = u128_to_bigdecimal!(authorized_user);

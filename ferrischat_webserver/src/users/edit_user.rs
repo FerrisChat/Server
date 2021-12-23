@@ -14,10 +14,8 @@ pub async fn edit_user(
         pronouns,
         ..
     }): Json<UserUpdateJson>,
-    auth: crate::Authorization,
+    crate::Authorization(user_id, ..): crate::Authorization,
 ) -> Result<crate::Json<User>, WebServerError> {
-    let user_id = auth.0;
-
     let bigint_user_id = u128_to_bigdecimal!(user_id);
     let db = get_db_or_fail!();
 

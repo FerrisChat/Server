@@ -6,7 +6,7 @@ use num_traits::cast::ToPrimitive;
 /// GET `/v0/users/{user_id}`
 pub async fn get_user(
     Path(user_id): Path<u128>,
-    crate::Authorization(authorized_user): crate::Authorization,
+    crate::Authorization(authorized_user, ..): crate::Authorization,
 ) -> Result<crate::Json<User>, WebServerError> {
     let db = get_db_or_fail!();
     let bigint_user_id = u128_to_bigdecimal!(user_id);

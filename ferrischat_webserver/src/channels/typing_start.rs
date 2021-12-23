@@ -7,7 +7,7 @@ use ferrischat_common::ws::WsOutboundEvent;
 /// POST `/v0/channels/{channel_id}/typing`
 pub async fn typing_start(
     Path(channel_id): Path<u128>,
-    crate::Authorization(authorized_user): crate::Authorization,
+    crate::Authorization(authorized_user, ..): crate::Authorization,
 ) -> Result<http::StatusCode, WebServerError> {
     let db = get_db_or_fail!();
     let bigint_user_id = u128_to_bigdecimal!(authorized_user);

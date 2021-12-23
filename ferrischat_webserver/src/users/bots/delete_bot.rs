@@ -6,7 +6,7 @@ use ferrischat_common::types::ErrorJson;
 /// Deletes the bot
 pub async fn delete_bot(
     Path((user_id, bot_id)): Path<(u128, u128)>,
-    auth: crate::Authorization,
+    crate::Authorization(auth_user, ..): crate::Authorization,
 ) -> Result<http::StatusCode, WebServerError> {
     let bigint_user_id = u128_to_bigdecimal!(user_id);
 
@@ -20,7 +20,7 @@ pub async fn delete_bot(
             .owner_id
     );
 
-    if owner_id != auth.0 {
+    if owner_id != auth_user {
         return Err(ErrorJson::new_403("you are not the owner of this bot".to_string()).into());
     }
 

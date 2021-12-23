@@ -4,7 +4,7 @@ use num_traits::cast::ToPrimitive;
 
 /// GET `/v0/users/me`
 pub async fn get_me(
-    crate::Authorization(authorized_user): crate::Authorization,
+    crate::Authorization(authorized_user, ..): crate::Authorization,
 ) -> Result<crate::Json<User>, WebServerError> {
     let user_id = authorized_user;
     let db = get_db_or_fail!();
