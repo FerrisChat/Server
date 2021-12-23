@@ -1,0 +1,9 @@
+[database]
+host = "localhost"
+port = 5432
+user = "ferris_chat"
+password = "ferris_chat"
+
+[redis]
+host = "localhost"
+port = 6739
