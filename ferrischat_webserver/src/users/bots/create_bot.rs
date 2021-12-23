@@ -13,7 +13,7 @@ pub async fn create_bot(
     Json(BotCreateJson { username }): Json<BotCreateJson>,
 ) -> Result<crate::Json<User>, WebServerError> {
     if is_bot {
-        return Err(ErrorJson::new_401("Bots cannot create/own bots!".to_string()).into());
+        return Err(ErrorJson::new_403("Bots cannot create/own bots!".to_string()).into());
     }
     let db = get_db_or_fail!();
     let bigint_owner_id = u128_to_bigdecimal!(owner_id);

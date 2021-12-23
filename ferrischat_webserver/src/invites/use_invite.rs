@@ -13,7 +13,7 @@ pub async fn use_invite(
     crate::Authorization(user_id, is_bot): crate::Authorization,
 ) -> Result<crate::Json<Member>, WebServerError> {
     if is_bot {
-        return Err(ErrorJson::new_401(
+        return Err(ErrorJson::new_403(
             "Bots cannot use invites! They must be invited by the guild owner.".to_string(),
         )
         .into());

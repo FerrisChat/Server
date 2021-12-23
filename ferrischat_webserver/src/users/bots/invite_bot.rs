@@ -14,7 +14,7 @@ pub async fn invite_bot(
     let bigint_guild_id = u128_to_bigdecimal!(guild_id);
 
     if is_bot {
-        return Err(ErrorJson::new_401("Bots cannot invite bots to guilds!".to_string()).into());
+        return Err(ErrorJson::new_403("Bots cannot invite bots to guilds!".to_string()).into());
     }
 
     let guild = sqlx::query!("SELECT * FROM guilds WHERE id = $1", bigint_guild_id)
