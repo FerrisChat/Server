@@ -22,7 +22,7 @@ pub async fn create_bot(
         return Err(ErrorJson::new_401("Bots cannot create/own bots!".to_string()).into());
     }
     let node_id = get_node_id!();
-    let user_id = generate_snowflake::<0>(ModelType::User as u8, node_id);
+    let user_id = generate_snowflake::<0>(ModelType::Bot as u8, node_id);
     let email = format!("{}@bots.ferris.chat", user_id);
     let password = (&mut thread_rng())
         .sample_iter(&Alphanumeric)
