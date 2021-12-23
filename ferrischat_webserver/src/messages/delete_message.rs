@@ -7,7 +7,7 @@ use ferrischat_common::ws::WsOutboundEvent;
 /// DELETE `/v0/channels/{channel_id}/messages/{message_id}`
 pub async fn delete_message(
     Path((channel_id, message_id)): Path<(u128, u128)>,
-    _: crate::Authorization,
+    crate::Authorization(_, is_bot): crate::Authorization,
 ) -> Result<http::StatusCode, WebServerError> {
     let bigint_message_id = u128_to_bigdecimal!(message_id);
     let bigint_channel_id = u128_to_bigdecimal!(channel_id);
@@ -69,6 +69,7 @@ WHERE m.id = $1
             pronouns: message
                 .author_pronouns
                 .and_then(ferrischat_common::types::Pronouns::from_i16),
+            is_bot,
         }),
         nonce: None,
     };

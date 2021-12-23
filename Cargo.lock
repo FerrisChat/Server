@@ -535,7 +535,7 @@ dependencies = [
 [[package]]
 name = "ferrischat_common"
 version = "0.2.0"
-source = "git+https://github.com/FerrisChat/Common.git?branch=master#6d39ad2bb29dccefb771498dd88b6a07c8680ace"
+source = "git+https://github.com/FerrisChat/Common.git?branch=master#6147a2315869bd0f706958650e01682d12c2bd14"
 dependencies = [
  "bitflags",
  "serde",

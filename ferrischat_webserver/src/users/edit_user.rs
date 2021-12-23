@@ -14,7 +14,7 @@ pub async fn edit_user(
         pronouns,
         ..
     }): Json<UserUpdateJson>,
-    crate::Authorization(user_id, ..): crate::Authorization,
+    crate::Authorization(user_id, is_bot): crate::Authorization,
 ) -> Result<crate::Json<User>, WebServerError> {
     let bigint_user_id = u128_to_bigdecimal!(user_id);
     let db = get_db_or_fail!();
@@ -87,6 +87,7 @@ pub async fn edit_user(
             pronouns: user
                 .pronouns
                 .and_then(ferrischat_common::types::Pronouns::from_i16),
+            is_bot,
         },
     })
 }

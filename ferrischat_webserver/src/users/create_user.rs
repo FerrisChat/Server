@@ -67,6 +67,7 @@ pub async fn create_user(
             flags: UserFlags::empty(),
             discriminator: user_discrim,
             pronouns,
+            is_bot: false,
         },
         code: 201,
     })

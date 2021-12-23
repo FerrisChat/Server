@@ -101,6 +101,7 @@ pub async fn use_invite(
                 pronouns: u
                     .pronouns
                     .and_then(ferrischat_common::types::Pronouns::from_i16),
+                is_bot,
             }
         }),
         guild_id: Some(guild_id),

@@ -39,6 +39,7 @@ pub async fn get_bots_by_user(
             pronouns: user
                 .pronouns
                 .and_then(ferrischat_common::types::Pronouns::from_i16),
+            is_bot
         });
     }
     Ok(crate::Json {

@@ -78,6 +78,7 @@ pub async fn create_bot(
             flags: UserFlags::BOT_ACCOUNT,
             discriminator: user_discrim,
             pronouns: None,
+            is_bot
         },
         code: 201,
     })

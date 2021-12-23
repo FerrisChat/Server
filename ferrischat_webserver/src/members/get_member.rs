@@ -5,7 +5,7 @@ use ferrischat_common::types::{ErrorJson, Member, User, UserFlags};
 /// GET `/v0/guilds/{guild_id}/members/{member_id}`
 pub async fn get_member(
     Path((guild_id, member_id)): Path<(u128, u128)>,
-    _: crate::Authorization,
+    crate::Authorization(_, is_bot): crate::Authorization,
 ) -> Result<crate::Json<Member>, WebServerError> {
     let bigint_guild_id = u128_to_bigdecimal!(guild_id);
     let bigint_member_id = u128_to_bigdecimal!(member_id);
@@ -37,6 +37,7 @@ pub async fn get_member(
             pronouns: u
                 .pronouns
                 .and_then(ferrischat_common::types::Pronouns::from_i16),
+            is_bot,
         });
 
     let member_obj = Member {
