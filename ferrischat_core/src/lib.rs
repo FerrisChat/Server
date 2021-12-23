@@ -58,9 +58,11 @@ pub fn init() -> Runtime {
     get_rt()
 }
 
-pub async fn async_init() {
-    ferrischat_auth::init_auth().await;
-    ferrischat_redis::load_redis().await;
+pub async fn async_init(only_db: bool) {
+    if !only_db {
+        ferrischat_auth::init_auth().await;
+        ferrischat_redis::load_redis().await;
+    }
     ferrischat_db::load_db().await;
 }
 
@@ -81,4 +83,8 @@ pub async fn start_both() {
     let (r1, r2) = futures::future::join(future1, future2).await;
     r1.expect("failed to spawn WebSocket server");
     r2.expect("failed to spawn HTTP server");
+}
+
+pub async fn run_migrations() {
+    ferrischat_db::run_migrations().await;
 }
