@@ -3,7 +3,7 @@ use axum::body::Body;
 use axum::extract::{FromRequest, RequestParts};
 use ferrischat_common::types::ErrorJson;
 
-pub struct Authorization(pub u128);
+pub struct Authorization(pub u128, pub bool);
 
 #[async_trait::async_trait]
 impl FromRequest<Body> for Authorization {
@@ -39,8 +39,11 @@ impl FromRequest<Body> for Authorization {
             Err(e) => return Err(e.into()),
         };
         debug!(id = %id, "token valid: {}", valid);
+
+        let is_bot = id >> 56 & 0b11111111 == 7;
+
         if valid {
-            Ok(Self(id))
+            Ok(Self(id, is_bot))
         } else {
             Err(ErrorJson::new_401("Authorization header passed was invalid".to_string()).into())
         }
