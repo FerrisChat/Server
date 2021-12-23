@@ -8,7 +8,7 @@ use ferrischat_snowflake_generator::generate_snowflake;
 
 /// POST `/v0/channels/{channel_id}/messages`
 pub async fn create_message(
-    auth: crate::Authorization,
+    crate::Authorization(user_id, is_bot): crate::Authorization,
     json: Json<MessageCreateJson>,
     Path(channel_id): Path<u128>,
 ) -> Result<crate::Json<Message>, WebServerError> {
@@ -32,7 +32,7 @@ pub async fn create_message(
     let message_id = generate_snowflake::<0>(ModelType::Message as u8, node_id);
     let bigint_message_id = u128_to_bigdecimal!(message_id);
 
-    let author_id = auth.0;
+    let author_id = user_id;
     let bigint_author_id = u128_to_bigdecimal!(author_id);
 
     let db = get_db_or_fail!();
@@ -71,6 +71,7 @@ pub async fn create_message(
         pronouns: r
             .pronouns
             .and_then(ferrischat_common::types::Pronouns::from_i16),
+        is_bot
     };
 
     let msg_obj = Message {

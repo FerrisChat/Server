@@ -1,12 +1,16 @@
 use crate::WebServerError;
-use ferrischat_common::types::{BotsOwnedByUser, User, UserFlags};
+use ferrischat_common::types::{BotsOwnedByUser, ErrorJson, User, UserFlags};
 
 /// GET `/v0/users/me/bots`
 /// Get all bots owned by the user
 pub async fn get_bots_by_user(
-    auth: crate::Authorization,
+    crate::Authorization(auth_user, is_bot): crate::Authorization,
 ) -> Result<crate::Json<BotsOwnedByUser>, WebServerError> {
-    let bigint_user_id = u128_to_bigdecimal!(auth.0);
+    if is_bot {
+        return Err(ErrorJson::new_401("Bots cannot create/own bots!".to_string()).into());
+    }
+
+    let bigint_user_id = u128_to_bigdecimal!(auth_user);
 
     let db = get_db_or_fail!();
 
@@ -35,6 +39,7 @@ pub async fn get_bots_by_user(
             pronouns: user
                 .pronouns
                 .and_then(ferrischat_common::types::Pronouns::from_i16),
+            is_bot
         });
     }
     Ok(crate::Json {

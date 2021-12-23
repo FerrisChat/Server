@@ -10,22 +10,17 @@ const FERRIS_EPOCH: i64 = 1_577_836_800_000;
 
 pub async fn use_invite(
     Path(invite_code): Path<String>,
-    crate::Authorization(user_id): crate::Authorization,
+    crate::Authorization(user_id, is_bot): crate::Authorization,
 ) -> Result<crate::Json<Member>, WebServerError> {
-    let bigint_user_id = u128_to_bigdecimal!(user_id);
-
-    let db = get_db_or_fail!();
-
-    let r = sqlx::query!("SELECT flags FROM users WHERE id = $1", bigint_user_id)
-        .fetch_one(db)
-        .await?;
-    let flags = UserFlags::from_bits_truncate(r.flags);
-    if flags.contains(UserFlags::BOT_ACCOUNT) {
-        return Err(ErrorJson::new_401(
+    if is_bot {
+        return Err(ErrorJson::new_403(
             "Bots cannot use invites! They must be invited by the guild owner.".to_string(),
         )
         .into());
     }
+
+    let db = get_db_or_fail!();
+    let bigint_user_id = u128_to_bigdecimal!(user_id);
 
     let invite = sqlx::query!("SELECT * FROM invites WHERE code = $1", invite_code)
         .fetch_optional(db)
@@ -106,6 +101,7 @@ pub async fn use_invite(
                 pronouns: u
                     .pronouns
                     .and_then(ferrischat_common::types::Pronouns::from_i16),
+                is_bot,
             }
         }),
         guild_id: Some(guild_id),

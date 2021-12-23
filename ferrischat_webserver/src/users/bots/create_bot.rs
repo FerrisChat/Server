@@ -9,20 +9,16 @@ use rand::{thread_rng, Rng};
 /// POST `/v0/users/me/bots`
 /// Creates a `FerrisChat` bot with the given info
 pub async fn create_bot(
-    auth: crate::Authorization,
+    crate::Authorization(owner_id, is_bot): crate::Authorization,
     Json(BotCreateJson { username }): Json<BotCreateJson>,
 ) -> Result<crate::Json<User>, WebServerError> {
-    let db = get_db_or_fail!();
-    let bigint_owner_id = u128_to_bigdecimal!(auth.0);
-    let r = sqlx::query!("SELECT flags FROM users WHERE id = $1", bigint_owner_id)
-        .fetch_one(db)
-        .await?;
-    let flags = UserFlags::from_bits_truncate(r.flags);
-    if flags.contains(UserFlags::BOT_ACCOUNT) {
-        return Err(ErrorJson::new_401("Bots cannot create/own bots!".to_string()).into());
+    if is_bot {
+        return Err(ErrorJson::new_403("Bots cannot create/own bots!".to_string()).into());
     }
+    let db = get_db_or_fail!();
+    let bigint_owner_id = u128_to_bigdecimal!(owner_id);
     let node_id = get_node_id!();
-    let user_id = generate_snowflake::<0>(ModelType::User as u8, node_id);
+    let user_id = generate_snowflake::<0>(ModelType::Bot as u8, node_id);
     let email = format!("{}@bots.ferris.chat", user_id);
     let password = (&mut thread_rng())
         .sample_iter(&Alphanumeric)
@@ -82,6 +78,7 @@ pub async fn create_bot(
             flags: UserFlags::BOT_ACCOUNT,
             discriminator: user_discrim,
             pronouns: None,
+            is_bot
         },
         code: 201,
     })

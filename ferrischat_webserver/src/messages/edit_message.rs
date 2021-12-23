@@ -9,7 +9,7 @@ use ferrischat_common::ws::WsOutboundEvent;
 pub async fn edit_message(
     Path((channel_id, message_id)): Path<(u128, u128)>,
     Json(MessageUpdateJson { content }): Json<MessageUpdateJson>,
-    auth: crate::Authorization,
+    crate::Authorization(user_id, is_bot): crate::Authorization,
 ) -> Result<crate::Json<Message>, WebServerError> {
     let bigint_channel_id = u128_to_bigdecimal!(channel_id);
     let bigint_message_id = u128_to_bigdecimal!(message_id);
@@ -48,7 +48,7 @@ pub async fn edit_message(
 
     let old_message_obj = {
         let author_id = bigdecimal_to_u128!(resp.author_id);
-        if author_id != auth.0 {
+        if author_id != user_id {
             return Err(ErrorJson::new_403(
                 "this user is not the author of the message".to_string(),
             )
@@ -75,6 +75,7 @@ pub async fn edit_message(
                 pronouns: resp
                     .author_pronouns
                     .and_then(ferrischat_common::types::Pronouns::from_i16),
+                is_bot,
             }),
             nonce: None,
         }

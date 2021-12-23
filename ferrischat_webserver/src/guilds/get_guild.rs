@@ -6,7 +6,7 @@ use num_traits::ToPrimitive;
 
 /// GET `/v0/guilds/{guild_id}`
 pub async fn get_guild(
-    _: crate::Authorization,
+    crate::Authorization(_, is_bot): crate::Authorization,
     Path(guild_id): Path<u128>,
     Query(params): Query<GetGuildUrlParams>,
 ) -> Result<crate::Json<Guild>, WebServerError> {
@@ -88,6 +88,7 @@ pub async fn get_guild(
                             pronouns: x
                                 .pronouns
                                 .and_then(ferrischat_common::types::Pronouns::from_i16),
+                            is_bot,
                         }),
                         guild_id: Some(guild_id),
                         guild: None,
@@ -108,7 +109,7 @@ pub async fn get_guild(
             channels,
             members,
             roles: None,
-            avatar: guild.avatar,
+            icon: guild.icon,
         },
         code: 200,
     })

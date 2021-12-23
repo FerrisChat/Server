@@ -6,9 +6,13 @@ use ferrischat_common::types::ErrorJson;
 /// Deletes the authenticated user
 pub async fn delete_user(
     Path(user_id): Path<u128>,
-    auth: crate::Authorization,
+    crate::Authorization(auth_user, is_bot): crate::Authorization,
 ) -> Result<http::StatusCode, WebServerError> {
-    if user_id != auth.0 {
+    if is_bot {
+        return Err(ErrorJson::new_403("bots cannot delete themselves".to_string()).into());
+    }
+
+    if user_id != auth_user {
         return Err(ErrorJson::new_403("this account is not yours".to_string()).into());
     }
 
