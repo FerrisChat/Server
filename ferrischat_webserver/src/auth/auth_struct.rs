@@ -45,7 +45,7 @@ impl FromRequest<Body> for Authorization {
         };
         debug!(id = %id, "token valid: {}", valid);
 
-        let is_bot = id >> 56 & 0b11111111 == 7;
+        let is_bot = id >> 56 & 255 == 7;
 
         if valid {
             Ok(Self(id, is_bot))
