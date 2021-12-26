@@ -2,7 +2,7 @@ use crate::ws::fire_event;
 use crate::WebServerError;
 use axum::Json;
 use ferrischat_common::request_json::GuildCreateJson;
-use ferrischat_common::types::{ErrorJson, Guild, GuildFlags, Member, ModelType};
+use ferrischat_common::types::{Guild, GuildFlags, Member, ModelType, ErrorJson};
 use ferrischat_common::ws::WsOutboundEvent;
 use ferrischat_snowflake_generator::generate_snowflake;
 
@@ -12,9 +12,7 @@ pub async fn create_guild(
     guild_info: Json<GuildCreateJson>,
 ) -> Result<crate::Json<Guild>, WebServerError> {
     if is_bot {
-        return Err(
-            ErrorJson::new_403("Bots are not permitted to create guilds!".to_string()).into(),
-        );
+        return Err(ErrorJson::new_403("Bots are not permitted to create guilds!".to_string()).into());
     };
     let db = get_db_or_fail!();
     let node_id = get_node_id!();

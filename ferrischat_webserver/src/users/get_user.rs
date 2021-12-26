@@ -132,9 +132,7 @@ pub async fn get_user(
                                         .await?;
 
                                         let is_bot = false;
-                                        if UserFlags::from_bits_truncate(user.flags)
-                                            .contains(UserFlags::BOT_ACCOUNT)
-                                        {
+                                        if UserFlags::from_bits_truncate(user.flags).contains(UserFlags::BOT_ACCOUNT) {
                                             let _is_bot = true;
                                         }
 

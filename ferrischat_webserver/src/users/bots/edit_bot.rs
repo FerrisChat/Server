@@ -66,7 +66,7 @@ pub async fn edit_bot(
             flags: UserFlags::from_bits_truncate(user.flags),
             discriminator: user.discriminator,
             pronouns: None,
-            is_bot,
+            is_bot
         },
         200,
     ))
