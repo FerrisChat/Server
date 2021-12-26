@@ -134,106 +134,6 @@
       ]
     }
   },
-  "130d0a09763d49857b8a6d3cc0f13b2b3e272ac9e8a82909e7fa88ddc350025c": {
-    "query": "SELECT m.*, u.avatar AS avatar, u.name AS name, u.discriminator AS discriminator, u.flags AS flags, u.pronouns AS pronouns FROM members m CROSS JOIN LATERAL (SELECT * FROM users u WHERE id = m.user_id) AS u WHERE guild_id = $1",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "user_id",
-          "type_info": "Numeric"
-        },
-        {
-          "ordinal": 1,
-          "name": "guild_id",
-          "type_info": "Numeric"
-        },
-        {
-          "ordinal": 2,
-          "name": "avatar",
-          "type_info": "Text"
-        },
-        {
-          "ordinal": 3,
-          "name": "name",
-          "type_info": "Varchar"
-        },
-        {
-          "ordinal": 4,
-          "name": "discriminator",
-          "type_info": "Int2"
-        },
-        {
-          "ordinal": 5,
-          "name": "flags",
-          "type_info": "Int8"
-        },
-        {
-          "ordinal": 6,
-          "name": "pronouns",
-          "type_info": "Int2"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Numeric"
-        ]
-      },
-      "nullable": [
-        false,
-        false,
-        true,
-        false,
-        false,
-        false,
-        true
-      ]
-    }
-  },
-  "13dbd1aed55c42a00028010704cfb9153f5128af4eb50a207a1c176c95d9b6ca": {
-    "query": "\n                        SELECT \n                            id AS \"id!\",\n                            owner_id AS \"owner_id!\",\n                            name AS \"name!\",\n                            avatar,\n                            flags AS \"flags!\"\n                        FROM \n                            guilds\n                        INNER JOIN\n                            members m ON guilds.id = m.guild_id\n                        WHERE\n                            m.user_id = $1\n                    ",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "id!",
-          "type_info": "Numeric"
-        },
-        {
-          "ordinal": 1,
-          "name": "owner_id!",
-          "type_info": "Numeric"
-        },
-        {
-          "ordinal": 2,
-          "name": "name!",
-          "type_info": "Varchar"
-        },
-        {
-          "ordinal": 3,
-          "name": "avatar",
-          "type_info": "Text"
-        },
-        {
-          "ordinal": 4,
-          "name": "flags!",
-          "type_info": "Int8"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Numeric"
-        ]
-      },
-      "nullable": [
-        false,
-        false,
-        false,
-        true,
-        false
-      ]
-    }
-  },
   "15c392265da9b768a21889aa58c8069881373a66850c498abb7227288edaa606": {
     "query": "UPDATE roles SET position = $1 WHERE id = $2",
     "describe": {
@@ -301,7 +201,7 @@
         },
         {
           "ordinal": 3,
-          "name": "avatar",
+          "name": "icon",
           "type_info": "Text"
         },
         {
@@ -692,50 +592,6 @@
       ]
     }
   },
-  "6705edd0f6528ad7e21e771f6d60f8774eec13dddc078bd28ce72f742217d806": {
-    "query": "SELECT id AS \"id!\", owner_id AS \"owner_id!\", name AS \"name!\", avatar, flags AS \"flags!\" FROM guilds INNER JOIN members m on guilds.id = m.guild_id WHERE m.user_id = $1",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "id!",
-          "type_info": "Numeric"
-        },
-        {
-          "ordinal": 1,
-          "name": "owner_id!",
-          "type_info": "Numeric"
-        },
-        {
-          "ordinal": 2,
-          "name": "name!",
-          "type_info": "Varchar"
-        },
-        {
-          "ordinal": 3,
-          "name": "avatar",
-          "type_info": "Text"
-        },
-        {
-          "ordinal": 4,
-          "name": "flags!",
-          "type_info": "Int8"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Numeric"
-        ]
-      },
-      "nullable": [
-        false,
-        false,
-        false,
-        true,
-        false
-      ]
-    }
-  },
   "685b72a878b692b32b239290055c454760d780222b5c1c19ab47b5afd0b45e98": {
     "query": "UPDATE invites SET uses = $1 WHERE code = $2",
     "describe": {
@@ -744,19 +600,6 @@
         "Left": [
           "Int4",
           "Text"
-        ]
-      },
-      "nullable": []
-    }
-  },
-  "6bac05d32c1de03ed40aeb5923335fa73459a85088342736c4d27c8e19a5b2f0": {
-    "query": "UPDATE guilds SET avatar = $1 WHERE id = $2",
-    "describe": {
-      "columns": [],
-      "parameters": {
-        "Left": [
-          "Text",
-          "Numeric"
         ]
       },
       "nullable": []
@@ -784,6 +627,50 @@
       },
       "nullable": [
         false,
+        false
+      ]
+    }
+  },
+  "6eb63e61da03da38c856ff9069245678640d13708f69eccee816860df6ffb060": {
+    "query": "\n                        SELECT\n                            id AS \"id!\",\n                            owner_id AS \"owner_id!\",\n                            name AS \"name!\",\n                            icon,\n                            flags AS \"flags!\"\n                        FROM\n                            guilds\n                        INNER JOIN\n                            members m ON guilds.id = m.guild_id\n                        WHERE\n                            m.user_id = $1\n                    ",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id!",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 1,
+          "name": "owner_id!",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 2,
+          "name": "name!",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 3,
+          "name": "icon",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 4,
+          "name": "flags!",
+          "type_info": "Int8"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Numeric"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        true,
         false
       ]
     }
@@ -822,7 +709,7 @@
         },
         {
           "ordinal": 3,
-          "name": "avatar",
+          "name": "icon",
           "type_info": "Text"
         },
         {
@@ -841,26 +728,6 @@
         false,
         false,
         true,
-        false
-      ]
-    }
-  },
-  "79a40009b7e09a7b443779142a8022f65c38ab7d75a362c5c1a1ab1052840234": {
-    "query": "SELECT guild_id FROM members WHERE user_id = $1",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "guild_id",
-          "type_info": "Numeric"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Numeric"
-        ]
-      },
-      "nullable": [
         false
       ]
     }
@@ -967,6 +834,19 @@
       "nullable": []
     }
   },
+  "839b0e78bfaa9f0e812b196f48a0588e5af2a46a4526e427af11b364da0916a4": {
+    "query": "UPDATE guilds SET icon = $1 WHERE id = $2",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Numeric"
+        ]
+      },
+      "nullable": []
+    }
+  },
   "843923b9a0257cf80f1dff554e7dc8fdfc05f489328e8376513124dfb42996e3": {
     "query": "SELECT * FROM users WHERE id = $1",
     "describe": {
@@ -1032,46 +912,6 @@
         false,
         true,
         true
-      ]
-    }
-  },
-  "871fab2f0549279f8c335552ba608f93bbce13c497f724fe44e66d69bbc70f96": {
-    "query": "SELECT flags FROM users WHERE id = $1",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "flags",
-          "type_info": "Int8"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Numeric"
-        ]
-      },
-      "nullable": [
-        false
-      ]
-    }
-  },
-  "878a86670eec24ecd8a7e1864d6edd105c177cfbab10a652a947c5491bc6c0ff": {
-    "query": "SELECT (auth_token) FROM auth_tokens WHERE user_id = $1",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "auth_token",
-          "type_info": "Text"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Numeric"
-        ]
-      },
-      "nullable": [
-        false
       ]
     }
   },
@@ -1210,71 +1050,6 @@
         ]
       },
       "nullable": []
-    }
-  },
-  "9aeee608aa040d459cca99393ec3aa6b578e7a60b0857e2c10f40079a0f6c45e": {
-    "query": "\n                        SELECT\n                            id AS \"id!\",\n                            owner_id AS \"owner_id!\",\n                            name AS \"name!\",\n                            avatar,\n                            flags AS \"flags!\"\n                        FROM\n                            guilds\n                        INNER JOIN\n                            members m ON guilds.id = m.guild_id\n                        WHERE\n                            m.user_id = $1\n                    ",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "id!",
-          "type_info": "Numeric"
-        },
-        {
-          "ordinal": 1,
-          "name": "owner_id!",
-          "type_info": "Numeric"
-        },
-        {
-          "ordinal": 2,
-          "name": "name!",
-          "type_info": "Varchar"
-        },
-        {
-          "ordinal": 3,
-          "name": "avatar",
-          "type_info": "Text"
-        },
-        {
-          "ordinal": 4,
-          "name": "flags!",
-          "type_info": "Int8"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Numeric"
-        ]
-      },
-      "nullable": [
-        false,
-        false,
-        false,
-        true,
-        false
-      ]
-    }
-  },
-  "a05f422e19e53ad66232fde951226f3c50a0c1d251996bda3e1fabe37032cfe3": {
-    "query": "SELECT guild_id FROM members WHERE user_id = $1 AND guild_id = $2",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "guild_id",
-          "type_info": "Numeric"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Numeric",
-          "Numeric"
-        ]
-      },
-      "nullable": [
-        false
-      ]
     }
   },
   "aa7721837cba04a42641827de9135fef077feee58cf6ebf792591992f3562a5c": {
@@ -1512,6 +1287,50 @@
         ]
       },
       "nullable": []
+    }
+  },
+  "c3f077015818fdb4ef47adc82c97adb1a79dbfcff3cf5a7a70c86f19bbc56514": {
+    "query": "\n                        SELECT \n                            id AS \"id!\",\n                            owner_id AS \"owner_id!\",\n                            name AS \"name!\",\n                            icon,\n                            flags AS \"flags!\"\n                        FROM \n                            guilds\n                        INNER JOIN\n                            members m ON guilds.id = m.guild_id\n                        WHERE\n                            m.user_id = $1\n                    ",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id!",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 1,
+          "name": "owner_id!",
+          "type_info": "Numeric"
+        },
+        {
+          "ordinal": 2,
+          "name": "name!",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 3,
+          "name": "icon",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 4,
+          "name": "flags!",
+          "type_info": "Int8"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Numeric"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        true,
+        false
+      ]
     }
   },
   "c45efb245942a91f2b84cc1123d67b161814d917f4d7305e26c5a89dadc882d3": {
