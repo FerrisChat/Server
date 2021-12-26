@@ -9,13 +9,13 @@ pub async fn invite_bot(
     Path((bot_id, guild_id)): Path<(u128, u128)>,
     crate::Authorization(auth_user, is_bot): crate::Authorization,
 ) -> Result<crate::Json<Member>, WebServerError> {
-    if is_bot {
-        return Err(ErrorJson::new_403("Bots cannot invite bots to guilds!".to_string()).into());
-    }
-
     let bigint_bot_id = u128_to_bigdecimal!(bot_id);
     let db = get_db_or_fail!();
     let bigint_guild_id = u128_to_bigdecimal!(guild_id);
+
+    if is_bot {
+        return Err(ErrorJson::new_403("Bots cannot invite bots to guilds!".to_string()).into());
+    }
 
     let guild = sqlx::query!("SELECT * FROM guilds WHERE id = $1", bigint_guild_id)
         .fetch_optional(db)
