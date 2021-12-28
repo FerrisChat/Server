@@ -19,6 +19,11 @@ pub async fn create_user(
         password,
         pronouns,
     } = user_data.0;
+    if username.contains(char::is_whitespace) {
+        return Err(
+            ErrorJson::new_400("Your username may not contain a whitespace!".to_string()).into(),
+        );
+    }
     // Gets a discriminator for the user
     let user_discrim = {
         // Makes sure the name doesn't already exist

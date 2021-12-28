@@ -20,6 +20,12 @@ pub async fn edit_user(
     let db = get_db_or_fail!();
 
     if let Some(username) = username {
+        if username.contains(char::is_whitespace) {
+            return Err(ErrorJson::new_400(
+                "Your username may not contain a whitespace!".to_string(),
+            )
+            .into());
+        }
         sqlx::query!(
             "UPDATE users SET name = $1 WHERE id = $2",
             username,
