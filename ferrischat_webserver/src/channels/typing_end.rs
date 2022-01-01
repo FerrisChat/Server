@@ -10,15 +10,15 @@ pub async fn typing_end(
     crate::Authorization(authorized_user, is_bot): crate::Authorization,
 ) -> Result<http::StatusCode, WebServerError> {
     let db = get_db_or_fail!();
-    let bigint_user_id = u128_to_bigdecimal!(authorized_user);
-    let bigint_channel_id = u128_to_bigdecimal!(channel_id);
+    let bigdecimal_user_id = u128_to_bigdecimal!(authorized_user);
+    let bigdecimal_channel_id = u128_to_bigdecimal!(channel_id);
 
-    let user = sqlx::query!("SELECT * FROM users WHERE id = $1", bigint_user_id)
+    let user = sqlx::query!("SELECT * FROM users WHERE id = $1", bigdecimal_user_id)
         .fetch_optional(db)
         .await?
         .ok_or_else(|| ErrorJson::new_404(format!("Unknown user with ID {}", authorized_user)))?;
 
-    let channel = sqlx::query!("SELECT * FROM channels WHERE id = $1", bigint_channel_id)
+    let channel = sqlx::query!("SELECT * FROM channels WHERE id = $1", bigdecimal_channel_id)
         .fetch_optional(db)
         .await?
         .ok_or_else(|| ErrorJson::new_404(format!("Unknown channel with ID {}", channel_id)))?;

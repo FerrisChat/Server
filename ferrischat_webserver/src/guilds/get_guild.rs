@@ -11,9 +11,9 @@ pub async fn get_guild(
     Query(params): Query<GetGuildUrlParams>,
 ) -> Result<crate::Json<Guild>, WebServerError> {
     let db = get_db_or_fail!();
-    let bigint_guild_id = u128_to_bigdecimal!(guild_id);
+    let bigdecimal_guild_id = u128_to_bigdecimal!(guild_id);
 
-    let guild = sqlx::query!("SELECT * FROM guilds WHERE id = $1", bigint_guild_id)
+    let guild = sqlx::query!("SELECT * FROM guilds WHERE id = $1", bigdecimal_guild_id)
         .fetch_optional(db)
         .await?
         .ok_or_else(|| ErrorJson::new_404(format!("Unknown guild with ID {}", guild_id)))?;
@@ -21,7 +21,7 @@ pub async fn get_guild(
     let channels: Option<Vec<Channel>> = if params.channels.unwrap_or(true) {
         let resp = sqlx::query!(
             "SELECT * FROM channels WHERE guild_id = $1",
-            bigint_guild_id
+            bigdecimal_guild_id
         )
         .fetch_all(db)
         .await?;
@@ -62,7 +62,7 @@ pub async fn get_guild(
                 as u
         WHERE guild_id = $1
         "#,
-            bigint_guild_id
+            bigdecimal_guild_id
         )
         .fetch_all(db)
         .await?;

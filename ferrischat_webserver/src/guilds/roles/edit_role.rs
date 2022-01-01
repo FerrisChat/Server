@@ -17,11 +17,11 @@ pub async fn edit_role(
     }): Json<RoleUpdateJson>,
     _: crate::Authorization,
 ) -> Result<crate::Json<Role>, WebServerError> {
-    let bigint_role_id = u128_to_bigdecimal!(role_id);
+    let bigdecimal_role_id = u128_to_bigdecimal!(role_id);
 
     let db = get_db_or_fail!();
 
-    let role = sqlx::query!("SELECT * FROM roles WHERE id = $1", bigint_role_id)
+    let role = sqlx::query!("SELECT * FROM roles WHERE id = $1", bigdecimal_role_id)
         .fetch_optional(db)
         .await?
         .ok_or_else(|| ErrorJson::new_404(format!("Unknown role with ID {}", role_id)))?;
@@ -38,7 +38,7 @@ pub async fn edit_role(
         sqlx::query!(
             "UPDATE roles SET name = $1 WHERE id = $2",
             name,
-            bigint_role_id
+            bigdecimal_role_id
         )
         .execute(db)
         .await?;
@@ -48,7 +48,7 @@ pub async fn edit_role(
         sqlx::query!(
             "UPDATE roles SET color = $1 WHERE id = $2",
             color,
-            bigint_role_id
+            bigdecimal_role_id
         )
         .execute(db)
         .await?;
@@ -58,7 +58,7 @@ pub async fn edit_role(
         sqlx::query!(
             "UPDATE roles SET position = $1 WHERE id = $2",
             position,
-            bigint_role_id
+            bigdecimal_role_id
         )
         .execute(db)
         .await?;
@@ -69,13 +69,13 @@ pub async fn edit_role(
         sqlx::query!(
             "UPDATE roles SET permissions = $1 WHERE id = $2",
             perms,
-            bigint_role_id
+            bigdecimal_role_id
         )
         .execute(db)
         .await?;
     }
 
-    let role = sqlx::query!("SELECT * FROM roles WHERE id = $1", bigint_role_id)
+    let role = sqlx::query!("SELECT * FROM roles WHERE id = $1", bigdecimal_role_id)
         .fetch_optional(db)
         .await?
         .ok_or_else(|| ErrorJson::new_404(format!("Unknown role with ID {}", role_id)))?;

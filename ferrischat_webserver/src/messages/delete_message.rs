@@ -9,12 +9,12 @@ pub async fn delete_message(
     Path((channel_id, message_id)): Path<(u128, u128)>,
     crate::Authorization(_, is_bot): crate::Authorization,
 ) -> Result<http::StatusCode, WebServerError> {
-    let bigint_message_id = u128_to_bigdecimal!(message_id);
-    let bigint_channel_id = u128_to_bigdecimal!(channel_id);
+    let bigdecimal_message_id = u128_to_bigdecimal!(message_id);
+    let bigdecimal_channel_id = u128_to_bigdecimal!(channel_id);
 
     let db = get_db_or_fail!();
 
-    let channel = sqlx::query!("SELECT * FROM channels WHERE id = $1", bigint_channel_id)
+    let channel = sqlx::query!("SELECT * FROM channels WHERE id = $1", bigdecimal_channel_id)
         .fetch_optional(db)
         .await?
         .ok_or_else(|| ErrorJson::new_404(format!("Unknown channel with ID {}", channel_id)))?;
@@ -36,8 +36,8 @@ FROM messages m
 WHERE m.id = $1
   AND m.channel_id = $2
   "#,
-        bigint_message_id,
-        bigint_channel_id,
+        bigdecimal_message_id,
+        bigdecimal_channel_id,
     )
     .fetch_optional(db)
     .await?
@@ -76,8 +76,8 @@ WHERE m.id = $1
 
     sqlx::query!(
         "DELETE FROM messages WHERE id = $1 AND channel_id = $2",
-        bigint_message_id,
-        bigint_channel_id
+        bigdecimal_message_id,
+        bigdecimal_channel_id
     )
     .execute(db)
     .await?;

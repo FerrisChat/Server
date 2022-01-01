@@ -20,15 +20,15 @@ pub async fn use_invite(
     }
 
     let db = get_db_or_fail!();
-    let bigint_user_id = u128_to_bigdecimal!(user_id);
+    let bigdecimal_user_id = u128_to_bigdecimal!(user_id);
 
     let invite = sqlx::query!("SELECT * FROM invites WHERE code = $1", invite_code)
         .fetch_optional(db)
         .await?
         .ok_or_else(|| ErrorJson::new_404(format!("Unknown invite with code {}", invite_code)))?;
 
-    let bigint_guild_id: BigDecimal = invite.guild_id;
-    let guild_id = bigdecimal_to_u128!(bigint_guild_id);
+    let bigdecimal_guild_id: BigDecimal = invite.guild_id;
+    let guild_id = bigdecimal_to_u128!(bigdecimal_guild_id);
     let uses = invite.uses + 1;
     let unix_timestamp = OffsetDateTime::now_utc().unix_timestamp();
     let now = unix_timestamp - FERRIS_EPOCH;
@@ -67,8 +67,8 @@ pub async fn use_invite(
 
     if sqlx::query!(
         r#"SELECT EXISTS(SELECT * FROM members WHERE user_id = $1 AND guild_id = $2) AS "exists!""#,
-        bigint_user_id,
-        bigint_guild_id
+        bigdecimal_user_id,
+        bigdecimal_guild_id
     )
     .fetch_one(db)
     .await?
@@ -79,8 +79,8 @@ pub async fn use_invite(
 
     sqlx::query!(
         "INSERT INTO members VALUES ($1, $2)",
-        bigint_user_id,
-        bigint_guild_id
+        bigdecimal_user_id,
+        bigdecimal_guild_id
     )
     .execute(db)
     .await?;
@@ -88,7 +88,7 @@ pub async fn use_invite(
     let member_obj = Member {
         user_id: Some(user_id),
         user: Some({
-            let u = sqlx::query!("SELECT * FROM users WHERE id = $1", bigint_user_id)
+            let u = sqlx::query!("SELECT * FROM users WHERE id = $1", bigdecimal_user_id)
                 .fetch_one(db)
                 .await?;
             User {

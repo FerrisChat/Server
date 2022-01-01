@@ -10,11 +10,11 @@ pub async fn delete_channel(
     _: crate::Authorization,
 ) -> Result<http::StatusCode, WebServerError> {
     let db = get_db_or_fail!();
-    let bigint_channel_id = u128_to_bigdecimal!(channel_id);
+    let bigdecimal_channel_id = u128_to_bigdecimal!(channel_id);
 
     let channel = sqlx::query!(
         "DELETE FROM channels WHERE id = $1 RETURNING *",
-        bigint_channel_id,
+        bigdecimal_channel_id,
     )
     .fetch_optional(db)
     .await?

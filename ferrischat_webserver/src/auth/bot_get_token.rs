@@ -8,9 +8,9 @@ pub async fn get_bot_token(
     Path(bot_id): Path<u128>,
 ) -> Result<Json<AuthResponse>, WebServerError> {
     let db = get_db_or_fail!();
-    let bigint_bot_id = u128_to_bigdecimal!(bot_id);
+    let bigdecimal_bot_id = u128_to_bigdecimal!(bot_id);
 
-    let bot_resp = sqlx::query!("SELECT * FROM bots WHERE user_id = $1", bigint_bot_id)
+    let bot_resp = sqlx::query!("SELECT * FROM bots WHERE user_id = $1", bigdecimal_bot_id)
         .fetch_optional(db)
         .await?
         .ok_or_else(|| ErrorJson::new_404(format!("Unknown bot with ID {}", bot_id)))?;
@@ -29,7 +29,7 @@ pub async fn get_bot_token(
 
     sqlx::query!(
         "INSERT INTO auth_tokens VALUES ($1, $2) ON CONFLICT (user_id) DO UPDATE SET auth_token = $2",
-        bigint_bot_id,
+        bigdecimal_bot_id,
         hashed_token)
         .execute(db)
         .await?;

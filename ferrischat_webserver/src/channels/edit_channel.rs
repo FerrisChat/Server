@@ -11,11 +11,11 @@ pub async fn edit_channel(
     channel_info: axum::extract::Json<ChannelUpdateJson>,
     _: crate::Authorization,
 ) -> Result<Json<Channel>, WebServerError> {
-    let bigint_channel_id = u128_to_bigdecimal!(channel_id);
+    let bigdecimal_channel_id = u128_to_bigdecimal!(channel_id);
     let db = get_db_or_fail!();
     let ChannelUpdateJson { name } = channel_info.0;
 
-    let c = sqlx::query!("SELECT * FROM channels WHERE id = $1", bigint_channel_id)
+    let c = sqlx::query!("SELECT * FROM channels WHERE id = $1", bigdecimal_channel_id)
         .fetch_optional(db)
         .await?
         .ok_or_else(|| ErrorJson::new_404(format!("Unknown channel with ID {}", channel_id)))?;
@@ -35,13 +35,13 @@ pub async fn edit_channel(
         sqlx::query!(
             "UPDATE channels SET name = $1 WHERE id = $2",
             name,
-            bigint_channel_id
+            bigdecimal_channel_id
         )
         .execute(db)
         .await?;
     }
 
-    let channel = sqlx::query!("SELECT * FROM channels WHERE id = $1", bigint_channel_id)
+    let channel = sqlx::query!("SELECT * FROM channels WHERE id = $1", bigdecimal_channel_id)
         .fetch_optional(db)
         .await?
         .ok_or_else(|| ErrorJson::new_404(format!("Unknown channel with ID {}", channel_id)))?;

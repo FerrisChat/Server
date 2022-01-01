@@ -19,14 +19,14 @@ pub async fn create_guild(
     let db = get_db_or_fail!();
     let node_id = get_node_id!();
     let guild_id = generate_snowflake::<0>(ModelType::Guild as u8, node_id);
-    let bigint_guild_id = u128_to_bigdecimal!(guild_id);
-    let bigint_user_id = u128_to_bigdecimal!(user_id);
+    let bigdecimal_guild_id = u128_to_bigdecimal!(guild_id);
+    let bigdecimal_user_id = u128_to_bigdecimal!(user_id);
     let GuildCreateJson { name } = guild_info.0;
 
     sqlx::query!(
         "INSERT INTO guilds(id, owner_id, name, flags) VALUES ($1, $2, $3, $4)",
-        bigint_guild_id,
-        bigint_user_id,
+        bigdecimal_guild_id,
+        bigdecimal_user_id,
         name,
         0
     )
@@ -35,8 +35,8 @@ pub async fn create_guild(
 
     sqlx::query!(
         "INSERT INTO members VALUES ($1, $2)",
-        bigint_user_id,
-        bigint_guild_id
+        bigdecimal_user_id,
+        bigdecimal_guild_id
     )
     .execute(db)
     .await?;

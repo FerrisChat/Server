@@ -30,19 +30,19 @@ pub async fn create_role(
 
     let node_id = get_node_id!();
     let role_id = generate_snowflake::<0>(ModelType::Role as u8, node_id);
-    let bigint_role_id = u128_to_bigdecimal!(role_id);
+    let bigdecimal_role_id = u128_to_bigdecimal!(role_id);
 
-    let bigint_guild_id = u128_to_bigdecimal!(guild_id);
+    let bigdecimal_guild_id = u128_to_bigdecimal!(guild_id);
 
     let perms = b"".as_slice();
     sqlx::query!(
         "INSERT INTO roles VALUES ($1, $2, $3, $4, $5, $6)",
-        bigint_role_id,
+        bigdecimal_role_id,
         name,
         color,
         position,
         perms,
-        bigint_guild_id
+        bigdecimal_guild_id
     )
     .execute(db)
     .await?;

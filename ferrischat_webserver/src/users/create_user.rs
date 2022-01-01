@@ -48,11 +48,11 @@ pub async fn create_user(
     let hashed_password = ferrischat_auth::hash(&password).await?;
 
     let db_pronouns = pronouns.map(|p| p as i16);
-    let bigint_user_id = u128_to_bigdecimal!(user_id);
+    let bigdecimal_user_id = u128_to_bigdecimal!(user_id);
     // tell the database about our new user
     sqlx::query!(
         "INSERT INTO users VALUES ($1, $2, $3, $4, $5, $6, false, $7)",
-        bigint_user_id,
+        bigdecimal_user_id,
         username,
         0,
         email,

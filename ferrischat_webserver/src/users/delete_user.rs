@@ -16,13 +16,13 @@ pub async fn delete_user(
         return Err(ErrorJson::new_403("this account is not yours".to_string()).into());
     }
 
-    let bigint_user_id = u128_to_bigdecimal!(user_id);
+    let bigdecimal_user_id = u128_to_bigdecimal!(user_id);
     let db = get_db_or_fail!();
 
     // Drop the user.
     sqlx::query!(
         "DELETE FROM users WHERE id = $1 RETURNING (id)",
-        bigint_user_id,
+        bigdecimal_user_id,
     )
     .fetch_optional(db)
     .await?
