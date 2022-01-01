@@ -8,11 +8,11 @@ use sqlx::types::BigDecimal;
 /// PATCH `/v0/users/me/bots/{bot_id}`
 /// Edits the bot with the attached payload
 pub async fn edit_bot(
-    Path((_, bot_id)): Path<(u128, u128)>,
+    Path(bot_id): Path<u128>,
     Json(BotUpdateJson {
         username, avatar, ..
     }): Json<BotUpdateJson>,
-    crate::Authorization(auth_user, is_bot): crate::Authorization,
+    crate::Authorization(auth_user, _): crate::Authorization,
 ) -> Result<crate::Json<User>, WebServerError> {
     let bigint_bot_id = u128_to_bigdecimal!(bot_id);
 
@@ -34,6 +34,11 @@ pub async fn edit_bot(
     }
 
     if let Some(username) = username {
+        if username.contains(char::is_whitespace) {
+            return Err(
+                ErrorJson::new_400("A username may not contain a whitespace!".to_string()).into(),
+            );
+        }
         sqlx::query!(
             "UPDATE users SET name = $1 WHERE id = $2",
             username,
@@ -66,7 +71,7 @@ pub async fn edit_bot(
             flags: UserFlags::from_bits_truncate(user.flags),
             discriminator: user.discriminator,
             pronouns: None,
-            is_bot
+            is_bot: true,
         },
         200,
     ))

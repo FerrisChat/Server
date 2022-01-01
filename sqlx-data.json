@@ -203,39 +203,6 @@
       "nullable": []
     }
   },
-  "160176ce34a9a4e85c37a54c4645d7a1882835372925368b43f17f1b21a1549a": {
-    "query": "UPDATE channels SET name = $1 WHERE id= $2 RETURNING *",
-    "describe": {
-      "columns": [
-        {
-          "ordinal": 0,
-          "name": "id",
-          "type_info": "Numeric"
-        },
-        {
-          "ordinal": 1,
-          "name": "name",
-          "type_info": "Varchar"
-        },
-        {
-          "ordinal": 2,
-          "name": "guild_id",
-          "type_info": "Numeric"
-        }
-      ],
-      "parameters": {
-        "Left": [
-          "Varchar",
-          "Numeric"
-        ]
-      },
-      "nullable": [
-        false,
-        false,
-        false
-      ]
-    }
-  },
   "176e9bb27f777e766d00cd3156970576b57d692490048c314fccedb470a77018": {
     "query": "SELECT * FROM guilds WHERE id = $1",
     "describe": {
@@ -1606,6 +1573,19 @@
   },
   "d7f7e8f0dd853ec1a64c950bab77d695d30cbd7a664ef2dc81f94ed6c26cb8db": {
     "query": "UPDATE users SET email = $1 WHERE id = $2",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Varchar",
+          "Numeric"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "dd7e3f974510e68c6424dba0d973fcb3190d848da60d6be4deb13bfbd4c46ce5": {
+    "query": "UPDATE channels SET name = $1 WHERE id = $2",
     "describe": {
       "columns": [],
       "parameters": {

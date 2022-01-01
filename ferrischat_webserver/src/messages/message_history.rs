@@ -6,7 +6,7 @@ use ferrischat_common::types::{Channel, ErrorJson, Message, MessageHistory, User
 /// GET `/v0/channels/{channel_id}/messages`
 pub async fn get_message_history(
     Path(channel_id): Path<u128>,
-    crate::Authorization(_, is_bot): crate::Authorization,
+    crate::Authorization(_, _): crate::Authorization,
     Query(GetMessageHistoryParams {
         limit,
         oldest_first,
@@ -155,7 +155,9 @@ LIMIT $2 OFFSET $3
                 flags: UserFlags::from_bits_truncate(author_flags),
                 discriminator: author_discriminator,
                 pronouns: author_pronouns.and_then(ferrischat_common::types::Pronouns::from_i16),
-                is_bot,
+                is_bot: {
+                    UserFlags::from_bits_truncate(author_flags).contains(UserFlags::BOT_ACCOUNT)
+                },
             }),
             edited_at,
             embeds: vec![],

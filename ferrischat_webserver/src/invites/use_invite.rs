@@ -6,7 +6,7 @@ use ferrischat_common::ws::WsOutboundEvent;
 use sqlx::types::time::OffsetDateTime;
 use sqlx::types::BigDecimal;
 
-const FERRIS_EPOCH: i64 = 1_577_836_800_000;
+const FERRIS_EPOCH: i64 = 1_640_995_200_000;
 
 pub async fn use_invite(
     Path(invite_code): Path<String>,

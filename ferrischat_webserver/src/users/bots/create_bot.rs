@@ -15,6 +15,11 @@ pub async fn create_bot(
     if is_bot {
         return Err(ErrorJson::new_403("Bots cannot create/own bots!".to_string()).into());
     }
+    if username.contains(char::is_whitespace) {
+        return Err(
+            ErrorJson::new_400("A username may not contain a whitespace!".to_string()).into(),
+        );
+    }
     let db = get_db_or_fail!();
     let bigint_owner_id = u128_to_bigdecimal!(owner_id);
     let node_id = get_node_id!();
@@ -78,7 +83,7 @@ pub async fn create_bot(
             flags: UserFlags::BOT_ACCOUNT,
             discriminator: user_discrim,
             pronouns: None,
-            is_bot
+            is_bot: true,
         },
         code: 201,
     })

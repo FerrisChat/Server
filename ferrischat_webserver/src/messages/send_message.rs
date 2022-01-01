@@ -71,7 +71,7 @@ pub async fn create_message(
         pronouns: r
             .pronouns
             .and_then(ferrischat_common::types::Pronouns::from_i16),
-        is_bot
+        is_bot,
     };
 
     let msg_obj = Message {

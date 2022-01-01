@@ -1,8 +1,8 @@
 use crate::error_handling::WsEventHandlerError;
 use dashmap::DashMap;
 use ferrischat_auth::{split_token, verify_token};
-use ferrischat_common::ws::{Intents, WsOutboundEvent};
 use ferrischat_common::types::UserFlags;
+use ferrischat_common::ws::{Intents, WsOutboundEvent};
 use num_traits::ToPrimitive;
 use sqlx::{Pool, Postgres};
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -34,15 +34,6 @@ pub async fn handle_identify_rx<'a>(
     let res = sqlx::query!("SELECT * FROM users WHERE id = $1", bigdecimal_user_id)
         .fetch_one(db)
         .await;
-
-    let is_bot = false;
-    match res {
-        Ok(ref u) => if UserFlags::from_bits_truncate(u.flags).contains(UserFlags::BOT_ACCOUNT) {
-            let _is_bot = true;
-        },
-        Err(_) => (),
-    }
-
 
     let guilds = {
         let d = sqlx::query!(
@@ -97,7 +88,6 @@ pub async fn handle_identify_rx<'a>(
                     .fetch_all(db)
                     .await?;
 
-
                 Some(
                     resp.iter()
                         .filter_map(|x| {
@@ -107,10 +97,8 @@ pub async fn handle_identify_rx<'a>(
                                 .into_bigint_and_exponent()
                                 .0
                                 .to_u128()?;
-                            let is_bot_m = false;
-                            if UserFlags::from_bits_truncate(x.flags).contains(UserFlags::BOT_ACCOUNT) {
-                                let _is_bot_m = true;
-                            }
+                            let is_bot_m = UserFlags::from_bits_truncate(x.flags)
+                                .contains(UserFlags::BOT_ACCOUNT);
                             Some(ferrischat_common::types::Member {
                                 user_id: Some(user_id),
                                 user: Some(ferrischat_common::types::User {
@@ -184,7 +172,7 @@ pub async fn handle_identify_rx<'a>(
             pronouns: u
                 .pronouns
                 .and_then(ferrischat_common::types::Pronouns::from_i16),
-            is_bot,
+            is_bot: UserFlags::from_bits_truncate(u.flags).contains(UserFlags::BOT_ACCOUNT),
         },
         Err(e) => {
             return Err(WsEventHandlerError::CloseFrame(CloseFrame {
