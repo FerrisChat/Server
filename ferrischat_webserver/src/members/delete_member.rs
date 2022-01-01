@@ -14,10 +14,13 @@ pub async fn delete_member(
 
     let db = get_db_or_fail!();
 
-    let owner_id = sqlx::query!("SELECT owner_id FROM guilds WHERE id = $1", bigdecimal_guild_id)
-        .fetch_one(db)
-        .await?
-        .owner_id;
+    let owner_id = sqlx::query!(
+        "SELECT owner_id FROM guilds WHERE id = $1",
+        bigdecimal_guild_id
+    )
+    .fetch_one(db)
+    .await?
+    .owner_id;
     if owner_id == bigdecimal_member_id {
         return Err(ErrorJson::new_409(
             "the guild owner cannot be removed from a guild".to_string(),

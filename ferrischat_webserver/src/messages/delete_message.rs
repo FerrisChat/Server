@@ -14,10 +14,13 @@ pub async fn delete_message(
 
     let db = get_db_or_fail!();
 
-    let channel = sqlx::query!("SELECT * FROM channels WHERE id = $1", bigdecimal_channel_id)
-        .fetch_optional(db)
-        .await?
-        .ok_or_else(|| ErrorJson::new_404(format!("Unknown channel with ID {}", channel_id)))?;
+    let channel = sqlx::query!(
+        "SELECT * FROM channels WHERE id = $1",
+        bigdecimal_channel_id
+    )
+    .fetch_optional(db)
+    .await?
+    .ok_or_else(|| ErrorJson::new_404(format!("Unknown channel with ID {}", channel_id)))?;
 
     let message = sqlx::query!(
         r#"

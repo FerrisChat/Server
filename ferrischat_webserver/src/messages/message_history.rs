@@ -26,10 +26,13 @@ pub async fn get_message_history(
         offset = Some(0);
     }
 
-    let channel = sqlx::query!("SELECT * FROM channels WHERE id = $1", bigdecimal_channel_id)
-        .fetch_optional(db)
-        .await?
-        .ok_or_else(|| ErrorJson::new_404("channel not found".to_string()))?;
+    let channel = sqlx::query!(
+        "SELECT * FROM channels WHERE id = $1",
+        bigdecimal_channel_id
+    )
+    .fetch_optional(db)
+    .await?
+    .ok_or_else(|| ErrorJson::new_404("channel not found".to_string()))?;
 
     let channel_obj = Channel {
         id: channel_id,

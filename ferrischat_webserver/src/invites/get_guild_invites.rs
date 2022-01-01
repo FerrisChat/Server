@@ -23,9 +23,12 @@ pub async fn get_guild_invites(
         return Err(ErrorJson::new_403("you are not a member of this guild".to_string()).into());
     }
 
-    let res_invites = sqlx::query!("SELECT * FROM invites WHERE guild_id = $1", bigdecimal_guild_id)
-        .fetch_all(db)
-        .await?;
+    let res_invites = sqlx::query!(
+        "SELECT * FROM invites WHERE guild_id = $1",
+        bigdecimal_guild_id
+    )
+    .fetch_all(db)
+    .await?;
 
     let mut invites = Vec::with_capacity(res_invites.len());
     for invite in res_invites {

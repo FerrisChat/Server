@@ -18,10 +18,13 @@ pub async fn typing_end(
         .await?
         .ok_or_else(|| ErrorJson::new_404(format!("Unknown user with ID {}", authorized_user)))?;
 
-    let channel = sqlx::query!("SELECT * FROM channels WHERE id = $1", bigdecimal_channel_id)
-        .fetch_optional(db)
-        .await?
-        .ok_or_else(|| ErrorJson::new_404(format!("Unknown channel with ID {}", channel_id)))?;
+    let channel = sqlx::query!(
+        "SELECT * FROM channels WHERE id = $1",
+        bigdecimal_channel_id
+    )
+    .fetch_optional(db)
+    .await?
+    .ok_or_else(|| ErrorJson::new_404(format!("Unknown channel with ID {}", channel_id)))?;
 
     let user_obj = User {
         id: authorized_user,
