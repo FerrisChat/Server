@@ -35,16 +35,6 @@ pub async fn handle_identify_rx<'a>(
         .fetch_one(db)
         .await;
 
-    let is_bot = false;
-    match res {
-        Ok(ref u) => {
-            if UserFlags::from_bits_truncate(u.flags).contains(UserFlags::BOT_ACCOUNT) {
-                let _is_bot = true;
-            }
-        }
-        Err(_) => (),
-    }
-
     let guilds = {
         let d = sqlx::query!(
             r#"SELECT id AS "id!", owner_id AS "owner_id!", name AS "name!", icon, flags AS "flags!" FROM guilds INNER JOIN members m on guilds.id = m.guild_id WHERE m.user_id = $1"#,
@@ -107,12 +97,7 @@ pub async fn handle_identify_rx<'a>(
                                 .into_bigint_and_exponent()
                                 .0
                                 .to_u128()?;
-                            let is_bot_m = false;
-                            if UserFlags::from_bits_truncate(x.flags)
-                                .contains(UserFlags::BOT_ACCOUNT)
-                            {
-                                let _is_bot_m = true;
-                            }
+                            let is_bot_m = UserFlags::from_bits_truncate(x.flags).contains(UserFlags::BOT_ACCOUNT);
                             Some(ferrischat_common::types::Member {
                                 user_id: Some(user_id),
                                 user: Some(ferrischat_common::types::User {
@@ -186,7 +171,7 @@ pub async fn handle_identify_rx<'a>(
             pronouns: u
                 .pronouns
                 .and_then(ferrischat_common::types::Pronouns::from_i16),
-            is_bot,
+            is_bot: UserFlags::from_bits_truncate(u.flags).contains(UserFlags::BOT_ACCOUNT),
         },
         Err(e) => {
             return Err(WsEventHandlerError::CloseFrame(CloseFrame {
