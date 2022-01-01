@@ -8,7 +8,7 @@ use sqlx::types::BigDecimal;
 /// PATCH `/v0/users/me/bots/{bot_id}`
 /// Edits the bot with the attached payload
 pub async fn edit_bot(
-    Path((_, bot_id)): Path<(u128, u128)>,
+    Path(bot_id): Path<u128>,
     Json(BotUpdateJson {
         username, avatar, ..
     }): Json<BotUpdateJson>,
