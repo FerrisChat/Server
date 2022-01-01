@@ -9,9 +9,9 @@ pub async fn get_user(
     crate::Authorization(authorized_user, _): crate::Authorization,
 ) -> Result<crate::Json<User>, WebServerError> {
     let db = get_db_or_fail!();
-    let bigint_user_id = u128_to_bigdecimal!(user_id);
+    let bigdecimal_user_id = u128_to_bigdecimal!(user_id);
 
-    let user = sqlx::query!("SELECT * FROM users WHERE id = $1", bigint_user_id)
+    let user = sqlx::query!("SELECT * FROM users WHERE id = $1", bigdecimal_user_id)
         .fetch_optional(db)
         .await?
         .ok_or_else(|| ErrorJson::new_404(format!("Unknown user with ID {}", user_id)))?;
@@ -45,7 +45,7 @@ pub async fn get_user(
                         WHERE
                             m.user_id = $1
                     "#,
-                    bigint_user_id,
+                    bigdecimal_user_id,
                 )
                 .fetch_all(db)
                 .await?;

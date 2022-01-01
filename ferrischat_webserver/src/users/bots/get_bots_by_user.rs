@@ -10,13 +10,13 @@ pub async fn get_bots_by_user(
         return Err(ErrorJson::new_401("Bots cannot create/own bots!".to_string()).into());
     }
 
-    let bigint_user_id = u128_to_bigdecimal!(auth_user);
+    let bigdecimal_user_id = u128_to_bigdecimal!(auth_user);
 
     let db = get_db_or_fail!();
 
     let resp = sqlx::query!(
         "SELECT user_id FROM bots WHERE owner_id = $1",
-        bigint_user_id
+        bigdecimal_user_id
     )
     .fetch_all(db)
     .await?;

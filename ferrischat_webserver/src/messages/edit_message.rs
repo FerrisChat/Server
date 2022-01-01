@@ -11,8 +11,8 @@ pub async fn edit_message(
     Json(MessageUpdateJson { content }): Json<MessageUpdateJson>,
     crate::Authorization(user_id, _): crate::Authorization,
 ) -> Result<crate::Json<Message>, WebServerError> {
-    let bigint_channel_id = u128_to_bigdecimal!(channel_id);
-    let bigint_message_id = u128_to_bigdecimal!(message_id);
+    let bigdecimal_channel_id = u128_to_bigdecimal!(channel_id);
+    let bigdecimal_message_id = u128_to_bigdecimal!(message_id);
 
     let db = get_db_or_fail!();
 
@@ -25,7 +25,7 @@ pub async fn edit_message(
         }
     }
 
-    let channel = sqlx::query!("SELECT * FROM channels WHERE id = $1", bigint_channel_id)
+    let channel = sqlx::query!("SELECT * FROM channels WHERE id = $1", bigdecimal_channel_id)
         .fetch_optional(db)
         .await?
         .ok_or_else(|| ErrorJson::new_404("channel not found".to_string()))?;
@@ -38,8 +38,8 @@ pub async fn edit_message(
 
     let resp = sqlx::query!(
         "SELECT m.*, a.avatar AS avatar, a.name AS author_name, a.flags AS author_flags, a.discriminator AS author_discriminator, a.pronouns AS author_pronouns FROM messages m CROSS JOIN LATERAL (SELECT * FROM users WHERE id = m.author_id) AS a WHERE m.id = $1 AND m.channel_id = $2",
-        bigint_message_id,
-        bigint_channel_id,
+        bigdecimal_message_id,
+        bigdecimal_channel_id,
     )
         .fetch_optional(db)
         .await?
@@ -84,7 +84,7 @@ pub async fn edit_message(
         }
     };
 
-    let message = sqlx::query!("UPDATE messages SET content = $1, edited_at = now()::timestamp without time zone WHERE channel_id = $2 AND id = $3 RETURNING *", content, bigint_channel_id, bigint_message_id)
+    let message = sqlx::query!("UPDATE messages SET content = $1, edited_at = now()::timestamp without time zone WHERE channel_id = $2 AND id = $3 RETURNING *", content, bigdecimal_channel_id, bigdecimal_message_id)
         .fetch_optional(db)
         .await?
         .ok_or_else(|| ErrorJson::new_404(

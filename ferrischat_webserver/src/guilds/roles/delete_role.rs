@@ -12,13 +12,13 @@ pub async fn delete_role(
     _: crate::Authorization,
 ) -> Result<StatusCode, WebServerError> {
     let db = get_db_or_fail!();
-    let bigint_role_id = u128_to_bigdecimal!(role_id);
-    let bigint_guild_id = u128_to_bigdecimal!(guild_id);
+    let bigdecimal_role_id = u128_to_bigdecimal!(role_id);
+    let bigdecimal_guild_id = u128_to_bigdecimal!(guild_id);
 
     let role = sqlx::query!(
         "DELETE FROM roles WHERE id = $1 AND parent_guild = $2 RETURNING *",
-        bigint_role_id,
-        bigint_guild_id
+        bigdecimal_role_id,
+        bigdecimal_guild_id
     )
     .fetch_optional(db)
     .await?

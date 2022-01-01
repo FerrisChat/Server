@@ -14,20 +14,20 @@ pub async fn edit_bot(
     }): Json<BotUpdateJson>,
     crate::Authorization(auth_user, _): crate::Authorization,
 ) -> Result<crate::Json<User>, WebServerError> {
-    let bigint_bot_id = u128_to_bigdecimal!(bot_id);
+    let bigdecimal_bot_id = u128_to_bigdecimal!(bot_id);
 
     let db = get_db_or_fail!();
 
-    let bigint_owner_id: BigDecimal = sqlx::query!(
+    let bigdecimal_owner_id: BigDecimal = sqlx::query!(
         "SELECT owner_id FROM bots WHERE user_id = $1",
-        bigint_bot_id,
+        bigdecimal_bot_id,
     )
     .fetch_optional(db)
     .await?
     .ok_or_else(|| ErrorJson::new_404(format!("Unknown bot with ID {}", bot_id)))?
     .owner_id;
 
-    let owner_id = bigdecimal_to_u128!(bigint_owner_id);
+    let owner_id = bigdecimal_to_u128!(bigdecimal_owner_id);
 
     if owner_id != auth_user {
         return Err(ErrorJson::new_403("you are not the owner of this bot".to_string()).into());
@@ -42,7 +42,7 @@ pub async fn edit_bot(
         sqlx::query!(
             "UPDATE users SET name = $1 WHERE id = $2",
             username,
-            bigint_bot_id
+            bigdecimal_bot_id
         )
         .execute(db)
         .await?;
@@ -52,13 +52,13 @@ pub async fn edit_bot(
         sqlx::query!(
             "UPDATE users SET avatar = $1 WHERE id = $2",
             avatar,
-            bigint_bot_id,
+            bigdecimal_bot_id,
         )
         .execute(db)
         .await?;
     }
 
-    let user = sqlx::query!("SELECT * FROM users WHERE id = $1", bigint_bot_id)
+    let user = sqlx::query!("SELECT * FROM users WHERE id = $1", bigdecimal_bot_id)
         .fetch_optional(db)
         .await?
         .ok_or_else(|| ErrorJson::new_404(format!("Unknown bot with ID {}", bot_id)))?;

@@ -7,15 +7,15 @@ pub async fn get_member(
     Path((guild_id, member_id)): Path<(u128, u128)>,
     crate::Authorization(_, _): crate::Authorization,
 ) -> Result<crate::Json<Member>, WebServerError> {
-    let bigint_guild_id = u128_to_bigdecimal!(guild_id);
-    let bigint_member_id = u128_to_bigdecimal!(member_id);
+    let bigdecimal_guild_id = u128_to_bigdecimal!(guild_id);
+    let bigdecimal_member_id = u128_to_bigdecimal!(member_id);
 
     let db = get_db_or_fail!();
 
     if !(sqlx::query!(
         r#"SELECT EXISTS(SELECT * FROM members WHERE user_id = $1 AND guild_id = $2) AS "exists!""#,
-        bigint_member_id,
-        bigint_guild_id
+        bigdecimal_member_id,
+        bigdecimal_guild_id
     )
     .fetch_one(db)
     .await?
@@ -24,7 +24,7 @@ pub async fn get_member(
         return Err(ErrorJson::new_404(format!("Unknown member with ID {}", member_id)).into());
     };
 
-    let user = sqlx::query!("SELECT * FROM users WHERE id = $1", bigint_member_id)
+    let user = sqlx::query!("SELECT * FROM users WHERE id = $1", bigdecimal_member_id)
         .fetch_optional(db)
         .await?
         .map(|u| User {

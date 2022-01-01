@@ -17,10 +17,10 @@ pub async fn send_verification_email(
         return Err(ErrorJson::new_403("Bots cannot be verified by email".to_string()).into());
     };
     let db = get_db_or_fail!();
-    let bigint_user_id = u128_to_bigdecimal!(authorized_user);
+    let bigdecimal_user_id = u128_to_bigdecimal!(authorized_user);
 
     // Get the authorized user's email.
-    let user_email = sqlx::query!("SELECT email FROM users WHERE id = $1", bigint_user_id)
+    let user_email = sqlx::query!("SELECT email FROM users WHERE id = $1", bigdecimal_user_id)
         .fetch_one(db)
         .await?
         .email;

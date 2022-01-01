@@ -21,7 +21,7 @@ pub async fn create_message(
         .into());
     }
 
-    let bigint_channel_id = u128_to_bigdecimal!(channel_id);
+    let bigdecimal_channel_id = u128_to_bigdecimal!(channel_id);
 
     let node_id = {
         ferrischat_redis::NODE_ID
@@ -30,14 +30,14 @@ pub async fn create_message(
             .ok_or(WebServerError::MissingNodeId)?
     };
     let message_id = generate_snowflake::<0>(ModelType::Message as u8, node_id);
-    let bigint_message_id = u128_to_bigdecimal!(message_id);
+    let bigdecimal_message_id = u128_to_bigdecimal!(message_id);
 
     let author_id = user_id;
-    let bigint_author_id = u128_to_bigdecimal!(author_id);
+    let bigdecimal_author_id = u128_to_bigdecimal!(author_id);
 
     let db = get_db_or_fail!();
 
-    let channel = sqlx::query!("SELECT * FROM channels WHERE id = $1", bigint_channel_id)
+    let channel = sqlx::query!("SELECT * FROM channels WHERE id = $1", bigdecimal_channel_id)
         .fetch_optional(db)
         .await?
         .ok_or_else(|| ErrorJson::new_404("channel not found".to_string()))?;
@@ -50,15 +50,15 @@ pub async fn create_message(
 
     sqlx::query!(
         "INSERT INTO messages VALUES ($1, $2, $3, $4)",
-        bigint_message_id,
+        bigdecimal_message_id,
         content,
-        bigint_channel_id,
-        bigint_author_id
+        bigdecimal_channel_id,
+        bigdecimal_author_id
     )
     .execute(db)
     .await?;
 
-    let r = sqlx::query!("SELECT * FROM users WHERE id = $1", bigint_author_id)
+    let r = sqlx::query!("SELECT * FROM users WHERE id = $1", bigdecimal_author_id)
         .fetch_one(db)
         .await?;
     let author = User {
