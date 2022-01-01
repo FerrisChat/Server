@@ -12,7 +12,7 @@ pub async fn edit_bot(
     Json(BotUpdateJson {
         username, avatar, ..
     }): Json<BotUpdateJson>,
-    crate::Authorization(auth_user, is_bot): crate::Authorization,
+    crate::Authorization(auth_user, _): crate::Authorization,
 ) -> Result<crate::Json<User>, WebServerError> {
     let bigint_bot_id = u128_to_bigdecimal!(bot_id);
 
@@ -71,7 +71,7 @@ pub async fn edit_bot(
             flags: UserFlags::from_bits_truncate(user.flags),
             discriminator: user.discriminator,
             pronouns: None,
-            is_bot,
+            is_bot: true,
         },
         200,
     ))
