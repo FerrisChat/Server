@@ -16,7 +16,7 @@ pub async fn entrypoint() {
             get(async || (StatusCode::IM_A_TEAPOT, "")),
         )
         // GET    /ping
-        .route(expand_version!("ping"), get(async || (StatusCode::OK, "")))
+        .route(expand_version!("ping"), get(async || (StatusCode::OK, "pong")))
         .merge(crate::auth::generate_auth_routes())
         .merge(crate::channels::generate_channels_routes())
         .merge(crate::guilds::generate_guilds_routes())
