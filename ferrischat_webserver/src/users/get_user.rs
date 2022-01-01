@@ -22,7 +22,7 @@ pub async fn get_user(
             id: user_id,
             name: user.name,
             avatar: user.avatar,
-            is_bot: {UserFlags::from_bits_truncate(user.flags).contains(UserFlags::BOT_ACCOUNT)},
+            is_bot: { UserFlags::from_bits_truncate(user.flags).contains(UserFlags::BOT_ACCOUNT) },
             guilds: if authorized_user == user_id {
                 // this code is shit, can probably make it better but i can't figure out the
                 // unsatisfied trait bounds that happens when you get rid of .iter()
@@ -141,7 +141,10 @@ pub async fn get_user(
                                             pronouns: user.pronouns.and_then(
                                                 ferrischat_common::types::Pronouns::from_i16,
                                             ),
-                                            is_bot: {UserFlags::from_bits_truncate(user.flags).contains(UserFlags::BOT_ACCOUNT)},
+                                            is_bot: {
+                                                UserFlags::from_bits_truncate(user.flags)
+                                                    .contains(UserFlags::BOT_ACCOUNT)
+                                            },
                                         })
                                     };
 

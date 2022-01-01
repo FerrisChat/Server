@@ -140,7 +140,10 @@ pub async fn get_me(
                                             pronouns: user.pronouns.and_then(
                                                 ferrischat_common::types::Pronouns::from_i16,
                                             ),
-                                            is_bot: {UserFlags::from_bits_truncate(user.flags).contains(UserFlags::BOT_ACCOUNT)},
+                                            is_bot: {
+                                                UserFlags::from_bits_truncate(user.flags)
+                                                    .contains(UserFlags::BOT_ACCOUNT)
+                                            },
                                         })
                                     };
 

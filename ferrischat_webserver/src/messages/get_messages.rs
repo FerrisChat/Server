@@ -54,7 +54,9 @@ pub async fn get_message(
                 pronouns: m
                     .author_pronouns
                     .and_then(ferrischat_common::types::Pronouns::from_i16),
-                is_bot: {UserFlags::from_bits_truncate(m.author_flags).contains(UserFlags::BOT_ACCOUNT)},
+                is_bot: {
+                    UserFlags::from_bits_truncate(m.author_flags).contains(UserFlags::BOT_ACCOUNT)
+                },
             }),
             nonce: None,
         },

@@ -97,7 +97,8 @@ pub async fn handle_identify_rx<'a>(
                                 .into_bigint_and_exponent()
                                 .0
                                 .to_u128()?;
-                            let is_bot_m = UserFlags::from_bits_truncate(x.flags).contains(UserFlags::BOT_ACCOUNT);
+                            let is_bot_m = UserFlags::from_bits_truncate(x.flags)
+                                .contains(UserFlags::BOT_ACCOUNT);
                             Some(ferrischat_common::types::Member {
                                 user_id: Some(user_id),
                                 user: Some(ferrischat_common::types::User {

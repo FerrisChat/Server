@@ -155,7 +155,9 @@ LIMIT $2 OFFSET $3
                 flags: UserFlags::from_bits_truncate(author_flags),
                 discriminator: author_discriminator,
                 pronouns: author_pronouns.and_then(ferrischat_common::types::Pronouns::from_i16),
-                is_bot: {UserFlags::from_bits_truncate(author_flags).contains(UserFlags::BOT_ACCOUNT)},
+                is_bot: {
+                    UserFlags::from_bits_truncate(author_flags).contains(UserFlags::BOT_ACCOUNT)
+                },
             }),
             edited_at,
             embeds: vec![],

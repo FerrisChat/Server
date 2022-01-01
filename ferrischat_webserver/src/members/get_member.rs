@@ -37,7 +37,7 @@ pub async fn get_member(
             pronouns: u
                 .pronouns
                 .and_then(ferrischat_common::types::Pronouns::from_i16),
-            is_bot: {UserFlags::from_bits_truncate(u.flags).contains(UserFlags::BOT_ACCOUNT)},
+            is_bot: { UserFlags::from_bits_truncate(u.flags).contains(UserFlags::BOT_ACCOUNT) },
         });
 
     let member_obj = Member {
