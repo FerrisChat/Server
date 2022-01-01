@@ -15,10 +15,13 @@ pub async fn edit_channel(
     let db = get_db_or_fail!();
     let ChannelUpdateJson { name } = channel_info.0;
 
-    let c = sqlx::query!("SELECT * FROM channels WHERE id = $1", bigdecimal_channel_id)
-        .fetch_optional(db)
-        .await?
-        .ok_or_else(|| ErrorJson::new_404(format!("Unknown channel with ID {}", channel_id)))?;
+    let c = sqlx::query!(
+        "SELECT * FROM channels WHERE id = $1",
+        bigdecimal_channel_id
+    )
+    .fetch_optional(db)
+    .await?
+    .ok_or_else(|| ErrorJson::new_404(format!("Unknown channel with ID {}", channel_id)))?;
     let old = Channel {
         id: channel_id,
         name: c.name,
@@ -41,10 +44,13 @@ pub async fn edit_channel(
         .await?;
     }
 
-    let channel = sqlx::query!("SELECT * FROM channels WHERE id = $1", bigdecimal_channel_id)
-        .fetch_optional(db)
-        .await?
-        .ok_or_else(|| ErrorJson::new_404(format!("Unknown channel with ID {}", channel_id)))?;
+    let channel = sqlx::query!(
+        "SELECT * FROM channels WHERE id = $1",
+        bigdecimal_channel_id
+    )
+    .fetch_optional(db)
+    .await?
+    .ok_or_else(|| ErrorJson::new_404(format!("Unknown channel with ID {}", channel_id)))?;
     let new = Channel {
         id: channel_id,
         name: channel.name,
