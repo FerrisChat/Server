@@ -44,7 +44,7 @@ ferrischat_macros = { path = "../ferrischat_macros", version = "0.1" }
 ferrischat_redis = { path = "../ferrischat_redis", version = "0.1" }
 ferrischat_ws = { path = "../ferrischat_ws", version = "0.1" }
 ferrischat_auth = { path = "../ferrischat_auth", version = "0.1" }
-ferrischat_snowflake_generator = { git = "https://github.com/FerrisChat/SnowflakeGenerator.git", branch = "master"}
+ferrischat_snowflake_generator = { git = "https://github.com/FerrisChat/SnowflakeGenerator.git", version = "2", branch = "master"}
 [dependencies.tokio]
 version = "1.14"
 features = ["full"]
