@@ -4,9 +4,7 @@ pub mod channel;
 pub mod guild;
 
 pub struct PermissionCalculatorTM {
-    pub from_member: Option<&Member>, // For Channel overwrites
-    pub from_roles: Option<Vec<Role>>,
-
+    pub from_member: &Member, // For Channel overwrites
     /// Guild channel
     pub to_channel: Option<&Channel>,
     /// Guild related
@@ -17,7 +15,6 @@ impl PermissionCalculatorTM {
     pub fn new(member: &Member) -> PermissionCalculatorTM {
         PermissionCalculatorTM {
             from_member: member,
-            from_roles: Some(member.roles),
             to_channel: None,
             to_guild: None,
         }
