@@ -6,7 +6,7 @@ pub mod calculate;
 pub(crate) mod local_cache;
 mod manage;
 
-use ferrischat_common::perms::{GuildPermissions, ChannelPermissions};
+use ferrischat_common::perms::{ChannelPermissions, GuildPermissions};
 
 pub enum Permissions {
     Guild(GuildPermissions),

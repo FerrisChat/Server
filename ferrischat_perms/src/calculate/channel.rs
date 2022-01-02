@@ -24,7 +24,12 @@ impl<'a> PermissionCalculatorTM<'a> {
 
             let user_id = match member.user_id {
                 Some(id) => id,
-                None => member.user.unwrap_or_else(|| unreachable!("No user_id and no user")).id,
+                None => {
+                    member
+                        .user
+                        .unwrap_or_else(|| unreachable!("No user_id and no user"))
+                        .id
+                }
             };
 
             for (object, overwrite) in overwrites {

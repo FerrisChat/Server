@@ -1,5 +1,5 @@
-use error::UpdatePermissionsError;
 use crate::Permissions;
+use error::UpdatePermissionsError;
 use ferrischat_common::types::Role;
 
 mod error;
