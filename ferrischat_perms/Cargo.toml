@@ -8,6 +8,6 @@ edition = "2021"
 [dependencies]
 ferrischat_redis = { path = "../ferrischat_redis" }
 ferrischat_db = { path = "../ferrischat_db" }
-ferrischat_common = { git = "https://github.com/FerrisChat/Common.git", version = "0.2", branch = "perms" }
+ferrischat_common = { git = "https://github.com/FerrisChat/Common.git", version = "0.3", branch = "perms" }
 
 dashmap = "5.0"
