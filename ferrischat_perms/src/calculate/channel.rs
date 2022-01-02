@@ -33,7 +33,7 @@ impl<'a> PermissionCalculatorTM<'a> {
             };
 
             for (object, overwrite) in overwrites {
-                if object == member.user_id {
+                if object == user_id {
                     perms = perms | overwrite;
                 }
 
