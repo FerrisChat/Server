@@ -7,7 +7,7 @@ use ferrischat_common::types::{ErrorJson, Invite};
 use ferrischat_common::ws::WsOutboundEvent;
 use sqlx::types::time::OffsetDateTime;
 
-/// POST `/api/v0/guilds/{guild_id}/invites`
+/// POST `/v0/guilds/{guild_id}/invites`
 pub async fn create_invite(
     auth: crate::Authorization,
     Path(guild_id): Path<u128>,
@@ -15,15 +15,15 @@ pub async fn create_invite(
 ) -> Result<crate::Json<Invite>, WebServerError> {
     let db = get_db_or_fail!();
 
-    let bigint_guild_id = u128_to_bigdecimal!(guild_id);
+    let bigdecimal_guild_id = u128_to_bigdecimal!(guild_id);
 
     let owner_id = auth.0;
-    let bigint_owner_id = u128_to_bigdecimal!(owner_id);
+    let bigdecimal_owner_id = u128_to_bigdecimal!(owner_id);
 
     if sqlx::query!(
         "SELECT user_id FROM members WHERE user_id = $1 AND guild_id = $2",
-        bigint_owner_id,
-        bigint_guild_id
+        bigdecimal_owner_id,
+        bigdecimal_guild_id
     )
     .fetch_optional(db)
     .await?
@@ -39,8 +39,8 @@ pub async fn create_invite(
                 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789', \
                 ((random()*(36-1)+1)::integer),1) FROM generate_series(1,10)),'') \
             ), $1, $2, $3, $4, $5, $6) RETURNING code",
-        bigint_owner_id,
-        bigint_guild_id,
+        bigdecimal_owner_id,
+        bigdecimal_guild_id,
         now,
         0,
         max_uses,

@@ -7,35 +7,30 @@ use ferrischat_common::ws::WsOutboundEvent;
 /// POST `/v0/bots/{bot_id}/add/{guild_id}`
 pub async fn invite_bot(
     Path((bot_id, guild_id)): Path<(u128, u128)>,
-    auth: crate::Authorization,
+    crate::Authorization(auth_user, is_bot): crate::Authorization,
 ) -> Result<crate::Json<Member>, WebServerError> {
-    let bigint_bot_id = u128_to_bigdecimal!(bot_id);
+    let bigdecimal_bot_id = u128_to_bigdecimal!(bot_id);
     let db = get_db_or_fail!();
-    let bigint_guild_id = u128_to_bigdecimal!(guild_id);
-    let bigint_user_id = u128_to_bigdecimal!(auth.0);
+    let bigdecimal_guild_id = u128_to_bigdecimal!(guild_id);
 
-    let r = sqlx::query!("SELECT flags FROM users WHERE id = $1", bigint_user_id)
-        .fetch_one(db)
-        .await?;
-    let flags = UserFlags::from_bits_truncate(r.flags);
-    if flags.contains(UserFlags::BOT_ACCOUNT) {
-        return Err(ErrorJson::new_401("Bots cannot invite bots to guilds!".to_string()).into());
+    if is_bot {
+        return Err(ErrorJson::new_403("Bots cannot invite bots to guilds!".to_string()).into());
     }
 
-    let guild = sqlx::query!("SELECT * FROM guilds WHERE id = $1", bigint_guild_id)
+    let guild = sqlx::query!("SELECT * FROM guilds WHERE id = $1", bigdecimal_guild_id)
         .fetch_optional(db)
         .await?
         .ok_or_else(|| ErrorJson::new_404(format!("Unknown guild with ID {}", guild_id)))?;
 
     let guild_owner = bigdecimal_to_u128!(guild.owner_id);
-    if guild_owner != auth.0 {
+    if guild_owner != auth_user {
         return Err(ErrorJson::new_403("You don't own this guild!".to_string()).into());
     }
 
     if sqlx::query!(
         r#"SELECT EXISTS(SELECT * FROM members WHERE user_id = $1 AND guild_id = $2) AS "exists!""#,
-        bigint_bot_id,
-        bigint_guild_id
+        bigdecimal_bot_id,
+        bigdecimal_guild_id
     )
     .fetch_one(db)
     .await?
@@ -46,8 +41,8 @@ pub async fn invite_bot(
 
     sqlx::query!(
         "INSERT INTO members VALUES ($1, $2)",
-        bigint_bot_id,
-        bigint_guild_id
+        bigdecimal_bot_id,
+        bigdecimal_guild_id
     )
     .execute(db)
     .await?;
@@ -55,7 +50,7 @@ pub async fn invite_bot(
     let member_obj = Member {
         user_id: Some(bot_id),
         user: Some({
-            let u = sqlx::query!("SELECT * FROM users WHERE id = $1", bigint_bot_id)
+            let u = sqlx::query!("SELECT * FROM users WHERE id = $1", bigdecimal_bot_id)
                 .fetch_one(db)
                 .await?;
             User {
@@ -68,6 +63,7 @@ pub async fn invite_bot(
                 pronouns: u
                     .pronouns
                     .and_then(ferrischat_common::types::Pronouns::from_i16),
+                is_bot: true,
             }
         }),
         guild_id: Some(guild_id),

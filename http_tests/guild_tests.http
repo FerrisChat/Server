@@ -1,11 +1,11 @@
-GET http://localhost:8080/api/v0/guilds/953323217283830852689390993408
+GET http://localhost:8080/v0/guilds/953323217283830852689390993408
 Accept: application/json
 Content-Type: application/json
 Authorization: OTUxNzg3MzMxODM1MzU5MTcxMzA2MDg5MDg2OTc2.IBOHsLgx16w4DYmai3LmlPdfxQY8l19cFts8tH_xj0hJaQaL17MZKabUrckV7ZwMQic3EY-F8WiDCPnMc9V69mzACubyUJ3TiN4pjBTy-PbA8FniqPxVtZkEzS4dEQq7B8LMwGdbmxW_Gb3DgJY4sMK8J8W6ZGbo0hf0LbCfBXtEQiI3KBMH2xU7_3TkXS4GloouLKAO_FeiHMm-p8aJtbGt_pS9qI6DAAqkZnE7Rp2Mii5zxL2lwk4CHjzZ6d1RmszXztHQW_1JZQvhUaSMWYrQXGk5lphaMp5YRLnFD97ur76NIN-x9HJ80p0mVyvVpTml2MvC8mU_tpKb1T3xSQ==
 
 ###
 
-POST http://localhost:8080/api/v0/guilds
+POST http://localhost:8080/v0/guilds
 Accept: application/json
 Content-Type: application/json
 Authorization: OTUxNzg3MzMxODM1MzU5MTcxMzA2MDg5MDg2OTc2.IBOHsLgx16w4DYmai3LmlPdfxQY8l19cFts8tH_xj0hJaQaL17MZKabUrckV7ZwMQic3EY-F8WiDCPnMc9V69mzACubyUJ3TiN4pjBTy-PbA8FniqPxVtZkEzS4dEQq7B8LMwGdbmxW_Gb3DgJY4sMK8J8W6ZGbo0hf0LbCfBXtEQiI3KBMH2xU7_3TkXS4GloouLKAO_FeiHMm-p8aJtbGt_pS9qI6DAAqkZnE7Rp2Mii5zxL2lwk4CHjzZ6d1RmszXztHQW_1JZQvhUaSMWYrQXGk5lphaMp5YRLnFD97ur76NIN-x9HJ80p0mVyvVpTml2MvC8mU_tpKb1T3xSQ==
@@ -16,13 +16,13 @@ Authorization: OTUxNzg3MzMxODM1MzU5MTcxMzA2MDg5MDg2OTc2.IBOHsLgx16w4DYmai3LmlPdf
 
 ###
 
-DELETE http://localhost:8080/api/v0/guilds/953323217283830852689390993408
+DELETE http://localhost:8080/v0/guilds/953323217283830852689390993408
 Accept: application/json
 Content-Type: application/json
 Authorization: OTUxNzg3MzMxODM1MzU5MTcxMzA2MDg5MDg2OTc2.IBOHsLgx16w4DYmai3LmlPdfxQY8l19cFts8tH_xj0hJaQaL17MZKabUrckV7ZwMQic3EY-F8WiDCPnMc9V69mzACubyUJ3TiN4pjBTy-PbA8FniqPxVtZkEzS4dEQq7B8LMwGdbmxW_Gb3DgJY4sMK8J8W6ZGbo0hf0LbCfBXtEQiI3KBMH2xU7_3TkXS4GloouLKAO_FeiHMm-p8aJtbGt_pS9qI6DAAqkZnE7Rp2Mii5zxL2lwk4CHjzZ6d1RmszXztHQW_1JZQvhUaSMWYrQXGk5lphaMp5YRLnFD97ur76NIN-x9HJ80p0mVyvVpTml2MvC8mU_tpKb1T3xSQ==
 
 ###
 
-PATCH http://localhost:8080/api/v0/guilds/8
+PATCH http://localhost:8080/v0/guilds/8
 Accept: application/json
 Content-Type: application/json

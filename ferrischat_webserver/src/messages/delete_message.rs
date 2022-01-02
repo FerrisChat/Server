@@ -4,20 +4,23 @@ use axum::extract::Path;
 use ferrischat_common::types::{Channel, ErrorJson, Message, User, UserFlags};
 use ferrischat_common::ws::WsOutboundEvent;
 
-/// DELETE `/api/v0/channels/{channel_id}/messages/{message_id}`
+/// DELETE `/v0/channels/{channel_id}/messages/{message_id}`
 pub async fn delete_message(
     Path((channel_id, message_id)): Path<(u128, u128)>,
-    _: crate::Authorization,
+    crate::Authorization(_, is_bot): crate::Authorization,
 ) -> Result<http::StatusCode, WebServerError> {
-    let bigint_message_id = u128_to_bigdecimal!(message_id);
-    let bigint_channel_id = u128_to_bigdecimal!(channel_id);
+    let bigdecimal_message_id = u128_to_bigdecimal!(message_id);
+    let bigdecimal_channel_id = u128_to_bigdecimal!(channel_id);
 
     let db = get_db_or_fail!();
 
-    let channel = sqlx::query!("SELECT * FROM channels WHERE id = $1", bigint_channel_id)
-        .fetch_optional(db)
-        .await?
-        .ok_or_else(|| ErrorJson::new_404(format!("Unknown channel with ID {}", channel_id)))?;
+    let channel = sqlx::query!(
+        "SELECT * FROM channels WHERE id = $1",
+        bigdecimal_channel_id
+    )
+    .fetch_optional(db)
+    .await?
+    .ok_or_else(|| ErrorJson::new_404(format!("Unknown channel with ID {}", channel_id)))?;
 
     let message = sqlx::query!(
         r#"
@@ -36,8 +39,8 @@ FROM messages m
 WHERE m.id = $1
   AND m.channel_id = $2
   "#,
-        bigint_message_id,
-        bigint_channel_id,
+        bigdecimal_message_id,
+        bigdecimal_channel_id,
     )
     .fetch_optional(db)
     .await?
@@ -69,14 +72,15 @@ WHERE m.id = $1
             pronouns: message
                 .author_pronouns
                 .and_then(ferrischat_common::types::Pronouns::from_i16),
+            is_bot,
         }),
         nonce: None,
     };
 
     sqlx::query!(
         "DELETE FROM messages WHERE id = $1 AND channel_id = $2",
-        bigint_message_id,
-        bigint_channel_id
+        bigdecimal_message_id,
+        bigdecimal_channel_id
     )
     .execute(db)
     .await?;

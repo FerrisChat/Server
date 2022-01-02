@@ -3,7 +3,7 @@ use axum::extract::Json;
 use ferrischat_common::request_json::UserUpdateJson;
 use ferrischat_common::types::{ErrorJson, User, UserFlags};
 
-/// PATCH `/api/v0/users/me`
+/// PATCH `/v0/users/me`
 /// Modifies the authenticated user
 pub async fn edit_user(
     Json(UserUpdateJson {
@@ -14,18 +14,16 @@ pub async fn edit_user(
         pronouns,
         ..
     }): Json<UserUpdateJson>,
-    auth: crate::Authorization,
+    crate::Authorization(user_id, is_bot): crate::Authorization,
 ) -> Result<crate::Json<User>, WebServerError> {
-    let user_id = auth.0;
-
-    let bigint_user_id = u128_to_bigdecimal!(user_id);
+    let bigdecimal_user_id = u128_to_bigdecimal!(user_id);
     let db = get_db_or_fail!();
 
     if let Some(username) = username {
         sqlx::query!(
             "UPDATE users SET name = $1 WHERE id = $2",
             username,
-            bigint_user_id,
+            bigdecimal_user_id,
         )
         .execute(db)
         .await?;
@@ -35,7 +33,7 @@ pub async fn edit_user(
         sqlx::query!(
             "UPDATE users SET avatar = $1 WHERE id = $2",
             avatar,
-            bigint_user_id,
+            bigdecimal_user_id,
         )
         .execute(db)
         .await?;
@@ -45,7 +43,7 @@ pub async fn edit_user(
         sqlx::query!(
             "UPDATE users SET email = $1 WHERE id = $2",
             email,
-            bigint_user_id,
+            bigdecimal_user_id,
         )
         .execute(db)
         .await?;
@@ -56,7 +54,7 @@ pub async fn edit_user(
         sqlx::query!(
             "UPDATE users SET password = $1 WHERE id = $2",
             hashed_password,
-            bigint_user_id
+            bigdecimal_user_id
         )
         .execute(db)
         .await?;
@@ -66,13 +64,13 @@ pub async fn edit_user(
         sqlx::query!(
             "UPDATE users SET pronouns = $1 WHERE id = $2",
             pronouns as i16,
-            bigint_user_id
+            bigdecimal_user_id
         )
         .execute(db)
         .await?;
     }
 
-    let user = sqlx::query!("SELECT * FROM users WHERE id = $1", bigint_user_id)
+    let user = sqlx::query!("SELECT * FROM users WHERE id = $1", bigdecimal_user_id)
         .fetch_optional(db)
         .await?
         .ok_or_else(|| ErrorJson::new_404(format!("unknown user with id {}", user_id)))?;
@@ -89,6 +87,7 @@ pub async fn edit_user(
             pronouns: user
                 .pronouns
                 .and_then(ferrischat_common::types::Pronouns::from_i16),
+            is_bot,
         },
     })
 }

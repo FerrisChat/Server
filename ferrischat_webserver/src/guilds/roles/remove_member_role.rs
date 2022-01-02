@@ -2,7 +2,7 @@ use crate::WebServerError;
 use axum::extract::Path;
 use http::StatusCode;
 
-/// DELETE `/api/v0/guilds/{guild_id}/members/{user_id}/role/{role_id}`
+/// DELETE `/v0/guilds/{guild_id}/members/{user_id}/role/{role_id}`
 pub async fn remove_member_role(
     Path((guild_id, user_id, role_id)): Path<(u128, u128, u128)>,
     _: crate::Authorization,

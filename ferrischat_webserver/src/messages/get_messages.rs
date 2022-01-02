@@ -2,10 +2,10 @@ use crate::WebServerError;
 use axum::extract::Path;
 use ferrischat_common::types::{Channel, ErrorJson, Message, User, UserFlags};
 
-/// GET `/api/v0/guilds/{guild_id}/channels/{channel_id}/messages/{message_id}`
+/// GET `/v0/guilds/{guild_id}/channels/{channel_id}/messages/{message_id}`
 pub async fn get_message(
     Path((channel_id, message_id)): Path<(u128, u128)>,
-    _: crate::Authorization,
+    crate::Authorization(_, _): crate::Authorization,
 ) -> Result<crate::Json<Message>, WebServerError> {
     let db = get_db_or_fail!();
     let bigint_message_id = u128_to_bigdecimal!(message_id);
@@ -54,6 +54,9 @@ pub async fn get_message(
                 pronouns: m
                     .author_pronouns
                     .and_then(ferrischat_common::types::Pronouns::from_i16),
+                is_bot: {
+                    UserFlags::from_bits_truncate(m.author_flags).contains(UserFlags::BOT_ACCOUNT)
+                },
             }),
             nonce: None,
         },

@@ -1,24 +1,24 @@
 use crate::ws::fire_event;
 use crate::WebServerError;
 use axum::extract::Path;
-use ferrischat_common::perms::Permissions;
+use ferrischat_common::perms::GuildPermissions;
 use ferrischat_common::types::{ErrorJson, Role};
 use ferrischat_common::ws::WsOutboundEvent;
 use http::StatusCode;
 
-/// DELETE `/api/v0/guilds/{guild_id/roles/{role_id}`
+/// DELETE `/v0/guilds/{guild_id/roles/{role_id}`
 pub async fn delete_role(
     Path((guild_id, role_id)): Path<(u128, u128)>,
     _: crate::Authorization,
 ) -> Result<StatusCode, WebServerError> {
     let db = get_db_or_fail!();
-    let bigint_role_id = u128_to_bigdecimal!(role_id);
-    let bigint_guild_id = u128_to_bigdecimal!(guild_id);
+    let bigdecimal_role_id = u128_to_bigdecimal!(role_id);
+    let bigdecimal_guild_id = u128_to_bigdecimal!(guild_id);
 
     let role = sqlx::query!(
         "DELETE FROM roles WHERE id = $1 AND parent_guild = $2 RETURNING *",
-        bigint_role_id,
-        bigint_guild_id
+        bigdecimal_role_id,
+        bigdecimal_guild_id
     )
     .fetch_optional(db)
     .await?
@@ -29,7 +29,7 @@ pub async fn delete_role(
         name: role.name,
         color: role.color,
         position: role.position,
-        permissions: Permissions::empty(),
+        guild_permissions: GuildPermissions::empty(),
     };
 
     let event = WsOutboundEvent::RoleDelete {
