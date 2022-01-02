@@ -1,4 +1,4 @@
-use ferrischat_common::types::{Channel, Guild, Member, Role};
+use ferrischat_common::types::{Channel, Guild, Member};
 
 pub mod channel;
 pub mod guild;
@@ -20,14 +20,14 @@ impl<'a> PermissionCalculatorTM<'a> {
         }
     }
 
-    pub fn to_channel(self, channel: &'a Channel) -> PermissionCalculatorTM {
+    pub fn with_channel(self, channel: &'a Channel) -> PermissionCalculatorTM {
         PermissionCalculatorTM {
             to_channel: Some(channel),
             ..self
         }
     }
 
-    pub fn to_guild(self, guild: &'a Guild) -> PermissionCalculatorTM {
+    pub fn with_guild(self, guild: &'a Guild) -> PermissionCalculatorTM {
         PermissionCalculatorTM {
             to_guild: Some(guild),
             ..self
