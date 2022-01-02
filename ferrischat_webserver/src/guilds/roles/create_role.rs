@@ -2,7 +2,7 @@ use crate::ws::fire_event;
 use crate::WebServerError;
 use axum::extract::Path;
 use axum::Json;
-use ferrischat_common::perms::Permissions;
+use ferrischat_common::perms::GuildPermissions;
 use ferrischat_common::request_json::RoleCreateJson;
 use ferrischat_common::types::{ModelType, Role};
 use ferrischat_common::ws::WsOutboundEvent;
@@ -21,12 +21,12 @@ pub async fn create_role(
         name,
         color,
         position,
-        permissions,
+        guild_permissions,
     } = role_info.0;
 
     let name = name.unwrap_or_else(|| String::from("new role"));
     let position = position.unwrap_or(0);
-    let permissions = permissions.unwrap_or_else(Permissions::empty);
+    let permissions = guild_permissions.unwrap_or_else(GuildPermissions::empty);
 
     let node_id = get_node_id!();
     let role_id = generate_snowflake::<0>(ModelType::Role as u8, node_id);
@@ -53,7 +53,7 @@ pub async fn create_role(
         color,
         position,
         guild_id,
-        permissions,
+        guild_permissions: permissions,
     };
 
     let event = WsOutboundEvent::RoleCreate {

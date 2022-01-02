@@ -534,8 +534,8 @@ dependencies = [
 
 [[package]]
 name = "ferrischat_common"
-version = "0.2.0"
-source = "git+https://github.com/FerrisChat/Common.git?branch=master#29bf69587857baed26d3633968fd359d999d0c17"
+version = "0.3.0"
+source = "git+https://github.com/FerrisChat/Common.git?branch=master#9f9314d64fbc1633c508cca486b8ff7af66f8e13"
 dependencies = [
  "bitflags",
  "serde",
@@ -606,7 +606,7 @@ dependencies = [
 [[package]]
 name = "ferrischat_snowflake_generator"
 version = "2.0.0"
-source = "git+https://github.com/FerrisChat/SnowflakeGenerator.git?branch=master#c44648bdeef910e6d782e549f794af7c88544f45"
+source = "git+https://github.com/FerrisChat/SnowflakeGenerator.git?branch=master#df151d58bff9f6995b071bfed421e9d28712fd12"
 
 [[package]]
 name = "ferrischat_webserver"
@@ -1652,18 +1652,18 @@ checksum = "388a1df253eca08550bef6c72392cfe7c30914bf41df5269b68cbd6ff8f570a3"
 
 [[package]]
 name = "serde"
-version = "1.0.132"
+version = "1.0.133"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8b9875c23cf305cd1fd7eb77234cbb705f21ea6a72c637a5c6db5fe4b8e7f008"
+checksum = "97565067517b60e2d1ea8b268e59ce036de907ac523ad83a0475da04e818989a"
 dependencies = [
  "serde_derive",
 ]
 
 [[package]]
 name = "serde_derive"
-version = "1.0.132"
+version = "1.0.133"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ecc0db5cb2556c0e558887d9bbdcf6ac4471e83ff66cf696e5419024d1606276"
+checksum = "ed201699328568d8d08208fdd080e3ff594e6c422e438b6705905da01005d537"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1672,9 +1672,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.73"
+version = "1.0.74"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bcbd0344bc6533bc7ec56df11d42fb70f1b912351c0825ccb7211b59d8af7cf5"
+checksum = "ee2bb9cd061c5865d345bb02ca49fcef1391741b672b54a0bf7b679badec3142"
 dependencies = [
  "indexmap",
  "itoa 1.0.1",

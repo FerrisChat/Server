@@ -1,6 +1,6 @@
 use crate::WebServerError;
 use axum::extract::Path;
-use ferrischat_common::perms::Permissions;
+use ferrischat_common::perms::GuildPermissions;
 use ferrischat_common::types::{ErrorJson, Role};
 
 /// GET `/v0/guilds/{guild_id/roles/{role_id}`
@@ -20,7 +20,7 @@ pub async fn get_role(
             color: r.color,
             position: r.position,
             guild_id: bigdecimal_to_u128!(r.parent_guild),
-            permissions: Permissions::empty(),
+            guild_permissions: GuildPermissions::empty(),
         },
         code: 200,
     })

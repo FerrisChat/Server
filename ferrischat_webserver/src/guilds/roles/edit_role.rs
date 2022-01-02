@@ -2,7 +2,7 @@ use crate::ws::fire_event;
 use crate::WebServerError;
 use axum::extract::Path;
 use axum::Json;
-use ferrischat_common::perms::Permissions;
+use ferrischat_common::perms::GuildPermissions;
 use ferrischat_common::request_json::RoleUpdateJson;
 use ferrischat_common::types::{ErrorJson, Role};
 use ferrischat_common::ws::WsOutboundEvent;
@@ -31,7 +31,7 @@ pub async fn edit_role(
         color: role.color,
         position: role.position,
         guild_id: bigdecimal_to_u128!(role.parent_guild),
-        permissions: Permissions::empty(),
+        guild_permissions: GuildPermissions::empty(),
     };
 
     if let Some(name) = name {
@@ -85,7 +85,7 @@ pub async fn edit_role(
         color: role.color,
         position: role.position,
         guild_id: bigdecimal_to_u128!(role.parent_guild),
-        permissions: Permissions::empty(),
+        guild_permissions: GuildPermissions::empty(),
     };
 
     let event = WsOutboundEvent::RoleUpdate {

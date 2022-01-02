@@ -1,7 +1,7 @@
 use crate::ws::fire_event;
 use crate::WebServerError;
 use axum::extract::Path;
-use ferrischat_common::perms::Permissions;
+use ferrischat_common::perms::GuildPermissions;
 use ferrischat_common::types::{ErrorJson, Role};
 use ferrischat_common::ws::WsOutboundEvent;
 use http::StatusCode;
@@ -29,7 +29,7 @@ pub async fn delete_role(
         name: role.name,
         color: role.color,
         position: role.position,
-        permissions: Permissions::empty(),
+        guild_permissions: GuildPermissions::empty(),
     };
 
     let event = WsOutboundEvent::RoleDelete {
