@@ -2,7 +2,7 @@
 
 use dashmap::DashMap;
 
-mod calculate;
+pub mod calculate;
 pub(crate) mod local_cache;
 mod manage;
 
