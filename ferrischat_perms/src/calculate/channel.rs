@@ -11,7 +11,11 @@ impl<'a> PermissionCalculatorTM<'a> {
         roles.reverse();
 
         for role in roles {
-            perms = perms | role.guild_permissions;
+            let perm = role.guild_permissions;
+
+            perms.send_messages |= perm.send_messages;
+            perms.delete_messages |= perm.delete_messages;
+            perms.edit_messages |= perm.edit_messages;
         }
 
         let member = self.from_member;
@@ -34,11 +38,11 @@ impl<'a> PermissionCalculatorTM<'a> {
 
             for (object, overwrite) in overwrites {
                 if object == user_id {
-                    perms = perms | overwrite;
+                    perms |= overwrite;
                 }
 
                 if roles.contains(&object) {
-                    perms = perms | overwrite;
+                    perms |= overwrite;
                 }
             }
         }

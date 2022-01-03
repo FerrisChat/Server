@@ -11,7 +11,7 @@ impl<'a> PermissionCalculatorTM<'a> {
         roles.reverse();
 
         for role in roles {
-            perms = perms | role.guild_permissions;
+            perms |= role.guild_permissions;
         }
 
         perms
