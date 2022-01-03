@@ -12,7 +12,7 @@ impl PermissionCalculatorTM {
 
         roles.reverse();
 
-        for role in roles {
+        for role in &roles {
             let perm = role.guild_permissions;
 
             perms.send_messages |= perm.send_messages;
