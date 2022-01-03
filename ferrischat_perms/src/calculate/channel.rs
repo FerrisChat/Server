@@ -15,7 +15,7 @@ impl<'a> PermissionCalculatorTM<'a> {
 
             perms.send_messages |= perm.send_messages;
             perms.delete_messages |= perm.delete_messages;
-            perms.edit_messages |= perm.edit_messages;
+            perms.edit_channel |= perm.edit_channel;
         }
 
         let member = self.from_member;
