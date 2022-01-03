@@ -24,7 +24,7 @@ pub fn get(k: &u128) -> Result<&Permissions, LocalCacheError> {
 
 /// Get a mutable reference to an entry in the map
 pub fn get_mut(k: &u128) -> Result<&mut Permissions, LocalCacheError> {
-    let cache = LOCAL_PERMISSION_CACHE
+    let mut cache = LOCAL_PERMISSION_CACHE
         .get()
         .ok_or(LocalCacheError::CacheMissing)?
         .get_mut(k)
