@@ -2,7 +2,7 @@ use ferrischat_common::perms::ChannelPermissions;
 
 use super::PermissionCalculatorTM;
 
-impl<'a> PermissionCalculatorTM<'a> {
+impl PermissionCalculatorTM {
     pub fn to_channel(self) -> ChannelPermissions {
         let mut perms = ChannelPermissions::empty();
 

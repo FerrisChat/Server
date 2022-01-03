@@ -2,7 +2,7 @@ use ferrischat_common::perms::GuildPermissions;
 
 use super::PermissionCalculatorTM;
 
-impl<'a> PermissionCalculatorTM<'a> {
+impl PermissionCalculatorTM {
     pub fn to_guild(self) -> GuildPermissions {
         let mut perms = GuildPermissions::empty();
 

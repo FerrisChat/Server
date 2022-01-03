@@ -3,33 +3,33 @@ use ferrischat_common::types::{Channel, Guild, Member};
 pub mod channel;
 pub mod guild;
 
-pub struct PermissionCalculatorTM<'a> {
-    pub from_member: &'a Member, // For Channel overwrites
+pub struct PermissionCalculatorTM {
+    pub from_member: Member, // For Channel overwrites
     /// Guild channel
-    pub to_channel: Option<&'a Channel>,
+    pub to_channel: Option<Channel>,
     /// Guild related
-    pub to_guild: Option<&'a Guild>,
+    pub to_guild: Option<Guild>,
 }
 
-impl<'a> PermissionCalculatorTM<'a> {
-    pub fn new(member: &'a Member) -> PermissionCalculatorTM {
+impl PermissionCalculatorTM {
+    pub fn new(member: &Member) -> PermissionCalculatorTM {
         PermissionCalculatorTM {
-            from_member: member,
+            from_member: member.clone(),
             to_channel: None,
             to_guild: None,
         }
     }
 
-    pub fn with_channel(self, channel: &'a Channel) -> PermissionCalculatorTM {
+    pub fn with_channel(self, channel: &Channel) -> PermissionCalculatorTM {
         PermissionCalculatorTM {
-            to_channel: Some(channel),
+            to_channel: Some(channel.clone()),
             ..self
         }
     }
 
-    pub fn with_guild(self, guild: &'a Guild) -> PermissionCalculatorTM {
+    pub fn with_guild(self, guild: &Guild) -> PermissionCalculatorTM {
         PermissionCalculatorTM {
-            to_guild: Some(guild),
+            to_guild: Some(guild.clone()),
             ..self
         }
     }
