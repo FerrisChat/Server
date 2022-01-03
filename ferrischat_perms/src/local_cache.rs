@@ -1,6 +1,7 @@
 use dashmap::DashMap;
-use ferrischat_common::perms::Permissions;
 use std::lazy::SyncOnceCell as OnceCell;
+
+use crate::Permissions;
 
 pub enum LocalCacheError {
     CacheMissing,
