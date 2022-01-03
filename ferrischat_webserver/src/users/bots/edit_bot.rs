@@ -5,31 +5,31 @@ use ferrischat_common::request_json::BotUpdateJson;
 use ferrischat_common::types::{ErrorJson, User, UserFlags};
 use sqlx::types::BigDecimal;
 
-/// PATCH `/api/v0/users/me/bots/{bot_id}`
+/// PATCH `/v0/users/me/bots/{bot_id}`
 /// Edits the bot with the attached payload
 pub async fn edit_bot(
-    Path((_, bot_id)): Path<(u128, u128)>,
+    Path(bot_id): Path<u128>,
     Json(BotUpdateJson {
         username, avatar, ..
     }): Json<BotUpdateJson>,
-    auth: crate::Authorization,
+    crate::Authorization(auth_user, _): crate::Authorization,
 ) -> Result<crate::Json<User>, WebServerError> {
-    let bigint_bot_id = u128_to_bigdecimal!(bot_id);
+    let bigdecimal_bot_id = u128_to_bigdecimal!(bot_id);
 
     let db = get_db_or_fail!();
 
-    let bigint_owner_id: BigDecimal = sqlx::query!(
+    let bigdecimal_owner_id: BigDecimal = sqlx::query!(
         "SELECT owner_id FROM bots WHERE user_id = $1",
-        bigint_bot_id,
+        bigdecimal_bot_id,
     )
     .fetch_optional(db)
     .await?
     .ok_or_else(|| ErrorJson::new_404(format!("Unknown bot with ID {}", bot_id)))?
     .owner_id;
 
-    let owner_id = bigdecimal_to_u128!(bigint_owner_id);
+    let owner_id = bigdecimal_to_u128!(bigdecimal_owner_id);
 
-    if owner_id != auth.0 {
+    if owner_id != auth_user {
         return Err(ErrorJson::new_403("you are not the owner of this bot".to_string()).into());
     }
 
@@ -37,7 +37,7 @@ pub async fn edit_bot(
         sqlx::query!(
             "UPDATE users SET name = $1 WHERE id = $2",
             username,
-            bigint_bot_id
+            bigdecimal_bot_id
         )
         .execute(db)
         .await?;
@@ -47,13 +47,13 @@ pub async fn edit_bot(
         sqlx::query!(
             "UPDATE users SET avatar = $1 WHERE id = $2",
             avatar,
-            bigint_bot_id,
+            bigdecimal_bot_id,
         )
         .execute(db)
         .await?;
     }
 
-    let user = sqlx::query!("SELECT * FROM users WHERE id = $1", bigint_bot_id)
+    let user = sqlx::query!("SELECT * FROM users WHERE id = $1", bigdecimal_bot_id)
         .fetch_optional(db)
         .await?
         .ok_or_else(|| ErrorJson::new_404(format!("Unknown bot with ID {}", bot_id)))?;
@@ -66,6 +66,7 @@ pub async fn edit_bot(
             flags: UserFlags::from_bits_truncate(user.flags),
             discriminator: user.discriminator,
             pronouns: None,
+            is_bot: true,
         },
         200,
     ))

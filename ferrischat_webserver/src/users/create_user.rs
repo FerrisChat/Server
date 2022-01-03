@@ -5,7 +5,7 @@ use ferrischat_common::types::{ErrorJson, ModelType, User, UserFlags};
 use ferrischat_snowflake_generator::generate_snowflake;
 use rand::Rng;
 
-/// POST /api/v0/users/
+/// POST /v0/users/
 /// Creates a ferrischat user with the given info
 pub async fn create_user(
     user_data: Json<UserCreateJson>,
@@ -19,6 +19,7 @@ pub async fn create_user(
         password,
         pronouns,
     } = user_data.0;
+
     // Gets a discriminator for the user
     let user_discrim = {
         // Makes sure the name doesn't already exist
@@ -43,11 +44,11 @@ pub async fn create_user(
     let hashed_password = ferrischat_auth::hash(&password).await?;
 
     let db_pronouns = pronouns.map(|p| p as i16);
-    let bigint_user_id = u128_to_bigdecimal!(user_id);
+    let bigdecimal_user_id = u128_to_bigdecimal!(user_id);
     // tell the database about our new user
     sqlx::query!(
         "INSERT INTO users VALUES ($1, $2, $3, $4, $5, $6, false, $7)",
-        bigint_user_id,
+        bigdecimal_user_id,
         username,
         0,
         email,
@@ -67,6 +68,7 @@ pub async fn create_user(
             flags: UserFlags::empty(),
             discriminator: user_discrim,
             pronouns,
+            is_bot: false,
         },
         code: 201,
     })

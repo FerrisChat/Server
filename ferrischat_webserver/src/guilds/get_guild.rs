@@ -4,16 +4,16 @@ use ferrischat_common::request_json::GetGuildUrlParams;
 use ferrischat_common::types::{Channel, ErrorJson, Guild, GuildFlags, Member, User, UserFlags};
 use num_traits::ToPrimitive;
 
-/// GET `/api/v0/guilds/{guild_id}`
+/// GET `/v0/guilds/{guild_id}`
 pub async fn get_guild(
-    _: crate::Authorization,
+    crate::Authorization(_, _): crate::Authorization,
     Path(guild_id): Path<u128>,
     Query(params): Query<GetGuildUrlParams>,
 ) -> Result<crate::Json<Guild>, WebServerError> {
     let db = get_db_or_fail!();
-    let bigint_guild_id = u128_to_bigdecimal!(guild_id);
+    let bigdecimal_guild_id = u128_to_bigdecimal!(guild_id);
 
-    let guild = sqlx::query!("SELECT * FROM guilds WHERE id = $1", bigint_guild_id)
+    let guild = sqlx::query!("SELECT * FROM guilds WHERE id = $1", bigdecimal_guild_id)
         .fetch_optional(db)
         .await?
         .ok_or_else(|| ErrorJson::new_404(format!("Unknown guild with ID {}", guild_id)))?;
@@ -21,7 +21,7 @@ pub async fn get_guild(
     let channels: Option<Vec<Channel>> = if params.channels.unwrap_or(true) {
         let resp = sqlx::query!(
             "SELECT * FROM channels WHERE guild_id = $1",
-            bigint_guild_id
+            bigdecimal_guild_id
         )
         .fetch_all(db)
         .await?;
@@ -62,7 +62,7 @@ pub async fn get_guild(
                 as u
         WHERE guild_id = $1
         "#,
-            bigint_guild_id
+            bigdecimal_guild_id
         )
         .fetch_all(db)
         .await?;
@@ -88,6 +88,10 @@ pub async fn get_guild(
                             pronouns: x
                                 .pronouns
                                 .and_then(ferrischat_common::types::Pronouns::from_i16),
+                            is_bot: {
+                                UserFlags::from_bits_truncate(x.flags)
+                                    .contains(UserFlags::BOT_ACCOUNT)
+                            },
                         }),
                         guild_id: Some(guild_id),
                         guild: None,
@@ -104,10 +108,11 @@ pub async fn get_guild(
             id: bigdecimal_to_u128!(guild.id),
             owner_id: bigdecimal_to_u128!(guild.owner_id),
             name: guild.name,
-            flags: GuildFlags::empty(),
+            flags: GuildFlags::from_bits_truncate(guild.flags),
             channels,
             members,
             roles: None,
+            icon: guild.icon,
         },
         code: 200,
     })

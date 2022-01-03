@@ -8,14 +8,14 @@ use ferrischat_common::ws::WsOutboundEvent;
 
 pub async fn edit_guild(
     Path(guild_id): Path<u128>,
-    Json(GuildUpdateJson { name }): Json<GuildUpdateJson>,
+    Json(GuildUpdateJson { name, icon }): Json<GuildUpdateJson>,
     _: crate::Authorization,
 ) -> Result<crate::Json<Guild>, WebServerError> {
     let db = get_db_or_fail!();
 
-    let bigint_guild_id = u128_to_bigdecimal!(guild_id);
+    let bigdecimal_guild_id = u128_to_bigdecimal!(guild_id);
 
-    let guild = sqlx::query!("SELECT * FROM guilds WHERE id = $1", bigint_guild_id)
+    let guild = sqlx::query!("SELECT * FROM guilds WHERE id = $1", bigdecimal_guild_id)
         .fetch_optional(db)
         .await?
         .ok_or_else(|| ErrorJson::new_404(format!("Unknown guild with ID {}", guild_id)))?;
@@ -27,19 +27,30 @@ pub async fn edit_guild(
         channels: None,
         members: None,
         roles: None,
+        icon: guild.icon,
     };
 
     if let Some(name) = name {
         sqlx::query!(
             "UPDATE guilds SET name = $1 WHERE id = $2",
             name,
-            bigint_guild_id
+            bigdecimal_guild_id
         )
         .execute(db)
         .await?;
     }
 
-    let guild = sqlx::query!("SELECT * FROM guilds WHERE id = $1", bigint_guild_id)
+    if let Some(icon) = icon {
+        sqlx::query!(
+            "UPDATE guilds SET icon = $1 WHERE id = $2",
+            icon,
+            bigdecimal_guild_id
+        )
+        .execute(db)
+        .await?;
+    }
+
+    let guild = sqlx::query!("SELECT * FROM guilds WHERE id = $1", bigdecimal_guild_id)
         .fetch_optional(db)
         .await?
         .ok_or_else(|| ErrorJson::new_404(format!("Unknown guild with ID {}", guild_id)))?;
@@ -47,10 +58,11 @@ pub async fn edit_guild(
         id: bigdecimal_to_u128!(guild.id),
         owner_id: bigdecimal_to_u128!(guild.owner_id),
         name: guild.name,
-        flags: GuildFlags::empty(),
+        flags: GuildFlags::from_bits_truncate(guild.flags),
         channels: None,
         members: None,
         roles: None,
+        icon: guild.icon,
     };
 
     // TODO: impl Eq for all types

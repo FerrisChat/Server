@@ -2,19 +2,19 @@ use crate::WebServerError;
 use axum::extract::Path;
 use ferrischat_common::types::{ErrorJson, Invite};
 
-/// GET `/api/v0/guilds/{guild_id}/invites`
+/// GET `/v0/guilds/{guild_id}/invites`
 pub async fn get_guild_invites(
     Path(guild_id): Path<u128>,
-    crate::Authorization(authorized_user): crate::Authorization,
+    crate::Authorization(authorized_user, ..): crate::Authorization,
 ) -> Result<crate::Json<Vec<Invite>>, WebServerError> {
     let db = get_db_or_fail!();
-    let bigint_guild_id = u128_to_bigdecimal!(guild_id);
-    let bigint_authed_user = u128_to_bigdecimal!(authorized_user);
+    let bigdecimal_guild_id = u128_to_bigdecimal!(guild_id);
+    let bigdecimal_authed_user = u128_to_bigdecimal!(authorized_user);
 
     if sqlx::query!(
         "SELECT * FROM members WHERE user_id = $1 AND guild_id = $2",
-        bigint_authed_user,
-        bigint_guild_id
+        bigdecimal_authed_user,
+        bigdecimal_guild_id
     )
     .fetch_optional(db)
     .await?
@@ -23,9 +23,12 @@ pub async fn get_guild_invites(
         return Err(ErrorJson::new_403("you are not a member of this guild".to_string()).into());
     }
 
-    let res_invites = sqlx::query!("SELECT * FROM invites WHERE guild_id = $1", bigint_guild_id)
-        .fetch_all(db)
-        .await?;
+    let res_invites = sqlx::query!(
+        "SELECT * FROM invites WHERE guild_id = $1",
+        bigdecimal_guild_id
+    )
+    .fetch_all(db)
+    .await?;
 
     let mut invites = Vec::with_capacity(res_invites.len());
     for invite in res_invites {

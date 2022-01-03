@@ -5,15 +5,11 @@
 #![allow(clippy::future_not_send)]
 #![allow(clippy::module_name_repetitions)]
 
-#[cfg(not(any(
-    target_os = "linux",
-    target_os = "freebsd",
-    target_os = "openbsd",
-    target_os = "netbsd"
-)))]
+#[cfg(target_os = "windows")]
 compile_error!(
-    "the server of FerrisChat is only supported on Linux and BSD systems. \
-    if your OS is supported but there's an issue, please email `os-support@ferris.chat`"
+    "The server of FerrisChat is not supported on Windows/NT based systems.\
+    If your OS is supported, but you are seeing this, please either email `os-support@ferris.chat`\
+    or open an issue on our GitHub (https://github.com/FerrisChat/Server)"
 );
 
 #[macro_use]

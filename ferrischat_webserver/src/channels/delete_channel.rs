@@ -4,17 +4,17 @@ use axum::extract::Path;
 use ferrischat_common::types::{Channel, ErrorJson};
 use ferrischat_common::ws::WsOutboundEvent;
 
-/// DELETE `/api/v0/channels/{channel_id}`
+/// DELETE `/v0/channels/{channel_id}`
 pub async fn delete_channel(
     Path(channel_id): Path<u128>,
     _: crate::Authorization,
 ) -> Result<http::StatusCode, WebServerError> {
     let db = get_db_or_fail!();
-    let bigint_channel_id = u128_to_bigdecimal!(channel_id);
+    let bigdecimal_channel_id = u128_to_bigdecimal!(channel_id);
 
     let channel = sqlx::query!(
         "DELETE FROM channels WHERE id = $1 RETURNING *",
-        bigint_channel_id,
+        bigdecimal_channel_id,
     )
     .fetch_optional(db)
     .await?

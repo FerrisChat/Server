@@ -3,17 +3,17 @@ use axum::extract::{Path, Query};
 use ferrischat_common::request_json::GetMessageHistoryParams;
 use ferrischat_common::types::{Channel, ErrorJson, Message, MessageHistory, User, UserFlags};
 
-/// GET `/api/v0/channels/{channel_id}/messages`
+/// GET `/v0/channels/{channel_id}/messages`
 pub async fn get_message_history(
     Path(channel_id): Path<u128>,
-    _: crate::Authorization,
+    crate::Authorization(_, _): crate::Authorization,
     Query(GetMessageHistoryParams {
         limit,
         oldest_first,
         mut offset,
     }): Query<GetMessageHistoryParams>,
 ) -> Result<crate::Json<MessageHistory>, WebServerError> {
-    let bigint_channel_id = u128_to_bigdecimal!(channel_id);
+    let bigdecimal_channel_id = u128_to_bigdecimal!(channel_id);
     let db = get_db_or_fail!();
 
     let oldest_first = oldest_first.unwrap_or(false);
@@ -26,10 +26,13 @@ pub async fn get_message_history(
         offset = Some(0);
     }
 
-    let channel = sqlx::query!("SELECT * FROM channels WHERE id = $1", bigint_channel_id)
-        .fetch_optional(db)
-        .await?
-        .ok_or_else(|| ErrorJson::new_404("channel not found".to_string()))?;
+    let channel = sqlx::query!(
+        "SELECT * FROM channels WHERE id = $1",
+        bigdecimal_channel_id
+    )
+    .fetch_optional(db)
+    .await?
+    .ok_or_else(|| ErrorJson::new_404("channel not found".to_string()))?;
 
     let channel_obj = Channel {
         id: channel_id,
@@ -56,7 +59,7 @@ WHERE channel_id = $1
 ORDER BY id ASC
 LIMIT $2 OFFSET $3
 "#,
-            bigint_channel_id,
+            bigdecimal_channel_id,
             limit,
             offset,
         )
@@ -98,7 +101,7 @@ WHERE channel_id = $1
 ORDER BY id DESC
 LIMIT $2 OFFSET $3
 "#,
-            bigint_channel_id,
+            bigdecimal_channel_id,
             limit,
             offset,
         )
@@ -155,6 +158,9 @@ LIMIT $2 OFFSET $3
                 flags: UserFlags::from_bits_truncate(author_flags),
                 discriminator: author_discriminator,
                 pronouns: author_pronouns.and_then(ferrischat_common::types::Pronouns::from_i16),
+                is_bot: {
+                    UserFlags::from_bits_truncate(author_flags).contains(UserFlags::BOT_ACCOUNT)
+                },
             }),
             edited_at,
             embeds: vec![],

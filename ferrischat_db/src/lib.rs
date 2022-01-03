@@ -44,3 +44,13 @@ pub async fn load_db() -> Pool<Postgres> {
 
     db
 }
+
+/// Run all pending migrations against the database.
+///
+/// # Panics
+/// If loading the database pool or running the actual migrations failed.
+pub async fn run_migrations() {
+    let db = load_db().await;
+    let migrator: sqlx::migrate::Migrator = sqlx::migrate!("./../migrations");
+    migrator.run(&db).await.expect("failed to run migrations");
+}
