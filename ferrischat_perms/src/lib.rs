@@ -8,7 +8,7 @@ mod manage;
 
 use ferrischat_common::perms::{ChannelPermissions, GuildPermissions};
 
-#![derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub enum Permissions {
     Guild(GuildPermissions),
     Channel(ChannelPermissions),
