@@ -6,7 +6,9 @@ impl PermissionCalculatorTM {
     pub fn to_channel(self) -> ChannelPermissions {
         let mut perms = ChannelPermissions::empty();
 
-        let mut roles = self.from_member.roles;
+        let member = self.from_member;
+
+        let mut roles = member.roles;
 
         roles.reverse();
 
@@ -17,8 +19,6 @@ impl PermissionCalculatorTM {
             perms.delete_messages |= perm.delete_messages;
             perms.edit_channel |= perm.edit_channels;
         }
-
-        let member = self.from_member;
 
         if let Some(channel) = self.to_channel {
             let mut overwrites = channel.permission_overwrites;
