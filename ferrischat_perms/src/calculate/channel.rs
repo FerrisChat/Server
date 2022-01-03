@@ -6,11 +6,11 @@ impl<'a> PermissionCalculatorTM<'a> {
     pub fn to_channel(self) -> ChannelPermissions {
         let mut perms = ChannelPermissions::empty();
 
-        let mut roles = self.from_member.roles;
+        let mut roles = &self.from_member.roles;
 
         roles.reverse();
 
-        for role in roles {
+        for role in &roles {
             let perm = role.guild_permissions;
 
             perms.send_messages |= perm.send_messages;
@@ -21,7 +21,7 @@ impl<'a> PermissionCalculatorTM<'a> {
         let member = self.from_member;
 
         if let Some(channel) = self.to_channel {
-            let mut overwrites = channel.permission_overwrites;
+            let mut overwrites = &channel.permission_overwrites;
             let roles = roles.iter_mut().map(|x| x.id).collect::<Vec<u128>>();
 
             overwrites.reverse();
@@ -31,6 +31,7 @@ impl<'a> PermissionCalculatorTM<'a> {
                 None => {
                     member
                         .user
+                        .as_ref()
                         .unwrap_or_else(|| unreachable!("No user_id and no user"))
                         .id
                 }

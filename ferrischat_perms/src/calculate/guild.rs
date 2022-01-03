@@ -6,7 +6,7 @@ impl<'a> PermissionCalculatorTM<'a> {
     pub fn to_guild(self) -> GuildPermissions {
         let mut perms = GuildPermissions::empty();
 
-        let mut roles = self.from_member.roles;
+        let mut roles = &self.from_member.roles;
 
         roles.reverse();
 
