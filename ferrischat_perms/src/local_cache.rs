@@ -24,12 +24,13 @@ pub fn get(k: &u128) -> Result<&Permissions, LocalCacheError> {
 
 /// Get a mutable reference to an entry in the map
 pub fn get_mut(k: &u128) -> Result<&mut Permissions, LocalCacheError> {
-    Ok(LOCAL_PERMISSION_CACHE
+    let cache = LOCAL_PERMISSION_CACHE
         .get()
         .ok_or(LocalCacheError::CacheMissing)?
         .get_mut(k)
-        .ok_or(LocalCacheError::ItemMissing)?
-        .value_mut())
+        .ok_or(LocalCacheError::ItemMissing)?;
+
+    Ok(cache.value_mut())
 }
 
 /// Get an owned object from an entry in the map.
