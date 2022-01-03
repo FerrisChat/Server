@@ -22,16 +22,17 @@ pub fn get(k: &u128) -> Result<&Permissions, LocalCacheError> {
         .value())
 }
 
-/// Get a mutable reference to an entry in the map
-pub fn get_mut(k: &u128) -> Result<&mut Permissions, LocalCacheError> {
-    let mut cache = LOCAL_PERMISSION_CACHE
-        .get()
-        .ok_or(LocalCacheError::CacheMissing)?
-        .get_mut(k)
-        .ok_or(LocalCacheError::ItemMissing)?;
+// /// Get a mutable reference to an entry in the map
+// pub fn get_mut(k: &u128) -> Result<&mut Permissions, LocalCacheError> {
+//     let mut cache = LOCAL_PERMISSION_CACHE
+//         .get()
+//         .ok_or(LocalCacheError::CacheMissing)?
+//         .get_mut(k)
+//         .ok_or(LocalCacheError::ItemMissing)?;
 
-    Ok(cache.value_mut())
-}
+//     Ok(cache.into_owned().value_mut())
+// }
+// Zero will fix :tm:
 
 /// Get an owned object from an entry in the map.
 ///
