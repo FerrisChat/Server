@@ -9,7 +9,7 @@ sudo mkdir /etc/ferrischat && sudo chown -R ferris:ferris /etc/ferrischat
 ```
 You can also get postgres from their offical repository, rather then your OSes repo.
 You also need Redis, which you can see how to install [here](https://redis.io/topics/quickstart).
-**DO NOT INSTALL REDIS FROM YOUR OS REPO**
+**DO NOT INSTALL REDIS FROM YOUR OS REPO**.
 Now we install Rust:
 ```bash
 curl https://sh.rustup.rs -sSf | sh
@@ -38,4 +38,4 @@ Then you can actually build the server!
 RUSTFLAGS="-Ctarget-cpu=native --emit=asm" cargo build --release --bin both
 sudo mv ./target/release/both /etc/ferrischat/server
 ```
-using [this service file](https://github.com/FerrisChat/scripts/blob/main/host/ferrischat_selfhost.service) (which can be placed in /etc/systemd/system/) and [this config](https://github.com/FerrisChat/Server/blob/develop/config.example.toml), which should go in /etc/ferrischat/config.toml.  You also need to add an Nginx config file, an example of which can be found [here](https://github.com/FerrisChat/Server/blob/develop/ferrischat-nginx.conf).
+Using [this service file](https://github.com/FerrisChat/scripts/blob/main/host/ferrischat_selfhost.service) (which can be placed in `/etc/systemd/system/`) and [this config](https://github.com/FerrisChat/Server/blob/develop/config.example.toml), which should go in `/etc/ferrischat/config.toml`.  You also need to add an Nginx config file, an example of which can be found [here](https://github.com/FerrisChat/Server/blob/develop/ferrischat-nginx.conf).
