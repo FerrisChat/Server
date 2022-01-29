@@ -11,3 +11,4 @@ dataSources.xml
 # per-user config
 /inspectionProfiles/
 /dictionaries/
+/deployment.xml

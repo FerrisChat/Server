@@ -1,2 +1,5 @@
 
 target/
+/.idea/discord.xml
+/.idea/sshConfigs.xml
+/.idea/webServers.xml
