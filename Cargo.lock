@@ -682,6 +682,7 @@ dependencies = [
  "futures 0.3.19",
  "futures-util",
  "num-bigint",
+ "num-traits",
  "simd-json",
  "sqlx",
  "tokio",
