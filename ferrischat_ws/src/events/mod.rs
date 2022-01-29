@@ -1,4 +1,5 @@
 mod channel;
+mod error;
 mod guild;
 mod identify;
 mod invite;
@@ -6,6 +7,9 @@ mod member;
 mod message;
 mod ping;
 mod pong;
+mod rx;
+mod tx;
+mod utils;
 
 pub use channel::*;
 pub use guild::*;

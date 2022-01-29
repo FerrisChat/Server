@@ -16,6 +16,7 @@ uuid = { version = "0.8", default-features = false, features = ["v4"] }
 num-traits = "0.2"
 tracing = "0.1"
 tokio-rustls = "=0.22"
+async-trait = "0.1"
 ahash = "0.7"
 
 ferrischat_redis = { path = "../ferrischat_redis" }

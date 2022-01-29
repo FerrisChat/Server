@@ -1,4 +1,7 @@
 use crate::error_handling::WsEventHandlerError;
+use crate::events::error::WebSocketHandlerError;
+use crate::events::rx::{RxEventData, RxHandlerData, WebSocketRxHandler};
+use crate::events::utils::bigdecimal_to_u128;
 use dashmap::DashMap;
 use ferrischat_auth::{split_token, verify_token};
 use ferrischat_common::types::UserFlags;
@@ -11,183 +14,58 @@ use tokio_tungstenite::tungstenite::protocol::frame::coding::CloseCode;
 use tokio_tungstenite::tungstenite::protocol::CloseFrame;
 use uuid::Uuid;
 
-pub async fn handle_identify_rx<'a>(
-    token: String,
-    _intents: Intents,
-    inter_tx: &Sender<WsOutboundEvent>,
-    uid_conn_map: &DashMap<Uuid, u128>,
-    identify_received: &AtomicBool,
-    db: &Pool<Postgres>,
-    conn_id: Uuid,
-) -> Result<(), WsEventHandlerError<'a>> {
-    if identify_received.swap(true, Ordering::Relaxed) {
-        return Err(WsEventHandlerError::CloseFrame(CloseFrame {
-            code: CloseCode::from(2002),
-            reason: "Too many IDENTIFY payloads sent".into(),
-        }));
-    }
+struct IdentifyEvent;
 
-    let (id, secret) = split_token(token.as_str())?;
-    verify_token(id, secret).await?;
-    let bigdecimal_user_id = u128_to_bigdecimal!(id);
+impl WebSocketRxHandler for IdentifyEvent {
+    async fn handle_event(
+        db: &Pool<Postgres>,
+        event_data: RxEventData,
+        RxHandlerData {
+            inter_tx,
+            uid_conn_map,
+            identify_received,
+        }: RxHandlerData,
+        conn_id: Uuid,
+    ) -> Result<(), WebSocketHandlerError> {
+        #[allow(unreachable_patterns)]
+        let (token, intents) = match event_data {
+            RxEventData::Identify { token, intents } => (token, intents),
+            _ => unreachable!("got wrong event type in Identify"),
+        };
 
-    let res = sqlx::query!("SELECT * FROM users WHERE id = $1", bigdecimal_user_id)
-        .fetch_one(db)
-        .await;
+        if identify_received.swap(true, Ordering::Relaxed) {
+            return Err(WebSocketHandlerError::TooManyIdentify);
+        }
 
-    let guilds = {
-        let d = sqlx::query!(
-            r#"SELECT id AS "id!", owner_id AS "owner_id!", name AS "name!", icon, flags AS "flags!" FROM guilds INNER JOIN members m on guilds.id = m.guild_id WHERE m.user_id = $1"#,
-            bigdecimal_user_id
-        )
-                .fetch_all(db)
+        let (id, secret) = split_token(token.as_str())?;
+        verify_token(id, secret).await?;
+        let bigdecimal_user_id = u128_to_bigdecimal!(id);
+
+        let guilds = None;
+
+        let user = {
+            let res = sqlx::query!("SELECT * FROM users WHERE id = $1", bigdecimal_user_id)
+                .fetch_one(db)
                 .await?;
-
-        let mut guilds = Vec::with_capacity(d.len());
-        for x in d {
-            let id = match x
-                .id
-                .clone()
-                .with_scale(0)
-                .into_bigint_and_exponent()
-                .0
-                .to_u128()
-            {
-                Some(id) => id,
-                None => {
-                    return Err(WsEventHandlerError::CloseFrame(CloseFrame {
-                        code: CloseCode::from(5006),
-                        reason: "Failed to parse ID as u128".into(),
-                    }))
-                }
-            };
-            let icon = x.icon;
-            let flags = x.flags;
-
-            let owner_id = match x
-                .owner_id
-                .with_scale(0)
-                .into_bigint_and_exponent()
-                .0
-                .to_u128()
-            {
-                Some(id) => id,
-                None => {
-                    return Err(WsEventHandlerError::CloseFrame(CloseFrame {
-                        code: CloseCode::from(5006),
-                        reason: "Failed to parse ID as u128".into(),
-                    }))
-                }
-            };
-
-            let members = {
-                let resp = sqlx::query!(
-                                "SELECT m.*, u.avatar AS avatar, u.name AS name, u.discriminator AS discriminator, u.flags AS flags, u.pronouns AS pronouns FROM members m \
-                                CROSS JOIN LATERAL (SELECT * FROM users u WHERE id = m.user_id) AS u WHERE guild_id = $1",
-                                x.id.clone())
-                    .fetch_all(db)
-                    .await?;
-
-                Some(
-                    resp.iter()
-                        .filter_map(|x| {
-                            let user_id = x
-                                .user_id
-                                .with_scale(0)
-                                .into_bigint_and_exponent()
-                                .0
-                                .to_u128()?;
-                            let is_bot_m = UserFlags::from_bits_truncate(x.flags)
-                                .contains(UserFlags::BOT_ACCOUNT);
-                            Some(ferrischat_common::types::Member {
-                                user_id: Some(user_id),
-                                user: Some(ferrischat_common::types::User {
-                                    id: user_id,
-                                    name: x.name.clone(),
-                                    avatar: x.avatar.clone(),
-                                    guilds: None,
-                                    flags: ferrischat_common::types::UserFlags::from_bits_truncate(
-                                        x.flags,
-                                    ),
-                                    discriminator: x.discriminator,
-                                    pronouns: x
-                                        .pronouns
-                                        .and_then(ferrischat_common::types::Pronouns::from_i16),
-                                    is_bot: is_bot_m,
-                                }),
-                                guild_id: Some(id),
-                                guild: None,
-                            })
-                        })
-                        .collect(),
-                )
-            };
-
-            let channels = {
-                let resp = sqlx::query!("SELECT * FROM channels WHERE guild_id = $1", x.id.clone())
-                    .fetch_all(db)
-                    .await?;
-
-                Some(
-                    resp.iter()
-                        .filter_map(|x| {
-                            Some(ferrischat_common::types::Channel {
-                                id: x
-                                    .id
-                                    .clone()
-                                    .with_scale(0)
-                                    .into_bigint_and_exponent()
-                                    .0
-                                    .to_u128()?,
-                                name: x.name.clone(),
-                                guild_id: id,
-                            })
-                        })
-                        .collect(),
-                )
-            };
-
-            guilds.push(ferrischat_common::types::Guild {
+            ferrischat_common::types::User {
                 id,
-                owner_id,
-                name: x.name.clone(),
-                channels,
-                flags: ferrischat_common::types::GuildFlags::from_bits_truncate(flags),
-                members,
-                roles: None,
-                icon,
-            });
-        }
-        Some(guilds)
-    };
+                name: res.name,
+                avatar: res.avatar,
+                guilds,
+                flags: UserFlags::from_bits_truncate(res.flags),
+                discriminator: res.discriminator,
+                pronouns: res
+                    .pronouns
+                    .and_then(ferrischat_common::types::Pronouns::from_i16),
+            }
+        };
 
-    let user = match res {
-        Ok(u) => ferrischat_common::types::User {
-            id,
-            name: u.name,
-            avatar: u.avatar,
-            guilds,
-            flags: ferrischat_common::types::UserFlags::from_bits_truncate(u.flags),
-            discriminator: u.discriminator,
-            pronouns: u
-                .pronouns
-                .and_then(ferrischat_common::types::Pronouns::from_i16),
-            is_bot: UserFlags::from_bits_truncate(u.flags).contains(UserFlags::BOT_ACCOUNT),
-        },
-        Err(e) => {
-            return Err(WsEventHandlerError::CloseFrame(CloseFrame {
-                code: CloseCode::from(5000),
-                reason: format!("Internal database error: {}", e).into(),
-            }))
-        }
-    };
+        inter_tx
+            .send(WsOutboundEvent::IdentifyAccepted { user })
+            .await?;
 
-    inter_tx
-        .send(WsOutboundEvent::IdentifyAccepted { user })
-        .await
-        .as_ref()?;
+        uid_conn_map.insert(conn_id, id);
 
-    uid_conn_map.insert(conn_id, id);
-
-    Ok(())
+        Ok(())
+    }
 }

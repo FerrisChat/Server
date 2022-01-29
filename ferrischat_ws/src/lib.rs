@@ -23,6 +23,8 @@ mod tx_handler;
 extern crate ferrischat_macros;
 #[macro_use]
 extern crate tracing;
+#[macro_use]
+extern crate async_trait;
 
 static USERID_CONNECTION_MAP: OnceCell<DashMap<Uuid, u128>> = OnceCell::new();
 

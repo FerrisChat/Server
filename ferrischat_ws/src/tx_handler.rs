@@ -136,12 +136,16 @@ pub async fn tx_handler(
                     }
                 };
                 let ret = match item_name {
-                    "channel" => handle_channel_tx(db, &outbound_message, uid, obj_id).await,
-                    "message" => handle_message_tx(db, &outbound_message, uid, obj_id).await,
+                    "channel" => {
+                        ChannelEvent::handle_event(db, &outbound_message, uid, obj_id).await
+                    }
+                    "message" => {
+                        MessageEvent::handle_event(db, &outbound_message, uid, obj_id).await
+                    }
                     // note we don't handle the special `gc` case here
-                    "guild" => handle_guild_tx(db, &outbound_message, uid, obj_id).await,
-                    "member" => handle_member_tx(db, &outbound_message, uid, obj_id).await,
-                    "invite" => handle_invite_tx(db, &outbound_message, uid, obj_id).await,
+                    "guild" => GuildEvent::handle_event(db, &outbound_message, uid, obj_id).await,
+                    "member" => MemberEvent::handle_event(db, &outbound_message, uid, obj_id).await,
+                    "invite" => InviteEvent::handle_event(db, &outbound_message, uid, obj_id).await,
                     t => {
                         warn!("unknown event type {}", t);
                         continue;
