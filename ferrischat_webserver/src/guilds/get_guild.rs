@@ -6,14 +6,14 @@ use num_traits::ToPrimitive;
 
 /// GET `/v0/guilds/{guild_id}`
 pub async fn get_guild(
-    _: crate::Authorization,
+    crate::Authorization(_, _): crate::Authorization,
     Path(guild_id): Path<u128>,
     Query(params): Query<GetGuildUrlParams>,
 ) -> Result<crate::Json<Guild>, WebServerError> {
     let db = get_db_or_fail!();
-    let bigint_guild_id = u128_to_bigdecimal!(guild_id);
+    let bigdecimal_guild_id = u128_to_bigdecimal!(guild_id);
 
-    let guild = sqlx::query!("SELECT * FROM guilds WHERE id = $1", bigint_guild_id)
+    let guild = sqlx::query!("SELECT * FROM guilds WHERE id = $1", bigdecimal_guild_id)
         .fetch_optional(db)
         .await?
         .ok_or_else(|| ErrorJson::new_404(format!("Unknown guild with ID {}", guild_id)))?;
@@ -21,7 +21,7 @@ pub async fn get_guild(
     let channels: Option<Vec<Channel>> = if params.channels.unwrap_or(true) {
         let resp = sqlx::query!(
             "SELECT * FROM channels WHERE guild_id = $1",
-            bigint_guild_id
+            bigdecimal_guild_id
         )
         .fetch_all(db)
         .await?;
@@ -62,7 +62,7 @@ pub async fn get_guild(
                 as u
         WHERE guild_id = $1
         "#,
-            bigint_guild_id
+            bigdecimal_guild_id
         )
         .fetch_all(db)
         .await?;
@@ -88,6 +88,10 @@ pub async fn get_guild(
                             pronouns: x
                                 .pronouns
                                 .and_then(ferrischat_common::types::Pronouns::from_i16),
+                            is_bot: {
+                                UserFlags::from_bits_truncate(x.flags)
+                                    .contains(UserFlags::BOT_ACCOUNT)
+                            },
                         }),
                         guild_id: Some(guild_id),
                         guild: None,

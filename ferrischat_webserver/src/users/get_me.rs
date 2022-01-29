@@ -4,13 +4,13 @@ use num_traits::cast::ToPrimitive;
 
 /// GET `/v0/users/me`
 pub async fn get_me(
-    crate::Authorization(authorized_user): crate::Authorization,
+    crate::Authorization(authorized_user, is_bot): crate::Authorization,
 ) -> Result<crate::Json<User>, WebServerError> {
     let user_id = authorized_user;
     let db = get_db_or_fail!();
-    let bigint_user_id = u128_to_bigdecimal!(user_id);
+    let bigdecimal_user_id = u128_to_bigdecimal!(user_id);
 
-    let user = sqlx::query!("SELECT * FROM users WHERE id = $1", bigint_user_id)
+    let user = sqlx::query!("SELECT * FROM users WHERE id = $1", bigdecimal_user_id)
         .fetch_optional(db)
         .await?
         .ok_or_else(|| ErrorJson::new_404(format!("Unknown user with ID {}", user_id)))?;
@@ -21,6 +21,7 @@ pub async fn get_me(
             id: user_id,
             name: user.name,
             avatar: user.avatar,
+            is_bot,
             guilds: {
                 // this code is shit, can probably make it better but i can't figure out the
                 // unsatisfied trait bounds that happens when you get rid of .iter()
@@ -43,7 +44,7 @@ pub async fn get_me(
                         WHERE
                             m.user_id = $1
                     "#,
-                    bigint_user_id,
+                    bigdecimal_user_id,
                 )
                 .fetch_all(db)
                 .await?;
@@ -139,6 +140,10 @@ pub async fn get_me(
                                             pronouns: user.pronouns.and_then(
                                                 ferrischat_common::types::Pronouns::from_i16,
                                             ),
+                                            is_bot: {
+                                                UserFlags::from_bits_truncate(user.flags)
+                                                    .contains(UserFlags::BOT_ACCOUNT)
+                                            },
                                         })
                                     };
 

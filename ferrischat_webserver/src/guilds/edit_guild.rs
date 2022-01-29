@@ -13,9 +13,9 @@ pub async fn edit_guild(
 ) -> Result<crate::Json<Guild>, WebServerError> {
     let db = get_db_or_fail!();
 
-    let bigint_guild_id = u128_to_bigdecimal!(guild_id);
+    let bigdecimal_guild_id = u128_to_bigdecimal!(guild_id);
 
-    let guild = sqlx::query!("SELECT * FROM guilds WHERE id = $1", bigint_guild_id)
+    let guild = sqlx::query!("SELECT * FROM guilds WHERE id = $1", bigdecimal_guild_id)
         .fetch_optional(db)
         .await?
         .ok_or_else(|| ErrorJson::new_404(format!("Unknown guild with ID {}", guild_id)))?;
@@ -34,7 +34,7 @@ pub async fn edit_guild(
         sqlx::query!(
             "UPDATE guilds SET name = $1 WHERE id = $2",
             name,
-            bigint_guild_id
+            bigdecimal_guild_id
         )
         .execute(db)
         .await?;
@@ -44,13 +44,13 @@ pub async fn edit_guild(
         sqlx::query!(
             "UPDATE guilds SET icon = $1 WHERE id = $2",
             icon,
-            bigint_guild_id
+            bigdecimal_guild_id
         )
         .execute(db)
         .await?;
     }
 
-    let guild = sqlx::query!("SELECT * FROM guilds WHERE id = $1", bigint_guild_id)
+    let guild = sqlx::query!("SELECT * FROM guilds WHERE id = $1", bigdecimal_guild_id)
         .fetch_optional(db)
         .await?
         .ok_or_else(|| ErrorJson::new_404(format!("Unknown guild with ID {}", guild_id)))?;

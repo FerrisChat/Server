@@ -9,10 +9,10 @@ use ferrischat_common::ws::WsOutboundEvent;
 pub async fn edit_message(
     Path((channel_id, message_id)): Path<(u128, u128)>,
     Json(MessageUpdateJson { content }): Json<MessageUpdateJson>,
-    auth: crate::Authorization,
+    crate::Authorization(user_id, _): crate::Authorization,
 ) -> Result<crate::Json<Message>, WebServerError> {
-    let bigint_channel_id = u128_to_bigdecimal!(channel_id);
-    let bigint_message_id = u128_to_bigdecimal!(message_id);
+    let bigdecimal_channel_id = u128_to_bigdecimal!(channel_id);
+    let bigdecimal_message_id = u128_to_bigdecimal!(message_id);
 
     let db = get_db_or_fail!();
 
@@ -25,10 +25,13 @@ pub async fn edit_message(
         }
     }
 
-    let channel = sqlx::query!("SELECT * FROM channels WHERE id = $1", bigint_channel_id)
-        .fetch_optional(db)
-        .await?
-        .ok_or_else(|| ErrorJson::new_404("channel not found".to_string()))?;
+    let channel = sqlx::query!(
+        "SELECT * FROM channels WHERE id = $1",
+        bigdecimal_channel_id
+    )
+    .fetch_optional(db)
+    .await?
+    .ok_or_else(|| ErrorJson::new_404("channel not found".to_string()))?;
 
     let channel_obj = Channel {
         id: channel_id,
@@ -38,8 +41,8 @@ pub async fn edit_message(
 
     let resp = sqlx::query!(
         "SELECT m.*, a.avatar AS avatar, a.name AS author_name, a.flags AS author_flags, a.discriminator AS author_discriminator, a.pronouns AS author_pronouns FROM messages m CROSS JOIN LATERAL (SELECT * FROM users WHERE id = m.author_id) AS a WHERE m.id = $1 AND m.channel_id = $2",
-        bigint_message_id,
-        bigint_channel_id,
+        bigdecimal_message_id,
+        bigdecimal_channel_id,
     )
         .fetch_optional(db)
         .await?
@@ -48,7 +51,7 @@ pub async fn edit_message(
 
     let old_message_obj = {
         let author_id = bigdecimal_to_u128!(resp.author_id);
-        if author_id != auth.0 {
+        if author_id != user_id {
             return Err(ErrorJson::new_403(
                 "this user is not the author of the message".to_string(),
             )
@@ -75,12 +78,16 @@ pub async fn edit_message(
                 pronouns: resp
                     .author_pronouns
                     .and_then(ferrischat_common::types::Pronouns::from_i16),
+                is_bot: {
+                    UserFlags::from_bits_truncate(resp.author_flags)
+                        .contains(UserFlags::BOT_ACCOUNT)
+                },
             }),
             nonce: None,
         }
     };
 
-    let message = sqlx::query!("UPDATE messages SET content = $1, edited_at = now()::timestamp without time zone WHERE channel_id = $2 AND id = $3 RETURNING *", content, bigint_channel_id, bigint_message_id)
+    let message = sqlx::query!("UPDATE messages SET content = $1, edited_at = now()::timestamp without time zone WHERE channel_id = $2 AND id = $3 RETURNING *", content, bigdecimal_channel_id, bigdecimal_message_id)
         .fetch_optional(db)
         .await?
         .ok_or_else(|| ErrorJson::new_404(

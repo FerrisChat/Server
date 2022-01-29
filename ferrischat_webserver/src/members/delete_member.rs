@@ -9,16 +9,19 @@ pub async fn delete_member(
     Path((guild_id, member_id)): Path<(u128, u128)>,
     _: crate::Authorization,
 ) -> Result<http::StatusCode, WebServerError> {
-    let bigint_guild_id = u128_to_bigdecimal!(guild_id);
-    let bigint_member_id = u128_to_bigdecimal!(member_id);
+    let bigdecimal_guild_id = u128_to_bigdecimal!(guild_id);
+    let bigdecimal_member_id = u128_to_bigdecimal!(member_id);
 
     let db = get_db_or_fail!();
 
-    let owner_id = sqlx::query!("SELECT owner_id FROM guilds WHERE id = $1", bigint_guild_id)
-        .fetch_one(db)
-        .await?
-        .owner_id;
-    if owner_id == bigint_member_id {
+    let owner_id = sqlx::query!(
+        "SELECT owner_id FROM guilds WHERE id = $1",
+        bigdecimal_guild_id
+    )
+    .fetch_one(db)
+    .await?
+    .owner_id;
+    if owner_id == bigdecimal_member_id {
         return Err(ErrorJson::new_409(
             "the guild owner cannot be removed from a guild".to_string(),
         )
@@ -27,8 +30,8 @@ pub async fn delete_member(
 
     let member_obj = sqlx::query!(
         "DELETE FROM members WHERE user_id = $1 AND guild_id = $2 RETURNING *",
-        bigint_member_id,
-        bigint_guild_id
+        bigdecimal_member_id,
+        bigdecimal_guild_id
     )
     .fetch_optional(db)
     .await?

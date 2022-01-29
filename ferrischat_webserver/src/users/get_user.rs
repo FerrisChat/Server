@@ -6,12 +6,12 @@ use num_traits::cast::ToPrimitive;
 /// GET `/v0/users/{user_id}`
 pub async fn get_user(
     Path(user_id): Path<u128>,
-    crate::Authorization(authorized_user): crate::Authorization,
+    crate::Authorization(authorized_user, _): crate::Authorization,
 ) -> Result<crate::Json<User>, WebServerError> {
     let db = get_db_or_fail!();
-    let bigint_user_id = u128_to_bigdecimal!(user_id);
+    let bigdecimal_user_id = u128_to_bigdecimal!(user_id);
 
-    let user = sqlx::query!("SELECT * FROM users WHERE id = $1", bigint_user_id)
+    let user = sqlx::query!("SELECT * FROM users WHERE id = $1", bigdecimal_user_id)
         .fetch_optional(db)
         .await?
         .ok_or_else(|| ErrorJson::new_404(format!("Unknown user with ID {}", user_id)))?;
@@ -22,6 +22,7 @@ pub async fn get_user(
             id: user_id,
             name: user.name,
             avatar: user.avatar,
+            is_bot: { UserFlags::from_bits_truncate(user.flags).contains(UserFlags::BOT_ACCOUNT) },
             guilds: if authorized_user == user_id {
                 // this code is shit, can probably make it better but i can't figure out the
                 // unsatisfied trait bounds that happens when you get rid of .iter()
@@ -44,7 +45,7 @@ pub async fn get_user(
                         WHERE
                             m.user_id = $1
                     "#,
-                    bigint_user_id,
+                    bigdecimal_user_id,
                 )
                 .fetch_all(db)
                 .await?;
@@ -140,6 +141,10 @@ pub async fn get_user(
                                             pronouns: user.pronouns.and_then(
                                                 ferrischat_common::types::Pronouns::from_i16,
                                             ),
+                                            is_bot: {
+                                                UserFlags::from_bits_truncate(user.flags)
+                                                    .contains(UserFlags::BOT_ACCOUNT)
+                                            },
                                         })
                                     };
 
