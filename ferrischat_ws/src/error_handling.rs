@@ -63,6 +63,21 @@ impl<T> From<&tokio::sync::mpsc::error::SendError<T>> for WsEventHandlerError<'_
     }
 }
 
+impl<T> From<tokio::sync::mpsc::error::SendError<T>> for WsEventHandlerError<'_> {
+    fn from(_: SendError<T>) -> Self {
+        Self::Sender
+    }
+}
+
+impl WsEventHandlerError<'_> {
+    pub fn too_many_identify() -> Self {
+        WsEventHandlerError::CloseFrame(CloseFrame {
+            code: CloseCode::from(2002),
+            reason: "more than one IDENTIFY payload sent".into(),
+        })
+    }
+}
+
 pub fn handle_error<'a>(e: Error) -> CloseFrame<'a> {
     match e {
         Error::ConnectionClosed => CloseFrame {

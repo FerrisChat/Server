@@ -160,7 +160,7 @@ pub async fn tx_handler(
                     }
                     Ok(false) => {}
                     Err(e) => {
-                        break Some(e);
+                        break Some(e.into());
                     }
                 }
             }

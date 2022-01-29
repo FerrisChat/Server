@@ -1,4 +1,5 @@
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
 
 use crate::error_handling::handle_error;
 #[allow(clippy::wildcard_imports)]
@@ -55,7 +56,7 @@ pub async fn rx_handler(
     closer_tx: futures::channel::oneshot::Sender<Option<CloseFrame<'_>>>,
     conn_id: Uuid,
 ) -> SplitStream<WebSocketStream<UnixStream>> {
-    let identify_received = AtomicBool::new(false);
+    let identify_received = Arc::new(AtomicBool::new(false));
 
     let _redis_conn = if let Some(r) = REDIS_MANAGER.get() {
         r.clone()
@@ -107,21 +108,28 @@ pub async fn rx_handler(
             }
         }
 
+        let handler_data = RxHandlerData {
+            inter_tx: inter_tx.clone(),
+            uid_conn_map,
+            identify_received: Arc::clone(&identify_received),
+        };
+
         let handler_response = match data {
             WsInboundEvent::Identify { token, intents } => {
-                handle_identify_rx(
-                    token,
-                    intents,
-                    &inter_tx,
-                    uid_conn_map,
-                    &identify_received,
+                IdentifyEvent::handle_event(
                     db,
+                    RxEventData::Identify { token, intents },
+                    handler_data,
                     conn_id,
                 )
                 .await
             }
-            WsInboundEvent::Ping => handle_ping_rx(&inter_tx).await,
-            WsInboundEvent::Pong => handle_pong_rx(&inter_tx).await,
+            WsInboundEvent::Ping => {
+                PingEvent::handle_event(db, RxEventData::Ping, handler_data, conn_id).await
+            }
+            WsInboundEvent::Pong => {
+                PongEvent::handle_event(db, RxEventData::Pong, handler_data, conn_id).await
+            }
         };
         match handler_response {
             Err(WsEventHandlerError::Sender) => break,

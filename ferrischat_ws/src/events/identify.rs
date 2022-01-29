@@ -1,40 +1,34 @@
 use crate::error_handling::WsEventHandlerError;
-use crate::events::error::WebSocketHandlerError;
 use crate::events::rx::{RxEventData, RxHandlerData, WebSocketRxHandler};
-use crate::events::utils::bigdecimal_to_u128;
-use dashmap::DashMap;
 use ferrischat_auth::{split_token, verify_token};
 use ferrischat_common::types::UserFlags;
-use ferrischat_common::ws::{Intents, WsOutboundEvent};
-use num_traits::ToPrimitive;
+use ferrischat_common::ws::WsOutboundEvent;
 use sqlx::{Pool, Postgres};
-use std::sync::atomic::{AtomicBool, Ordering};
-use tokio::sync::mpsc::Sender;
-use tokio_tungstenite::tungstenite::protocol::frame::coding::CloseCode;
-use tokio_tungstenite::tungstenite::protocol::CloseFrame;
+use std::sync::atomic::Ordering;
 use uuid::Uuid;
 
-struct IdentifyEvent;
+pub struct IdentifyEvent;
 
+#[async_trait]
 impl WebSocketRxHandler for IdentifyEvent {
-    async fn handle_event(
+    async fn handle_event<'a, 'b>(
         db: &Pool<Postgres>,
         event_data: RxEventData,
         RxHandlerData {
             inter_tx,
             uid_conn_map,
             identify_received,
-        }: RxHandlerData,
+        }: RxHandlerData<'a>,
         conn_id: Uuid,
-    ) -> Result<(), WebSocketHandlerError> {
+    ) -> Result<(), WsEventHandlerError<'b>> {
         #[allow(unreachable_patterns)]
-        let (token, intents) = match event_data {
+        let (token, _intents) = match event_data {
             RxEventData::Identify { token, intents } => (token, intents),
             _ => unreachable!("got wrong event type in Identify"),
         };
 
         if identify_received.swap(true, Ordering::Relaxed) {
-            return Err(WebSocketHandlerError::TooManyIdentify);
+            return Err(WsEventHandlerError::too_many_identify());
         }
 
         let (id, secret) = split_token(token.as_str())?;
@@ -57,6 +51,7 @@ impl WebSocketRxHandler for IdentifyEvent {
                 pronouns: res
                     .pronouns
                     .and_then(ferrischat_common::types::Pronouns::from_i16),
+                is_bot: id >> 56 & 255 == 7,
             }
         };
 

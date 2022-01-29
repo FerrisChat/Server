@@ -2,8 +2,6 @@ use super::tx::WebSocketTxHandler;
 use crate::events::error::WebSocketHandlerError;
 use ferrischat_common::ws::WsOutboundEvent;
 use sqlx::{Pool, Postgres};
-use tokio_tungstenite::tungstenite::protocol::frame::coding::CloseCode;
-use tokio_tungstenite::tungstenite::protocol::CloseFrame;
 
 pub struct InviteEvent;
 
@@ -21,15 +19,14 @@ impl WebSocketTxHandler for InviteEvent {
 
         match msg {
             WsOutboundEvent::MemberDelete { .. } => Ok(true),
-            _ => sqlx::query!(
+            _ => Ok(sqlx::query!(
                 "SELECT user_id FROM members WHERE user_id = $1 AND guild_id = $2",
                 bigint_user_id,
                 bigint_guild_id
             )
             .fetch_optional(db)
             .await?
-            .map(|_| true)
-            .unwrap_or(false),
+            .map_or(false, |_| true)),
         }
     }
 }

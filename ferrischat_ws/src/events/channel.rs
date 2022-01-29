@@ -2,8 +2,6 @@ use super::tx::WebSocketTxHandler;
 use crate::events::error::WebSocketHandlerError;
 use ferrischat_common::ws::WsOutboundEvent;
 use sqlx::{Pool, Postgres};
-use tokio_tungstenite::tungstenite::protocol::frame::coding::CloseCode;
-use tokio_tungstenite::tungstenite::protocol::CloseFrame;
 
 pub struct ChannelEvent;
 
@@ -28,8 +26,7 @@ impl WebSocketTxHandler for ChannelEvent {
             )
             .fetch_optional(db)
             .await?
-            .map(|_| true)
-            .unwrap_or(false)),
+            .map_or(false, |_| true)),
         }
     }
 }

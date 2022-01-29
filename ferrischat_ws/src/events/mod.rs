@@ -19,3 +19,5 @@ pub use member::*;
 pub use message::*;
 pub use ping::*;
 pub use pong::*;
+pub use rx::*;
+pub use tx::*;

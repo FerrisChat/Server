@@ -1,13 +1,22 @@
 use crate::error_handling::WsEventHandlerError;
+use crate::events::{RxEventData, RxHandlerData, WebSocketRxHandler};
 use ferrischat_common::ws::WsOutboundEvent;
-use tokio::sync::mpsc::Sender;
+use sqlx::{Pool, Postgres};
+use uuid::Uuid;
 
-pub async fn handle_ping_rx<'a>(
-    inter_tx: &Sender<WsOutboundEvent>,
-) -> Result<(), WsEventHandlerError<'a>> {
-    if inter_tx.send(WsOutboundEvent::Pong).await.is_err() {
-        Err(WsEventHandlerError::Sender)
-    } else {
-        Ok(())
+pub struct PingEvent;
+
+#[async_trait]
+impl WebSocketRxHandler for PingEvent {
+    async fn handle_event<'a, 'b>(
+        _: &Pool<Postgres>,
+        _: RxEventData,
+        RxHandlerData { inter_tx, .. }: RxHandlerData<'a>,
+        _: Uuid,
+    ) -> Result<(), WsEventHandlerError<'b>> {
+        inter_tx
+            .send(WsOutboundEvent::Pong)
+            .await
+            .map_err(|_| WsEventHandlerError::Sender)
     }
 }
