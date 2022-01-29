@@ -12,6 +12,7 @@
       <sourceFolder url="file://$MODULE_DIR$/ferrischat_config/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/ferrischat_helpers/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/ferrischat_core/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ferrischat_utils/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="inheritedJdk" />
