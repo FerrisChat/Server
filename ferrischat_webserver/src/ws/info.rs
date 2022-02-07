@@ -5,7 +5,7 @@ use ferrischat_common::types::WsConnectionInfo;
 pub async fn ws_info() -> crate::Json<WsConnectionInfo> {
     crate::Json {
         obj: WsConnectionInfo {
-            url: "wss://ws.api.ferris.chat".to_string(),
+            url: "wss://ws.ferris.chat".to_string(),
         },
         code: 200,
     }
