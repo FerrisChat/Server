@@ -35,7 +35,7 @@ pub async fn load_db() -> Pool<Postgres> {
         )
         .await
         // don't ask
-        .unwrap_or_else(|_| panic!("failed to connect to DB"));
+        .expect("failed to connect to DB");
 
     DATABASE_POOL
         .set(db.clone())
@@ -51,6 +51,6 @@ pub async fn load_db() -> Pool<Postgres> {
 /// If loading the database pool or running the actual migrations failed.
 pub async fn run_migrations() {
     let db = load_db().await;
-    let migrator: sqlx::migrate::Migrator = sqlx::migrate!("./../migrations");
+    let migrator: sqlx::migrate::Migrator = sqlx::migrate!();
     migrator.run(&db).await.expect("failed to run migrations");
 }
