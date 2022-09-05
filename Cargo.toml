@@ -1,0 +1,12 @@
+[package]
+name = "server"
+version = "0.2.0"
+authors = ["jay3332"]
+edition = "2021"
+
+[profile.release]
+lto = "fat"
+
+[patch.crates-io]
+bitflags = { git = "https://github.com/bitflags/bitflags" }
+redis = { git = "https://github.com/tazz4843/redis-rs" }
