@@ -3,6 +3,11 @@ name = "server"
 version = "0.2.0"
 authors = ["jay3332"]
 edition = "2021"
+description = "The backend for FerrisChat"
+license = "EUPL-1.2"
+repository = "https://github.com/FerrisChat/Server"
+keywords = ["ferrischat", "chat"]
+categories = ["network-programming", "asynchronous", "web-programming"]
 
 [profile.release]
 lto = "fat"

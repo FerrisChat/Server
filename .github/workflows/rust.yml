@@ -27,6 +27,7 @@ jobs:
         run: cargo fmt --all -- --check
 
   build:
+    name: Build and Run Clippy
     runs-on: ubuntu-latest
 
     steps:
