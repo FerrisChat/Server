@@ -14,17 +14,29 @@ jobs:
     name: Rustfmt
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+    - uses: actions/checkout@v3
 
-      - name: Install latest nightly with rustfmt
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: nightly
-          override: true
-          components: rustfmt
+    - name: Move repository into its own directory
+      run: mkdir Server && mv * Server
+      continue-on-error: true
 
-      - name: Check format
-        run: cargo fmt --all -- --check
+    - name: Clone FerrisChat Common crate
+      uses: actions/checkout@v3
+      with:
+        repository: FerrisChat/Common
+        path: Common
+        ref: rewrite
+
+    - name: Install latest nightly with rustfmt
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: nightly
+        override: true
+        components: rustfmt
+
+    - name: Check format
+      run: cargo fmt --all -- --check
+      working-directory: Server
 
   build:
     name: Build and Run Clippy
@@ -33,6 +45,10 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
+    - name: Move repository into its own directory
+      run: mkdir Server && mv * Server
+      continue-on-error: true
+
     - name: Install latest nightly Rust toolchain with clippy
       uses: actions-rs/toolchain@v1
       with:
@@ -40,11 +56,20 @@ jobs:
         override: true
         components: clippy
 
+    - name: Clone FerrisChat Common crate
+      uses: actions/checkout@v3
+      with:
+        repository: FerrisChat/Common
+        path: Common
+        ref: rewrite
+
     - name: Setup cache
       uses: Swatinem/rust-cache@v1
 
     - name: Build
       run: cargo build --verbose
+      working-directory: Server
 
     - name: Run clippy
-      run: cargo clippy --workspace -- -D clippy::all -D clippy::pedantic -D clippy::nursery -D clippy::cargo
+      run: cargo clippy --workspace -- -D clippy::all -D clippy::pedantic -D clippy::nursery
+      working-directory: Server
