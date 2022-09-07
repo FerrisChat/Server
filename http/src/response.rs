@@ -50,8 +50,23 @@ where
     T::StringResult: Serialize,
 {
     /// Promotes this response to one that is aware of the given headers.
+    #[must_use]
     pub fn promote(self, headers: &HeaderMap) -> HeaderAwareResponse<T> {
-        HeaderAwareResponse(self, headers.clone())
+        HeaderAwareResponse {
+            response: self,
+            headers: headers.clone(),
+        }
+    }
+}
+
+impl Response<Error> {
+    /// Promotes this response into one that is aware of the given headers.
+    #[must_use]
+    pub fn promote(self, headers: &HeaderMap) -> HeaderAwareResponse<Error> {
+        HeaderAwareResponse {
+            response: self,
+            headers: headers.clone(),
+        }
     }
 }
 
@@ -150,27 +165,60 @@ impl<T: Serialize> IntoResponse for Response<T> {
 }
 
 /// A response that is aware of the request headers.
-pub struct HeaderAwareResponse<T: Serialize + CastSnowflakes>(
+pub struct HeaderAwareResponse<T: Serialize> {
     /// The response.
-    pub Response<T>,
+    pub response: Response<T>,
     /// The request headers.
-    pub HeaderMap,
-)
-where
-    T::StringResult: Serialize;
+    pub headers: HeaderMap,
+}
+
+impl<T: Serialize> HeaderAwareResponse<T> {
+    fn stringify_snowflakes(&self) -> bool {
+        self.headers
+            .get(HeaderName::from_static("x-stringify-snowflakes"))
+            .is_some_and(|value| {
+                value
+                    .to_str()
+                    .is_ok_and(|value| value.to_ascii_lowercase() != "false")
+            })
+    }
+
+    fn msgpack(&self) -> bool {
+        self.headers.get(ACCEPT).is_some_and(|accept| {
+            accept.to_str().is_ok_and(|&value| {
+                value == "application/msgpack" || value == "application/x-msgpack"
+            })
+        })
+    }
+}
 
 impl<T: Serialize + CastSnowflakes> HeaderAwareResponse<T>
 where
     T::StringResult: Serialize,
 {
     fn fallback(self) -> AxumResponse {
-        if self
-            .1
-            .contains_key(HeaderName::from_static("x-stringify-snowflakes"))
-        {
-            Response(self.0 .0, self.0 .1.into_string_ids()).into_response()
+        if self.stringify_snowflakes() {
+            Response(self.response.0, self.response.1.into_string_ids()).into_response()
         } else {
-            self.0.into_response()
+            self.response.into_response()
+        }
+    }
+}
+
+impl IntoResponse for HeaderAwareResponse<Error> {
+    fn into_response(self) -> AxumResponse {
+        if self.msgpack() {
+            match rmp_serde::to_vec(&self.response.1) {
+                Ok(bytes) => axum::http::Response::builder()
+                    .status(self.response.0)
+                    .header(CONTENT_TYPE, "application/msgpack")
+                    .body(axum::body::Full::from(bytes))
+                    .expect("invalid http status code received")
+                    .into_response(),
+                Err(err) => serialization_error(&err),
+            }
+        } else {
+            self.response.into_response()
         }
     }
 }
@@ -180,27 +228,19 @@ where
     T::StringResult: Serialize,
 {
     fn into_response(self) -> AxumResponse {
-        if let Some(accept) = self.1.get(ACCEPT) {
-            let value = match accept.to_str() {
-                Ok(value) => value,
-                Err(_) => {
-                    return self.fallback();
-                }
-            };
-
-            if value == "application/msgpack" || value == "application/x-msgpack" {
-                // TODO: ease limitation of only allowing integer snowflakes for msgpack
-                match rmp_serde::to_vec(&self.0 .1) {
-                    Ok(bytes) => axum::http::Response::builder()
-                        .status(self.0 .0)
-                        .header(CONTENT_TYPE, "application/msgpack")
-                        .body(axum::body::Full::from(bytes))
-                        .expect("invalid http status code received")
-                        .into_response(),
-                    Err(err) => serialization_error(&err),
-                }
+        if self.msgpack() {
+            match if self.stringify_snowflakes() {
+                rmp_serde::to_vec(&self.response.1.into_string_ids())
             } else {
-                self.fallback()
+                rmp_serde::to_vec(&self.response.1)
+            } {
+                Ok(bytes) => axum::http::Response::builder()
+                    .status(self.response.0)
+                    .header(CONTENT_TYPE, "application/msgpack")
+                    .body(axum::body::Full::from(bytes))
+                    .expect("invalid http status code received")
+                    .into_response(),
+                Err(err) => serialization_error(&err),
             }
         } else {
             self.fallback()

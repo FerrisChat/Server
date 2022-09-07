@@ -1,4 +1,5 @@
 #![allow(clippy::module_name_repetitions)]
+#![feature(is_some_with)]
 #![feature(try_blocks)]
 
 pub mod response;
