@@ -1,0 +1,17 @@
+[package]
+name = "ferrischat_http"
+version = "0.1.0"
+edition = "2021"
+authors = ["jay3332"]
+license = "EUPL-1.2"
+repository = "https://github.com/FerrisChat/Server"
+
+[dependencies]
+axum = { version = "0.5", features = ["headers"] }
+common = { path = "../../Common" }
+dotenv = "0.15"
+rmp-serde = "1.1"
+serde = "1.0"
+simd-json = "0.6"
+sqlx = { version = "0.6", features = ["chrono", "postgres", "macros", "offline", "runtime-tokio-rustls", "time"] }
+tokio = { version = "1", features = ["full"] }

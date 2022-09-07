@@ -9,9 +9,14 @@ repository = "https://github.com/FerrisChat/Server"
 keywords = ["ferrischat", "chat"]
 categories = ["network-programming", "asynchronous", "web-programming"]
 
+[workspace]
+members = [
+    "http",
+]
+
 [profile.release]
 lto = "fat"
 
-[patch.crates-io]
-bitflags = { git = "https://github.com/bitflags/bitflags" }
-redis = { git = "https://github.com/tazz4843/redis-rs" }
+[dependencies]
+ferrischat_http = { path = "http" }
+tokio = { version = "1", features = ["full"] }
