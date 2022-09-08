@@ -8,6 +8,8 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
+  # This is so it can pass workflows
+  DATABASE_URL: none
 
 jobs:
   rustfmt:

@@ -60,7 +60,7 @@ This is only recommended if you plan to not contribute and you are solely hostin
 The patch is as follows:
 ```toml
 [patch."../Common"]
-common = { git = "https://github.com/FerrisChat/Common" }
+common = { git = "https://github.com/FerrisChat/Common", branch = "rewrite" }
 ```
 
 Add this in the top-level `Cargo.toml` file. Make sure to only append to the file and not overwrite it.
