@@ -8,10 +8,14 @@ pub static POOL: OnceLock<Pool<Postgres>> = OnceLock::new();
 /// Connects to the database. This should only be called once.
 pub async fn connect() -> Result<(), Box<dyn std::error::Error>> {
     let pool = PgPoolOptions::new()
-        .connect(dotenv!("DATABASE_URL", "DATABASE_URL environment variable not set"))
+        .connect(dotenv!(
+            "DATABASE_URL",
+            "DATABASE_URL environment variable not set"
+        ))
         .await?;
 
-    POOL.set(pool).expect("cannot initialize database pool more than once");
+    POOL.set(pool)
+        .expect("cannot initialize database pool more than once");
     Ok(())
 }
 
