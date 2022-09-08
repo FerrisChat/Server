@@ -66,3 +66,19 @@ common = { git = "https://github.com/FerrisChat/Common" }
 Add this in the top-level `Cargo.toml` file. Make sure to only append to the file and not overwrite it.
 
 Note that in order to update `Common`, you must run `cargo update` manually!
+
+### Setting up the database
+
+FerrisChat uses PostgreSQL as its core database. Make sure you have PostgreSQL installed and running on your system.
+
+Create a new database for FerrisChat and add an environment variable called `DATABASE_URL` with the value set to the
+connection URL for the database. This is usually done by adding the following line to your `.env` file:
+
+```dotenv
+DATABASE_URL=postgres://user:password@localhost:5432/ferrischat
+```
+
+Note the form of the URL above. Generally speaking, a postgres connection URL should look like
+`postgres://<user>[:<password>]@<host>[:<port>]/<database-name>`.
+
+If `DATABASE_URL` is not set, then FerrisChat will not compile.

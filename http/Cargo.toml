@@ -10,6 +10,7 @@ repository = "https://github.com/FerrisChat/Server"
 axum = { version = "0.5", features = ["headers"] }
 common = { path = "../../Common" }
 dotenv = "0.15"
+dotenv_codegen = "0.15"
 rmp-serde = "1.1"
 serde = "1.0"
 simd-json = "0.6"
