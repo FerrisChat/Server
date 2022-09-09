@@ -9,7 +9,7 @@ on:
 env:
   CARGO_TERM_COLOR: always
   # This is so it can pass workflows
-  DATABASE_URL: none
+  DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/postgres"
 
 jobs:
   rustfmt:
@@ -44,6 +44,14 @@ jobs:
     name: Build and Run Clippy
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+
     steps:
     - uses: actions/checkout@v3
 
@@ -73,8 +81,6 @@ jobs:
       run: cargo install sqlx-cli --no-default-features --features rustls,postgres
 
     - run: cargo sqlx mig run && cargo sqlx prepare
-      env:
-        DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/postgres"
       working-directory: Server
 
     - name: Build
