@@ -75,6 +75,7 @@ jobs:
     - run: cargo sqlx mig run && cargo sqlx prepare
       env:
         DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/postgres"
+      working-directory: Server
 
     - name: Build
       run: cargo build --verbose
