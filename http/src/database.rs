@@ -58,6 +58,12 @@ impl PostgresU128 {
     pub const fn to_u128(&self) -> u128 {
         ((self.high as u128) << 64) | (self.low as u128)
     }
+
+    /// Maps the inner value to a new value.
+    #[must_use]
+    pub fn map(self, f: impl FnOnce(u128) -> u128) -> Self {
+        Self::new(f(self.to_u128()))
+    }
 }
 
 impl From<u128> for PostgresU128 {

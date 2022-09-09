@@ -20,3 +20,6 @@ lto = "fat"
 [dependencies]
 ferrischat_http = { path = "http" }
 tokio = { version = "1", features = ["full"] }
+
+[profile.dev.package.sqlx-macros]
+opt-level = 3

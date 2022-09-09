@@ -1,3 +1,112 @@
 {
-  "db": "PostgreSQL"
+  "db": "PostgreSQL",
+  "45a536b46a3654b06157d263f6722d44ca054a529c6e7f80f94b17c7c557d31b": {
+    "describe": {
+      "columns": [
+        {
+          "name": "token",
+          "ordinal": 0,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Record"
+        ]
+      }
+    },
+    "query": "SELECT token FROM tokens WHERE user_id = $1"
+  },
+  "82656124ef41560bc2fe44a9e64c26c52399c0b3410f5eef6a609823a599e93d": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Record"
+        ]
+      }
+    },
+    "query": "DELETE FROM tokens WHERE user_id = $1"
+  },
+  "bbfc76e3af9ea14f7db905a60a55ee902e6fd91abc1637767c9d65cf54d16d01": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "high",
+                    "Int8"
+                  ],
+                  [
+                    "low",
+                    "Int8"
+                  ]
+                ]
+              },
+              "name": "u128"
+            }
+          },
+          "Text"
+        ]
+      }
+    },
+    "query": "INSERT INTO tokens (user_id, token) VALUES ($1, $2)"
+  },
+  "f4d518e1cd7bc7ae03e5d9e75b568fc0b2eac97cd3919ec27f5d75aa71ac14eb": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id: PostgresU128",
+          "ordinal": 0,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "high",
+                    "Int8"
+                  ],
+                  [
+                    "low",
+                    "Int8"
+                  ]
+                ]
+              },
+              "name": "u128"
+            }
+          }
+        },
+        {
+          "name": "password",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "flags",
+          "ordinal": 2,
+          "type_info": "Int4"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      }
+    },
+    "query": "SELECT id as \"id: PostgresU128\", password, flags FROM users WHERE email = $1"
+  }
 }

@@ -13,3 +13,12 @@ CREATE TABLE IF NOT EXISTS users (
     bio TEXT,
     flags INTEGER NOT NULL DEFAULT 0
 );
+
+CREATE TABLE IF NOT EXISTS tokens (
+    user_id u128 NOT NULL,
+    token TEXT NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
+    FOREIGN KEY (user_id)
+        REFERENCES users (id)
+        ON DELETE CASCADE
+);

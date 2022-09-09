@@ -7,12 +7,19 @@ license = "EUPL-1.2"
 repository = "https://github.com/FerrisChat/Server"
 
 [dependencies]
+argon2-async = "0.2"
 axum = { version = "0.5", features = ["headers"] }
+base64 = "0.13"
 common = { path = "../../Common" }
+dashmap = "5.4"
 dotenv = "0.15"
-dotenv_codegen = "0.15"
+dotenv_codegen = { git = "https://github.com/FerrisChat/dotenv" }
+forwarded-header-value = "0.1"
+ring = "0.16"
 rmp-serde = "1.1"
 serde = "1.0"
 simd-json = "0.6"
 sqlx = { version = "0.6", features = ["chrono", "postgres", "macros", "offline", "runtime-tokio-rustls", "time"] }
 tokio = { version = "1", features = ["full"] }
+tower = { version = "0.4", features = ["buffer"] }
+tower-http = { version = "0.3", features = ["cors"] }

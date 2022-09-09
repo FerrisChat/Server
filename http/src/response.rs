@@ -22,6 +22,43 @@ pub enum Error {
         /// A debug version of the error, or `None` if there is no debug version.
         debug: Option<String>,
     },
+    /// Could not resolve a plausible IP address from the request.
+    MalformedIp {
+        /// The error message.
+        message: &'static str,
+    },
+    /// You are sending requests too quickly are you are being rate limited.
+    Ratelimited {
+        /// How long you should wait before sending another request, in whole seconds.
+        retry_after: f32,
+        /// The IP address that is being rate limited.
+        ip: String,
+        /// The maximum number of requests you can send over `per` seconds.
+        rate: u16,
+        /// The number of seconds over which you can send `rate` requests before getting ratelimited.
+        per: u16,
+        /// The ratelimited message.
+        message: String,
+    },
+    /// The entity was not found.
+    NotFound {
+        /// The type of item that couldn't be found.
+        entity: &'static str,
+        /// The error message.
+        message: String,
+    },
+    /// Tried authorizing a bot account with anything but an authentication token.
+    UnsupportedAuthMethod {
+        /// The error message.
+        message: &'static str,
+    },
+    /// Invalid login credentials were provided, i.e. an invalid password.
+    InvalidCredentials {
+        /// Which credential was invalid.
+        what: &'static str,
+        /// The error message.
+        message: &'static str,
+    },
 }
 
 /// A response to an endpoint.
@@ -57,9 +94,20 @@ where
             headers: headers.clone(),
         }
     }
+
+    /// Wraps a promoted version of this response with Ok.
+    pub fn promote_ok<E>(self, headers: &HeaderMap) -> Result<HeaderAwareResponse<T>, E> {
+        Ok(self.promote(headers))
+    }
 }
 
 impl Response<Error> {
+    /// Creates a new not found response (404 Not Found) with the given entity.
+    #[must_use]
+    pub const fn not_found(entity: &'static str, message: String) -> Self {
+        Self(StatusCode::NOT_FOUND, Error::NotFound { entity, message })
+    }
+
     /// Promotes this response into one that is aware of the given headers.
     #[must_use]
     pub fn promote(self, headers: &HeaderMap) -> HeaderAwareResponse<Error> {
@@ -67,6 +115,11 @@ impl Response<Error> {
             response: self,
             headers: headers.clone(),
         }
+    }
+
+    /// Wraps a promoted version of this response with Err.
+    pub fn promote_err<T>(self, headers: &HeaderMap) -> Result<T, HeaderAwareResponse<Error>> {
+        Err(self.promote(headers))
     }
 }
 
@@ -126,6 +179,19 @@ impl From<sqlx::Error> for Response<Error> {
             StatusCode::INTERNAL_SERVER_ERROR,
             Error::InternalError {
                 what: Some("database".into()),
+                message: err.to_string(),
+                debug: Some(format!("{:?}", err)),
+            },
+        )
+    }
+}
+
+impl From<argon2_async::Error> for Response<Error> {
+    fn from(err: argon2_async::Error) -> Self {
+        Self(
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Error::InternalError {
+                what: Some("hasher".into()),
                 message: err.to_string(),
                 debug: Some(format!("{:?}", err)),
             },
@@ -245,5 +311,17 @@ where
         } else {
             self.fallback()
         }
+    }
+}
+
+pub trait PromoteErr<T, E> {
+    fn promote(self, headers: &HeaderMap) -> Result<T, HeaderAwareResponse<Error>>
+    where
+        Self: Sized;
+}
+
+impl<T, E: Into<Response<Error>>> PromoteErr<T, E> for Result<T, E> {
+    fn promote(self, headers: &HeaderMap) -> Result<T, HeaderAwareResponse<Error>> {
+        self.map_err(|err| err.into().promote(headers))
     }
 }

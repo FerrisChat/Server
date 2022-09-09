@@ -2,16 +2,25 @@
     clippy::module_name_repetitions,
     clippy::missing_errors_doc,
     clippy::missing_panics_doc,
-    clippy::doc_markdown
+    clippy::doc_markdown,
+    clippy::similar_names
 )]
 #![feature(is_some_with)]
+#![feature(never_type)]
 #![feature(once_cell)]
 #![feature(try_blocks)]
 
+pub mod auth;
 pub mod database;
+pub mod ratelimit;
 pub mod response;
+pub mod routes;
 
-pub use response::{Error, HeaderAwareResponse, Response};
+pub use database::{get_pool, PostgresU128};
+pub(crate) use ratelimit::ratelimit;
+pub use response::{Error, HeaderAwareResponse, PromoteErr, Response};
+
+pub type RouteResult<T> = Result<HeaderAwareResponse<T>, HeaderAwareResponse<Error>>;
 
 use axum::{http::StatusCode, routing::get, Router};
 use dotenv::dotenv;
@@ -21,13 +30,15 @@ use std::net::SocketAddr;
 pub async fn start() -> Result<(), Box<dyn std::error::Error>> {
     dotenv().ok();
     database::connect().await?;
+    auth::configure_hasher().await;
 
     let router = Router::new()
         .route(
             "/",
             get(|| async { (StatusCode::OK, "Hello from FerrisChat") }),
         )
-        .route("/teapot", get(|| async { StatusCode::IM_A_TEAPOT }));
+        .route("/teapot", get(|| async { StatusCode::IM_A_TEAPOT }))
+        .merge(routes::auth::router());
 
     let port = std::env::var("FERRISCHAT_WEBSERVER_PORT")
         .map(|port| port.parse::<u16>().expect("port should be a valid u16"))
