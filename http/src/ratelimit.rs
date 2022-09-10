@@ -70,7 +70,7 @@ impl<S> Ratelimit<S> {
                     rate: self.rate,
                     per: self.per,
                     message: format!(
-                        "You are being rate limited. Try again in {:?} seconds.",
+                        "You are being rate limited. Try again in {:?}.",
                         retry_after,
                     ),
                 },
