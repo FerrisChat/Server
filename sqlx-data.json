@@ -20,6 +20,45 @@
     },
     "query": "SELECT token FROM tokens WHERE user_id = $1"
   },
+  "4c82c07c8672b5b1f1aa2a7c97164d20b194ecca58657322a6b3d5b055d00ade": {
+    "describe": {
+      "columns": [
+        {
+          "name": "discriminator",
+          "ordinal": 0,
+          "type_info": "Int2"
+        }
+      ],
+      "nullable": [
+        false
+      ],
+      "parameters": {
+        "Left": [
+          {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "high",
+                    "Int8"
+                  ],
+                  [
+                    "low",
+                    "Int8"
+                  ]
+                ]
+              },
+              "name": "u128"
+            }
+          },
+          "Text",
+          "Text",
+          "Text"
+        ]
+      }
+    },
+    "query": "INSERT INTO\n            users (id, username, email, password)\n        VALUES\n            ($1, $2, $3, $4)\n        RETURNING\n            discriminator"
+  },
   "82656124ef41560bc2fe44a9e64c26c52399c0b3410f5eef6a609823a599e93d": {
     "describe": {
       "columns": [],

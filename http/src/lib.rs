@@ -38,7 +38,8 @@ pub async fn start() -> Result<(), Box<dyn std::error::Error>> {
             get(|| async { (StatusCode::OK, "Hello from FerrisChat") }),
         )
         .route("/teapot", get(|| async { StatusCode::IM_A_TEAPOT }))
-        .merge(routes::auth::router());
+        .merge(routes::auth::router())
+        .merge(routes::user::router());
 
     let port = std::env::var("FERRISCHAT_WEBSERVER_PORT")
         .map(|port| port.parse::<u16>().expect("port should be a valid u16"))

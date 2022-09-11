@@ -80,7 +80,8 @@ jobs:
       if: steps.rust-cache.outputs.cache-hit != 'true'
       run: cargo install sqlx-cli --no-default-features --features rustls,postgres
 
-    - run: cargo sqlx mig run && cargo sqlx prepare
+    - name: Run SQLx migrations
+      run: cargo sqlx mig run && cargo sqlx prepare
       working-directory: Server
 
     - name: Build

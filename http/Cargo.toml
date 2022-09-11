@@ -14,6 +14,7 @@ common = { path = "../../Common" }
 dashmap = "5.4"
 dotenv = "0.15"
 dotenv_codegen = { git = "https://github.com/FerrisChat/dotenv" }
+ferrischat_snowflake_generator = "2"
 forwarded-header-value = "0.1"
 ring = "0.16"
 rmp-serde = "1.1"

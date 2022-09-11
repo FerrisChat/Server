@@ -402,6 +402,7 @@ dependencies = [
  "dashmap",
  "dotenv 0.15.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "dotenv_codegen",
+ "ferrischat_snowflake_generator",
  "forwarded-header-value",
  "ring",
  "rmp-serde",
@@ -412,6 +413,12 @@ dependencies = [
  "tower",
  "tower-http",
 ]
+
+[[package]]
+name = "ferrischat_snowflake_generator"
+version = "2.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cd32c7f0ea91ab0e23542881f3d05fd30196dd650b9b71a84d074b65bc00685d"
 
 [[package]]
 name = "float-cmp"

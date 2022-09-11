@@ -59,6 +59,18 @@ pub enum Error {
         /// The error message.
         message: &'static str,
     },
+    /// An invalid username was provided.
+    InvalidUsername {
+        /// The error message.
+        message: String,
+    },
+    /// Something was already taken, e.g. a username or email.
+    AlreadyTaken {
+        /// What was already taken.
+        what: &'static str,
+        /// The error message.
+        message: String,
+    },
 }
 
 /// A response to an endpoint.
@@ -274,7 +286,7 @@ where
 impl IntoResponse for HeaderAwareResponse<Error> {
     fn into_response(self) -> AxumResponse {
         if self.msgpack() {
-            match rmp_serde::to_vec(&self.response.1) {
+            match rmp_serde::to_vec_named(&self.response.1) {
                 Ok(bytes) => axum::http::Response::builder()
                     .status(self.response.0)
                     .header(CONTENT_TYPE, "application/msgpack")
@@ -296,9 +308,9 @@ where
     fn into_response(self) -> AxumResponse {
         if self.msgpack() {
             match if self.stringify_snowflakes() {
-                rmp_serde::to_vec(&self.response.1.into_string_ids())
+                rmp_serde::to_vec_named(&self.response.1.into_string_ids())
             } else {
-                rmp_serde::to_vec(&self.response.1)
+                rmp_serde::to_vec_named(&self.response.1)
             } {
                 Ok(bytes) => axum::http::Response::builder()
                     .status(self.response.0)
