@@ -51,6 +51,11 @@ impl<S> Ratelimit<S> {
         }
     }
 
+    fn insert_headers(rate: u16, per: u16, headers: &mut HeaderMap) {
+        headers.insert("X-RateLimit-Limit", rate.to_string().parse().unwrap());
+        headers.insert("X-RateLimit-Per", per.to_string().parse().unwrap());
+    }
+
     #[allow(clippy::cast_lossless)]
     fn handle_ratelimit(&mut self, headers: &HeaderMap, ip: IpAddr) -> Result<(), AxumResponse> {
         let mut bucket = self
@@ -79,7 +84,11 @@ impl<S> Ratelimit<S> {
             .into_response();
 
             let headers = response.headers_mut();
-            headers.insert("X-RateLimit-Limit", self.rate.to_string().parse().unwrap());
+            Self::insert_headers(self.rate, self.per, headers);
+            headers.insert(
+                "X-RateLimit-Remaining",
+                bucket.count.to_string().parse().unwrap(),
+            );
             headers.insert(
                 "Retry-After",
                 retry_after.as_secs_f32().to_string().parse().unwrap(),
@@ -100,7 +109,7 @@ impl<S> Ratelimit<S> {
 
 impl<S> Service<Request<Body>> for Ratelimit<S>
 where
-    S: Service<Request<Body>, Response = AxumResponse> + Send + 'static,
+    S: Clone + Service<Request<Body>, Response = AxumResponse> + Send + 'static,
     S::Future: Send + 'static,
 {
     type Response = S::Response;
@@ -131,7 +140,22 @@ where
         };
 
         match self.handle_ratelimit(req.headers(), ip) {
-            Ok(_) => Box::pin(self.inner.call(req)),
+            Ok(_) => {
+                let clone = self.inner.clone();
+                let mut inner = std::mem::replace(&mut self.inner, clone);
+                let (rate, per) = (self.rate, self.per);
+                let count = self.buckets.get(&ip).map_or(rate, |b| b.value().count);
+
+                Box::pin(async move {
+                    let mut result = inner.call(req).await?;
+                    let headers = result.headers_mut();
+
+                    Self::insert_headers(rate, per, headers);
+                    headers.insert("X-RateLimit-Remaining", count.to_string().parse().unwrap());
+
+                    Ok(result)
+                })
+            }
             Err(res) => Box::pin(async { Ok(res) }),
         }
     }

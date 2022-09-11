@@ -22,7 +22,7 @@ pub async fn configure_hasher() {
     config
         .set_secret_key(Some(key))
         .set_memory_cost(4096)
-        .set_iterations(128);
+        .set_iterations(64);
 
     set_config(config).await;
 }

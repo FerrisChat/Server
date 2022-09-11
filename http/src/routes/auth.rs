@@ -48,7 +48,7 @@ pub async fn login(
         .promote_err(&headers);
     }
 
-    if argon2_async::verify(password, user.password)
+    if !argon2_async::verify(password, user.password)
         .await
         .promote(&headers)?
     {
