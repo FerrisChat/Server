@@ -112,7 +112,7 @@ pub async fn create_user(
 
     transaction.commit().await.promote(&headers)?;
 
-    Response::ok(CreateUserResponse { id, token }).promote_ok(&headers)
+    Response::created(CreateUserResponse { id, token }).promote_ok(&headers)
 }
 
 #[must_use]
