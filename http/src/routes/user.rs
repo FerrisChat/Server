@@ -5,7 +5,7 @@ use common::{
 };
 
 use axum::{
-    extract::Json,
+    extract::{Json, Path},
     handler::Handler,
     headers::HeaderMap,
     http::StatusCode,
@@ -165,9 +165,45 @@ pub async fn get_client_user(Auth(id, _): Auth, headers: HeaderMap) -> RouteResu
     .promote_ok(&headers)
 }
 
+/// GET /users/:id
+#[allow(clippy::cast_sign_loss)]
+pub async fn get_user(_: Auth, headers: HeaderMap, Path(id): Path<u128>) -> RouteResult<User> {
+    let db = get_pool();
+
+    let data = sqlx::query!(
+        "SELECT
+            username,
+            discriminator,
+            avatar,
+            banner,
+            bio,
+            flags
+        FROM
+            users
+        WHERE
+            id = $1",
+        PostgresU128::new(id) as _,
+    )
+    .fetch_one(db)
+    .await
+    .promote(&headers)?;
+
+    Response::ok(User {
+        id,
+        username: data.username,
+        discriminator: data.discriminator as u16,
+        avatar: data.avatar,
+        banner: data.banner,
+        bio: data.bio,
+        flags: UserFlags::from_bits_truncate(data.flags as u32),
+    })
+    .promote_ok(&headers)
+}
+
 #[must_use]
 pub fn router() -> Router {
     Router::new()
         .route("/users", post(create_user.layer(ratelimit!(3, 15))))
         .route("/users/me", get(get_client_user.layer(ratelimit!(3, 5))))
+        .route("/users/:id", get(get_user.layer(ratelimit!(3, 5))))
 }
