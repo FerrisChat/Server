@@ -1,4 +1,10 @@
+use crate::{Error, HeaderAwareResponse, Response, StatusCode};
+
 use argon2_async::{set_config, Config};
+use axum::{
+    body::Body,
+    extract::{FromRequest, RequestParts},
+};
 use base64::{encode_config, URL_SAFE_NO_PAD};
 use ring::rand::{SecureRandom, SystemRandom};
 
@@ -59,4 +65,41 @@ pub fn generate_token(user_id: u128) -> String {
     });
 
     token
+}
+
+/// Represents authorization information from a request.
+pub struct Auth(pub u128, pub String);
+
+#[axum::async_trait]
+impl FromRequest<Body> for Auth {
+    type Rejection = HeaderAwareResponse<Error>;
+
+    async fn from_request(req: &mut RequestParts<Body>) -> Result<Self, Self::Rejection> {
+        let token = req
+            .headers()
+            .get("Authorization")
+            .ok_or_else(|| {
+                Response(
+                    StatusCode::UNAUTHORIZED,
+                    Error::InvalidToken {
+                        message: "Missing Authorization header, which should contain the token.",
+                    },
+                )
+                .promote(req.headers())
+            })?
+            .to_str()
+            .map_err(|_| {
+                Response(
+                    StatusCode::UNAUTHORIZED,
+                    Error::InvalidToken {
+                        message: "Invalid Authorization header",
+                    },
+                )
+                .promote(req.headers())
+            })?;
+
+        let id = crate::cache::resolve_token(req.headers(), token).await?;
+
+        Ok(Self(id, token.to_string()))
+    }
 }

@@ -1,12 +1,18 @@
-use crate::{get_pool, ratelimit, Error, PostgresU128, PromoteErr, Response, RouteResult};
+use crate::{get_pool, ratelimit, Auth, Error, PostgresU128, PromoteErr, Response, RouteResult};
 use common::{
     http::{CreateUserPayload, CreateUserResponse},
-    models::ModelType,
+    models::{ClientUser, ModelType, User},
 };
 
 use axum::{
-    extract::Json, handler::Handler, headers::HeaderMap, http::StatusCode, routing::post, Router,
+    extract::Json,
+    handler::Handler,
+    headers::HeaderMap,
+    http::StatusCode,
+    routing::{get, post},
+    Router,
 };
+use common::models::UserFlags;
 use ferrischat_snowflake_generator::generate_snowflake;
 
 fn validate_username<T: AsRef<str>>(username: T) -> Result<(), Error> {
@@ -115,7 +121,53 @@ pub async fn create_user(
     Response::created(CreateUserResponse { id, token }).promote_ok(&headers)
 }
 
+/// GET /users/me
+#[allow(clippy::cast_sign_loss)]
+pub async fn get_client_user(Auth(id, _): Auth, headers: HeaderMap) -> RouteResult<ClientUser> {
+    let db = get_pool();
+
+    let data = sqlx::query!(
+        "SELECT
+            username,
+            discriminator,
+            email,
+            avatar,
+            banner,
+            bio,
+            flags
+        FROM
+            users
+        WHERE
+            id = $1",
+        PostgresU128::new(id) as _,
+    )
+    .fetch_one(db)
+    .await
+    .promote(&headers)?;
+
+    let user = User {
+        id,
+        username: data.username,
+        discriminator: data.discriminator as u16,
+        avatar: data.avatar,
+        banner: data.banner,
+        bio: data.bio,
+        flags: UserFlags::from_bits_truncate(data.flags as u32),
+    };
+
+    Response::ok(ClientUser {
+        user,
+        email: data.email,
+        guilds: Vec::new(),        // TODO
+        relationships: Vec::new(), // TODO
+        folders: None,             // TODO
+    })
+    .promote_ok(&headers)
+}
+
 #[must_use]
 pub fn router() -> Router {
-    Router::new().route("/users", post(create_user.layer(ratelimit!(3, 15))))
+    Router::new()
+        .route("/users", post(create_user.layer(ratelimit!(3, 15))))
+        .route("/users/me", get(get_client_user.layer(ratelimit!(3, 5))))
 }

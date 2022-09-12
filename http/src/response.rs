@@ -16,7 +16,7 @@ pub enum Error {
     /// Internal server error occured, this is likely a bug.
     InternalError {
         /// What caused the error. `None` if unknown.
-        what: Option<String>,
+        what: Option<&'static str>,
         /// The error message.
         message: String,
         /// A debug version of the error, or `None` if there is no debug version.
@@ -33,10 +33,6 @@ pub enum Error {
         retry_after: f32,
         /// The IP address that is being rate limited.
         ip: String,
-        /// The maximum number of requests you can send over `per` seconds.
-        rate: u16,
-        /// The number of seconds over which you can send `rate` requests before getting ratelimited.
-        per: u16,
         /// The ratelimited message.
         message: String,
     },
@@ -70,6 +66,15 @@ pub enum Error {
         what: &'static str,
         /// The error message.
         message: String,
+    },
+    /// The request required a valid authentication token, but one of the following happened:
+    ///
+    /// * The token was not provided.
+    /// * The token was malformed, i.e. a non-UTF-8 string.
+    /// * The token does not exist or is invalid.
+    InvalidToken {
+        /// The error message.
+        message: &'static str,
     },
 }
 
@@ -190,7 +195,7 @@ impl From<sqlx::Error> for Response<Error> {
         Self(
             StatusCode::INTERNAL_SERVER_ERROR,
             Error::InternalError {
-                what: Some("database".into()),
+                what: Some("database"),
                 message: err.to_string(),
                 debug: Some(format!("{:?}", err)),
             },
@@ -203,7 +208,33 @@ impl From<argon2_async::Error> for Response<Error> {
         Self(
             StatusCode::INTERNAL_SERVER_ERROR,
             Error::InternalError {
-                what: Some("hasher".into()),
+                what: Some("hasher"),
+                message: err.to_string(),
+                debug: Some(format!("{:?}", err)),
+            },
+        )
+    }
+}
+
+impl From<redis::RedisError> for Response<Error> {
+    fn from(err: redis::RedisError) -> Self {
+        Self(
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Error::InternalError {
+                what: Some("redis"),
+                message: err.to_string(),
+                debug: Some(format!("{:?}", err)),
+            },
+        )
+    }
+}
+
+impl From<deadpool_redis::PoolError> for Response<Error> {
+    fn from(err: deadpool_redis::PoolError) -> Self {
+        Self(
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Error::InternalError {
+                what: Some("redis pool"),
                 message: err.to_string(),
                 debug: Some(format!("{:?}", err)),
             },
@@ -215,7 +246,7 @@ fn serialization_error(err: &(impl ToString + std::fmt::Debug)) -> AxumResponse 
     Response(
         StatusCode::INTERNAL_SERVER_ERROR,
         Error::InternalError {
-            what: Some("serialization".into()),
+            what: Some("serialization"),
             message: err.to_string(),
             debug: Some(format!("{:?}", err)),
         },

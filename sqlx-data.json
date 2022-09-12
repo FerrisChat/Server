@@ -1,5 +1,97 @@
 {
   "db": "PostgreSQL",
+  "28dab3a902e30d7170e1502017801bd67027461b8a87b5f84b8c9f6e94a4747d": {
+    "describe": {
+      "columns": [
+        {
+          "name": "user_id: PostgresU128",
+          "ordinal": 0,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "high",
+                    "Int8"
+                  ],
+                  [
+                    "low",
+                    "Int8"
+                  ]
+                ]
+              },
+              "name": "u128"
+            }
+          }
+        }
+      ],
+      "nullable": [
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      }
+    },
+    "query": "SELECT user_id AS \"user_id: PostgresU128\" FROM tokens WHERE token = $1"
+  },
+  "39f51300bab47dcf9f7f056d01a9f10953149bb31999b428eac952e40293cd81": {
+    "describe": {
+      "columns": [
+        {
+          "name": "username",
+          "ordinal": 0,
+          "type_info": "Text"
+        },
+        {
+          "name": "discriminator",
+          "ordinal": 1,
+          "type_info": "Int2"
+        },
+        {
+          "name": "email",
+          "ordinal": 2,
+          "type_info": "Text"
+        },
+        {
+          "name": "avatar",
+          "ordinal": 3,
+          "type_info": "Text"
+        },
+        {
+          "name": "banner",
+          "ordinal": 4,
+          "type_info": "Text"
+        },
+        {
+          "name": "bio",
+          "ordinal": 5,
+          "type_info": "Text"
+        },
+        {
+          "name": "flags",
+          "ordinal": 6,
+          "type_info": "Int4"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        true,
+        true,
+        true,
+        true,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Record"
+        ]
+      }
+    },
+    "query": "SELECT\n            username,\n            discriminator,\n            email,\n            avatar,\n            banner,\n            bio,\n            flags\n        FROM\n            users\n        WHERE\n            id = $1"
+  },
   "45a536b46a3654b06157d263f6722d44ca054a529c6e7f80f94b17c7c557d31b": {
     "describe": {
       "columns": [
@@ -58,6 +150,26 @@
       }
     },
     "query": "INSERT INTO\n            users (id, username, email, password)\n        VALUES\n            ($1, $2, $3, $4)\n        RETURNING\n            discriminator"
+  },
+  "7b4b5b818b40cb78c177f05e13b277ef76102c1214c6280073f3a7e8a94ba4ef": {
+    "describe": {
+      "columns": [
+        {
+          "name": "email",
+          "ordinal": 0,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
+        true
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      }
+    },
+    "query": "SELECT email FROM users WHERE email = $1"
   },
   "82656124ef41560bc2fe44a9e64c26c52399c0b3410f5eef6a609823a599e93d": {
     "describe": {
@@ -137,7 +249,7 @@
       ],
       "nullable": [
         false,
-        false,
+        true,
         false
       ],
       "parameters": {

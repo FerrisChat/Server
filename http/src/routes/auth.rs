@@ -19,7 +19,7 @@ pub async fn login(
 ) -> RouteResult<LoginResponse> {
     struct LoginSqlQuery {
         id: PostgresU128,
-        password: String,
+        password: Option<String>,
         flags: i32,
     }
 
@@ -48,7 +48,7 @@ pub async fn login(
         .promote_err(&headers);
     }
 
-    if !argon2_async::verify(password, user.password)
+    if !argon2_async::verify(password, user.password.unwrap_or_default())
         .await
         .promote(&headers)?
     {

@@ -11,11 +11,13 @@
 #![feature(try_blocks)]
 
 pub mod auth;
+pub mod cache;
 pub mod database;
 pub mod ratelimit;
 pub mod response;
 pub mod routes;
 
+pub use auth::Auth;
 pub use database::{get_pool, PostgresU128};
 pub(crate) use ratelimit::ratelimit;
 pub use response::{Error, HeaderAwareResponse, PromoteErr, Response};
@@ -31,6 +33,7 @@ pub async fn start() -> Result<(), Box<dyn std::error::Error>> {
     dotenv().ok();
     database::connect().await?;
     auth::configure_hasher().await;
+    cache::setup().await?;
 
     let router = Router::new()
         .route(

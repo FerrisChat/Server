@@ -72,8 +72,6 @@ impl<S> Ratelimit<S> {
                 Error::Ratelimited {
                     retry_after: retry_after.as_secs_f32(),
                     ip: ip.to_string(),
-                    rate: self.rate,
-                    per: self.per,
                     message: format!(
                         "You are being rate limited. Try again in {:?}.",
                         retry_after,

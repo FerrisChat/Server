@@ -12,10 +12,12 @@ axum = { version = "0.5", features = ["headers"] }
 base64 = "0.13"
 common = { path = "../../Common" }
 dashmap = "5.4"
+deadpool-redis = "0.10"
 dotenv = "0.15"
 dotenv_codegen = { git = "https://github.com/FerrisChat/dotenv" }
 ferrischat_snowflake_generator = "2"
 forwarded-header-value = "0.1"
+redis = { version = "0.21", features = ["tokio-comp"] }
 ring = "0.16"
 rmp-serde = "1.1"
 serde = "1.0"
