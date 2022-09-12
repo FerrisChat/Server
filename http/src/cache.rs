@@ -3,7 +3,7 @@ use deadpool_redis::{Config, Pool, Runtime};
 use redis::AsyncCommands;
 use std::sync::OnceLock;
 
-use crate::{get_pool, Error, HeaderAwareResponse, PostgresU128, PromoteErr, Response, StatusCode};
+use crate::{get_pool, Error, HeaderAwareResult, PostgresU128, PromoteErr, Response, StatusCode};
 
 static POOL: OnceLock<Pool> = OnceLock::new();
 
@@ -24,10 +24,7 @@ pub async fn setup() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 /// Resolves a token into a user ID.
-pub async fn resolve_token(
-    headers: &HeaderMap,
-    token: &str,
-) -> Result<u128, HeaderAwareResponse<Error>> {
+pub async fn resolve_token(headers: &HeaderMap, token: &str) -> HeaderAwareResult<u128> {
     struct QueryResponse {
         user_id: PostgresU128,
     }

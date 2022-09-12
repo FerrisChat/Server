@@ -1,4 +1,4 @@
-use crate::{Error, HeaderAwareResponse, Response, StatusCode};
+use crate::{Error, HeaderAwareError, Response, StatusCode};
 
 use argon2_async::{set_config, Config};
 use axum::{
@@ -72,7 +72,7 @@ pub struct Auth(pub u128, pub String);
 
 #[axum::async_trait]
 impl FromRequest<Body> for Auth {
-    type Rejection = HeaderAwareResponse<Error>;
+    type Rejection = HeaderAwareError;
 
     async fn from_request(req: &mut RequestParts<Body>) -> Result<Self, Self::Rejection> {
         let token = req

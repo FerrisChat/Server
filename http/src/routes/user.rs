@@ -1,7 +1,10 @@
-use crate::{get_pool, ratelimit, Auth, Error, PostgresU128, PromoteErr, Response, RouteResult};
+use crate::{
+    get_pool, ratelimit, Auth, Error, HeaderAwareResult, PostgresU128, PromoteErr, Response,
+    RouteResult,
+};
 use common::{
-    http::{CreateUserPayload, CreateUserResponse},
-    models::{ClientUser, ModelType, User},
+    http::{CreateUserPayload, CreateUserResponse, DeleteUserPayload},
+    models::{ClientUser, ModelType, User, UserFlags},
 };
 
 use axum::{
@@ -12,7 +15,6 @@ use axum::{
     routing::{get, post},
     Router,
 };
-use common::models::UserFlags;
 use ferrischat_snowflake_generator::generate_snowflake;
 
 fn validate_username<T: AsRef<str>>(username: T) -> Result<(), Error> {
@@ -163,6 +165,58 @@ pub async fn get_client_user(Auth(id, _): Auth, headers: HeaderMap) -> RouteResu
         folders: None,             // TODO
     })
     .promote_ok(&headers)
+}
+
+/// DELETE /users/me
+pub async fn delete_user(
+    Auth(id, _): Auth,
+    Json(DeleteUserPayload { password }): Json<DeleteUserPayload>,
+    headers: HeaderMap,
+) -> HeaderAwareResult<StatusCode> {
+    let db = get_pool();
+
+    let hashed: String = sqlx::query!(
+        "SELECT flags, password FROM users WHERE id = $1",
+        PostgresU128::new(id) as _,
+    )
+    .fetch_one(db)
+    .await
+    .promote(&headers)?
+    .password
+    .ok_or_else(|| {
+        Response(
+            StatusCode::FORBIDDEN,
+            Error::UnsupportedAuthMethod {
+                message: "This user is a bot account, but this endpoint can only delete user \
+                    accounts. To delete bot accounts, see the DELETE /bots/:id endpoint.",
+            },
+        )
+        .promote(&headers)
+    })?;
+
+    if !argon2_async::verify(hashed, password)
+        .await
+        .promote(&headers)?
+    {
+        return Response(
+            StatusCode::UNAUTHORIZED,
+            Error::InvalidCredentials {
+                what: "password",
+                message: "Invalid password",
+            },
+        )
+        .promote_err(&headers);
+    }
+
+    sqlx::query!(
+        "DELETE FROM users WHERE id = $1",
+        PostgresU128::new(id) as _
+    )
+    .execute(db)
+    .await
+    .promote(&headers)?;
+
+    Ok(StatusCode::NO_CONTENT)
 }
 
 /// GET /users/:id

@@ -22,7 +22,9 @@ pub use database::{get_pool, PostgresU128};
 pub(crate) use ratelimit::ratelimit;
 pub use response::{Error, HeaderAwareResponse, PromoteErr, Response};
 
-pub type RouteResult<T> = Result<HeaderAwareResponse<T>, HeaderAwareResponse<Error>>;
+pub type HeaderAwareError = HeaderAwareResponse<Error>;
+pub type HeaderAwareResult<T> = Result<T, HeaderAwareError>;
+pub type RouteResult<T> = HeaderAwareResult<HeaderAwareResponse<T>>;
 
 use axum::{http::StatusCode, routing::get, Router};
 use dotenv::dotenv;
