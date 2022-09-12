@@ -176,7 +176,7 @@ pub async fn delete_user(
     let db = get_pool();
 
     let hashed: String = sqlx::query!(
-        "SELECT flags, password FROM users WHERE id = $1",
+        "SELECT password FROM users WHERE id = $1",
         PostgresU128::new(id) as _,
     )
     .fetch_one(db)

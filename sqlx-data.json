@@ -92,6 +92,26 @@
     },
     "query": "SELECT\n            username,\n            discriminator,\n            email,\n            avatar,\n            banner,\n            bio,\n            flags\n        FROM\n            users\n        WHERE\n            id = $1"
   },
+  "3d7ebe93e552692fedc80e2c37f4ca0a0de12b835a6a47f1442609bd9291aa19": {
+    "describe": {
+      "columns": [
+        {
+          "name": "password",
+          "ordinal": 0,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
+        true
+      ],
+      "parameters": {
+        "Left": [
+          "Record"
+        ]
+      }
+    },
+    "query": "SELECT password FROM users WHERE id = $1"
+  },
   "45a536b46a3654b06157d263f6722d44ca054a529c6e7f80f94b17c7c557d31b": {
     "describe": {
       "columns": [
@@ -150,6 +170,68 @@
       }
     },
     "query": "INSERT INTO\n            users (id, username, email, password)\n        VALUES\n            ($1, $2, $3, $4)\n        RETURNING\n            discriminator"
+  },
+  "50293c2e54af11d4c2a553e29b671cef087a159c6ee7182d8ca929ecb748f3b7": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Record"
+        ]
+      }
+    },
+    "query": "DELETE FROM users WHERE id = $1"
+  },
+  "621648866e6e40f15f725c2b4d5012b927bd84b3cd351543851021d319d63e8f": {
+    "describe": {
+      "columns": [
+        {
+          "name": "username",
+          "ordinal": 0,
+          "type_info": "Text"
+        },
+        {
+          "name": "discriminator",
+          "ordinal": 1,
+          "type_info": "Int2"
+        },
+        {
+          "name": "avatar",
+          "ordinal": 2,
+          "type_info": "Text"
+        },
+        {
+          "name": "banner",
+          "ordinal": 3,
+          "type_info": "Text"
+        },
+        {
+          "name": "bio",
+          "ordinal": 4,
+          "type_info": "Text"
+        },
+        {
+          "name": "flags",
+          "ordinal": 5,
+          "type_info": "Int4"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        true,
+        true,
+        true,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Record"
+        ]
+      }
+    },
+    "query": "SELECT\n            username,\n            discriminator,\n            avatar,\n            banner,\n            bio,\n            flags\n        FROM\n            users\n        WHERE\n            id = $1"
   },
   "7b4b5b818b40cb78c177f05e13b277ef76102c1214c6280073f3a7e8a94ba4ef": {
     "describe": {
