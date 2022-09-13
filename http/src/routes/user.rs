@@ -217,40 +217,35 @@ pub async fn edit_user(
         validate_username(&username)
             .map_err(|err| Response(StatusCode::BAD_REQUEST, err).promote(&headers))?;
 
-        let discriminator = {
-            let discriminator: i16 = user.discriminator;
+        let discriminator: i16 = if sqlx::query!(
+            "SELECT discriminator FROM users WHERE username = $1 AND discriminator = $2",
+            username,
+            user.discriminator,
+        )
+        .fetch_optional(&mut transaction)
+        .await
+        .promote(&headers)?
+        .is_none()
+        {
+            user.discriminator
+        } else {
+            let discriminator = sqlx::query!("SELECT generate_discriminator($1) AS out", username)
+                .fetch_one(&mut transaction)
+                .await
+                .promote(&headers)?
+                .out;
 
-            if sqlx::query!(
-                "SELECT discriminator FROM users WHERE username = $1 AND discriminator = $2",
-                username,
-                discriminator,
-            )
-            .fetch_optional(&mut transaction)
-            .await
-            .promote(&headers)?
-            .is_none()
-            {
-                discriminator
+            if let Some(d) = discriminator {
+                d
             } else {
-                let discriminator =
-                    sqlx::query!("SELECT generate_discriminator($1) AS out", username)
-                        .fetch_one(&mut transaction)
-                        .await
-                        .promote(&headers)?
-                        .out;
-
-                if let Some(d) = discriminator {
-                    d
-                } else {
-                    return Response(
-                        StatusCode::CONFLICT,
-                        Error::AlreadyTaken {
-                            what: "username",
-                            message: "Username is already taken".to_string(),
-                        },
-                    )
-                    .promote_err(&headers);
-                }
+                return Response(
+                    StatusCode::CONFLICT,
+                    Error::AlreadyTaken {
+                        what: "username",
+                        message: "Username is already taken".to_string(),
+                    },
+                )
+                .promote_err(&headers);
             }
         };
 
