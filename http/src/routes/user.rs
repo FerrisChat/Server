@@ -196,47 +196,41 @@ pub async fn edit_user(
     let mut transaction = db.begin().await.promote(&headers)?;
 
     macro_rules! update {
-        ($query:literal, $field:ident, $value:expr) => {{
-            sqlx::query!($query, $value, PostgresU128::new(id) as _)
-                .execute(&mut transaction)
-                .await
-                .promote(&headers)?;
+        ($query:literal, $field:ident) => {{
+            if payload.$field.is_absent() {
+                user.$field
+            } else {
+                let value = Option::from(payload.$field);
 
-            $field
+                sqlx::query!($query, value, PostgresU128::new(id) as _)
+                    .execute(&mut transaction)
+                    .await
+                    .promote(&headers)?;
+
+                value
+            }
         }};
     }
 
     // TODO: the username might overlap with a discriminator
     let username = if let Some(username) = payload.username {
-        update!(
+        sqlx::query!(
             "UPDATE users SET username = $1 WHERE id = $2",
             username,
-            username
+            PostgresU128::new(id) as _,
         )
+        .execute(&mut transaction)
+        .await
+        .promote(&headers)?;
+
+        username
     } else {
         user.username
     };
 
-    let avatar = if payload.avatar.is_absent() {
-        user.avatar
-    } else {
-        let avatar = Option::from(payload.avatar);
-        update!("UPDATE users SET avatar = $1 WHERE id = $2", avatar, avatar)
-    };
-
-    let banner = if payload.banner.is_absent() {
-        user.banner
-    } else {
-        let banner = Option::from(payload.banner);
-        update!("UPDATE users SET banner = $1 WHERE id = $2", banner, banner)
-    };
-
-    let bio = if payload.bio.is_absent() {
-        user.bio
-    } else {
-        let bio = Option::from(payload.bio);
-        update!("UPDATE users SET bio = $1 WHERE id = $2", bio, bio)
-    };
+    let avatar = update!("UPDATE users SET avatar = $1 WHERE id = $2", avatar);
+    let banner = update!("UPDATE users SET banner = $1 WHERE id = $2", banner);
+    let bio = update!("UPDATE users SET bio = $1 WHERE id = $2", bio);
 
     transaction.commit().await.promote(&headers)?;
 
