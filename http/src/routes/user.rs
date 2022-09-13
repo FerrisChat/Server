@@ -3,7 +3,7 @@ use crate::{
     RouteResult,
 };
 use common::{
-    http::{CreateUserPayload, CreateUserResponse, DeleteUserPayload},
+    http::{CreateUserPayload, CreateUserResponse, DeleteUserPayload, EditUserPayload},
     models::{ClientUser, ModelType, User, UserFlags},
 };
 
@@ -167,6 +167,91 @@ pub async fn get_client_user(Auth(id, _): Auth, headers: HeaderMap) -> RouteResu
     .promote_ok(&headers)
 }
 
+/// PATCH /users/me
+#[allow(clippy::cast_sign_loss)]
+pub async fn edit_user(
+    Auth(id, _): Auth,
+    Json(payload): Json<EditUserPayload>,
+    headers: HeaderMap,
+) -> RouteResult<User> {
+    let db = get_pool();
+    let user = sqlx::query!(
+        "SELECT
+            username,
+            discriminator,
+            avatar,
+            banner,
+            bio,
+            flags
+        FROM
+            users
+        WHERE
+            id = $1",
+        PostgresU128::new(id) as _,
+    )
+    .fetch_one(db)
+    .await
+    .promote(&headers)?;
+
+    let mut transaction = db.begin().await.promote(&headers)?;
+
+    macro_rules! update {
+        ($query:literal, $field:ident, $value:expr) => {{
+            sqlx::query!($query, $value, PostgresU128::new(id) as _)
+                .execute(&mut transaction)
+                .await
+                .promote(&headers)?;
+
+            $field
+        }};
+    }
+
+    // TODO: the username might overlap with a discriminator
+    let username = if let Some(username) = payload.username {
+        update!(
+            "UPDATE users SET username = $1 WHERE id = $2",
+            username,
+            username
+        )
+    } else {
+        user.username
+    };
+
+    let avatar = if payload.avatar.is_absent() {
+        user.avatar
+    } else {
+        let avatar = Option::from(payload.avatar);
+        update!("UPDATE users SET avatar = $1 WHERE id = $2", avatar, avatar)
+    };
+
+    let banner = if payload.banner.is_absent() {
+        user.banner
+    } else {
+        let banner = Option::from(payload.banner);
+        update!("UPDATE users SET banner = $1 WHERE id = $2", banner, banner)
+    };
+
+    let bio = if payload.bio.is_absent() {
+        user.bio
+    } else {
+        let bio = Option::from(payload.bio);
+        update!("UPDATE users SET bio = $1 WHERE id = $2", bio, bio)
+    };
+
+    transaction.commit().await.promote(&headers)?;
+
+    Response::ok(User {
+        id,
+        username,
+        discriminator: user.discriminator as u16,
+        avatar,
+        banner,
+        bio,
+        flags: UserFlags::from_bits_truncate(user.flags as u32),
+    })
+    .promote_ok(&headers)
+}
+
 /// DELETE /users/me
 pub async fn delete_user(
     Auth(id, _): Auth,
@@ -261,6 +346,7 @@ pub fn router() -> Router {
         .route(
             "/users/me",
             get(get_client_user.layer(ratelimit!(3, 5)))
+                .patch(edit_user.layer(ratelimit!(2, 15)))
                 .delete(delete_user.layer(ratelimit!(2, 40))),
         )
         .route("/users/:id", get(get_user.layer(ratelimit!(3, 5))))
