@@ -258,6 +258,10 @@ pub async fn get_user(_: Auth, headers: HeaderMap, Path(id): Path<u128>) -> Rout
 pub fn router() -> Router {
     Router::new()
         .route("/users", post(create_user.layer(ratelimit!(3, 15))))
-        .route("/users/me", get(get_client_user.layer(ratelimit!(3, 5))))
+        .route(
+            "/users/me",
+            get(get_client_user.layer(ratelimit!(3, 5)))
+                .delete(delete_user.layer(ratelimit!(2, 40))),
+        )
         .route("/users/:id", get(get_user.layer(ratelimit!(3, 5))))
 }
