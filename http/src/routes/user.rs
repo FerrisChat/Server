@@ -212,8 +212,7 @@ pub async fn edit_user(
         }};
     }
 
-    // TODO: the username might overlap with a discriminator
-    let username = if let Some(username) = payload.username {
+    let (username, discriminator) = if let Some(username) = payload.username {
         validate_username(&username)
             .map_err(|err| Response(StatusCode::BAD_REQUEST, err).promote(&headers))?;
 
@@ -259,9 +258,9 @@ pub async fn edit_user(
         .await
         .promote(&headers)?;
 
-        username
+        (username, discriminator)
     } else {
-        user.username
+        (user.username, user.discriminator)
     };
 
     let avatar = update!("UPDATE users SET avatar = $1 WHERE id = $2", avatar);
@@ -273,7 +272,7 @@ pub async fn edit_user(
     Response::ok(User {
         id,
         username,
-        discriminator: user.discriminator as u16,
+        discriminator: discriminator as u16,
         avatar,
         banner,
         bio,
