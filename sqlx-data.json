@@ -1,5 +1,18 @@
 {
   "db": "PostgreSQL",
+  "087ba44d7aab2674dfe0e3bebe34d6712495ce89ddeafefb6c96aae6dce41ceb": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Record"
+        ]
+      }
+    },
+    "query": "UPDATE users SET avatar = $1 WHERE id = $2"
+  },
   "28dab3a902e30d7170e1502017801bd67027461b8a87b5f84b8c9f6e94a4747d": {
     "describe": {
       "columns": [
@@ -183,6 +196,19 @@
     },
     "query": "DELETE FROM users WHERE id = $1"
   },
+  "5b40708e478432b21a80fb59ee822061d87c99e28e0a9e65d2e77ef49600a83b": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Record"
+        ]
+      }
+    },
+    "query": "UPDATE users SET bio = $1 WHERE id = $2"
+  },
   "621648866e6e40f15f725c2b4d5012b927bd84b3cd351543851021d319d63e8f": {
     "describe": {
       "columns": [
@@ -233,6 +259,27 @@
     },
     "query": "SELECT\n            username,\n            discriminator,\n            avatar,\n            banner,\n            bio,\n            flags\n        FROM\n            users\n        WHERE\n            id = $1"
   },
+  "6ead10a4ea43d6e21372f6bd5092ef344faa928d3b2a3cfd73b0be1bbf75eac2": {
+    "describe": {
+      "columns": [
+        {
+          "name": "discriminator",
+          "ordinal": 0,
+          "type_info": "Int2"
+        }
+      ],
+      "nullable": [
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Int2"
+        ]
+      }
+    },
+    "query": "SELECT discriminator FROM users WHERE username = $1 AND discriminator = $2"
+  },
   "7b4b5b818b40cb78c177f05e13b277ef76102c1214c6280073f3a7e8a94ba4ef": {
     "describe": {
       "columns": [
@@ -265,6 +312,26 @@
     },
     "query": "DELETE FROM tokens WHERE user_id = $1"
   },
+  "87742854ab3161409d6fb266f96c1d251b75dc157e95dbeb9b13b915b8fee9af": {
+    "describe": {
+      "columns": [
+        {
+          "name": "out",
+          "ordinal": 0,
+          "type_info": "Int2"
+        }
+      ],
+      "nullable": [
+        null
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      }
+    },
+    "query": "SELECT generate_discriminator($1) AS out"
+  },
   "bbfc76e3af9ea14f7db905a60a55ee902e6fd91abc1637767c9d65cf54d16d01": {
     "describe": {
       "columns": [],
@@ -293,6 +360,33 @@
       }
     },
     "query": "INSERT INTO tokens (user_id, token) VALUES ($1, $2)"
+  },
+  "d6936366559a2ff31bf0d5346b9e01c226dd6da007bfe74c1ea9d05b82d60481": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Int2",
+          "Record"
+        ]
+      }
+    },
+    "query": "UPDATE users SET username = $1, discriminator = $2 WHERE id = $3"
+  },
+  "e799fe200b7987bdceddf4e0db31fe441478e026aef3bc1be4a5f01fa6325026": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Record"
+        ]
+      }
+    },
+    "query": "UPDATE users SET banner = $1 WHERE id = $2"
   },
   "f4d518e1cd7bc7ae03e5d9e75b568fc0b2eac97cd3919ec27f5d75aa71ac14eb": {
     "describe": {

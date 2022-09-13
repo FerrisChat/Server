@@ -214,9 +214,50 @@ pub async fn edit_user(
 
     // TODO: the username might overlap with a discriminator
     let username = if let Some(username) = payload.username {
+        validate_username(&username)
+            .map_err(|err| Response(StatusCode::BAD_REQUEST, err).promote(&headers))?;
+
+        let discriminator = {
+            let discriminator: i16 = user.discriminator;
+
+            if sqlx::query!(
+                "SELECT discriminator FROM users WHERE username = $1 AND discriminator = $2",
+                username,
+                discriminator,
+            )
+            .fetch_optional(&mut transaction)
+            .await
+            .promote(&headers)?
+            .is_none()
+            {
+                discriminator
+            } else {
+                let discriminator =
+                    sqlx::query!("SELECT generate_discriminator($1) AS out", username)
+                        .fetch_one(&mut transaction)
+                        .await
+                        .promote(&headers)?
+                        .out;
+
+                if let Some(d) = discriminator {
+                    d
+                } else {
+                    return Response(
+                        StatusCode::CONFLICT,
+                        Error::AlreadyTaken {
+                            what: "username",
+                            message: "Username is already taken".to_string(),
+                        },
+                    )
+                    .promote_err(&headers);
+                }
+            }
+        };
+
         sqlx::query!(
-            "UPDATE users SET username = $1 WHERE id = $2",
+            "UPDATE users SET username = $1, discriminator = $2 WHERE id = $3",
             username,
+            discriminator,
             PostgresU128::new(id) as _,
         )
         .execute(&mut transaction)
