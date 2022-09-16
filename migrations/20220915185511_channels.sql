@@ -58,5 +58,5 @@ CREATE TABLE IF NOT EXISTS channel_recipients (
 
 ALTER TABLE roles
 DROP COLUMN IF EXISTS permissions,
-ADD COLUMN IF NOT EXISTS allowed_permissions BIGINT,
-ADD COLUMN IF NOT EXISTS denied_permissions BIGINT;
+ADD COLUMN IF NOT EXISTS allowed_permissions BIGINT DEFAULT 0,
+ADD COLUMN IF NOT EXISTS denied_permissions BIGINT DEFAULT 0;
