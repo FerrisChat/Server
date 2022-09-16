@@ -44,6 +44,7 @@ pub async fn start() -> Result<(), Box<dyn std::error::Error>> {
         )
         .route("/teapot", get(|| async { StatusCode::IM_A_TEAPOT }))
         .merge(routes::auth::router())
+        .merge(routes::guild::router())
         .merge(routes::user::router());
 
     let port = std::env::var("FERRISCHAT_WEBSERVER_PORT")

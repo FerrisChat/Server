@@ -10,6 +10,7 @@ repository = "https://github.com/FerrisChat/Server"
 argon2-async = "0.2"
 axum = { version = "0.5", features = ["headers"] }
 base64 = "0.13"
+chrono = "0.4"
 common = { path = "../../Common" }
 dashmap = "5.4"
 deadpool-redis = "0.10"

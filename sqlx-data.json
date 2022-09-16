@@ -145,6 +145,51 @@
     },
     "query": "SELECT token FROM tokens WHERE user_id = $1"
   },
+  "47688f8505f4765df616015354ad8213801ad17970a82e3ba2195e3abc3d14df": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "high",
+                    "Int8"
+                  ],
+                  [
+                    "low",
+                    "Int8"
+                  ]
+                ]
+              },
+              "name": "u128"
+            }
+          },
+          {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "high",
+                    "Int8"
+                  ],
+                  [
+                    "low",
+                    "Int8"
+                  ]
+                ]
+              },
+              "name": "u128"
+            }
+          }
+        ]
+      }
+    },
+    "query": "INSERT INTO role_data (guild_id, role_id, user_id) VALUES ($1, $1, $2)"
+  },
   "4c82c07c8672b5b1f1aa2a7c97164d20b194ecca58657322a6b3d5b055d00ade": {
     "describe": {
       "columns": [
@@ -195,6 +240,59 @@
       }
     },
     "query": "DELETE FROM users WHERE id = $1"
+  },
+  "52645061c871d222d342edf74fa669f5e853ec6b16202c334e1d09ca449df7c4": {
+    "describe": {
+      "columns": [
+        {
+          "name": "joined_at",
+          "ordinal": 0,
+          "type_info": "Timestamptz"
+        }
+      ],
+      "nullable": [
+        false
+      ],
+      "parameters": {
+        "Left": [
+          {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "high",
+                    "Int8"
+                  ],
+                  [
+                    "low",
+                    "Int8"
+                  ]
+                ]
+              },
+              "name": "u128"
+            }
+          },
+          {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "high",
+                    "Int8"
+                  ],
+                  [
+                    "low",
+                    "Int8"
+                  ]
+                ]
+              },
+              "name": "u128"
+            }
+          }
+        ]
+      }
+    },
+    "query": "INSERT INTO members (id, guild_id) VALUES ($1, $2) RETURNING joined_at"
   },
   "5b40708e478432b21a80fb59ee822061d87c99e28e0a9e65d2e77ef49600a83b": {
     "describe": {
@@ -300,6 +398,56 @@
     },
     "query": "SELECT email FROM users WHERE email = $1"
   },
+  "7d3aa30c43c94db6578cdd47bd1d55460c1ffbcd7dda59a39b3ff783a2d8cc2d": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "high",
+                    "Int8"
+                  ],
+                  [
+                    "low",
+                    "Int8"
+                  ]
+                ]
+              },
+              "name": "u128"
+            }
+          },
+          "Text",
+          "Text",
+          "Text",
+          "Text",
+          {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "high",
+                    "Int8"
+                  ],
+                  [
+                    "low",
+                    "Int8"
+                  ]
+                ]
+              },
+              "name": "u128"
+            }
+          },
+          "Int4"
+        ]
+      }
+    },
+    "query": "INSERT INTO\n            guilds (id, name, description, icon, banner, owner_id, flags)\n        VALUES\n            ($1, $2, $3, $4, $5, $6, $7)\n        "
+  },
   "82656124ef41560bc2fe44a9e64c26c52399c0b3410f5eef6a609823a599e93d": {
     "describe": {
       "columns": [],
@@ -332,6 +480,51 @@
     },
     "query": "SELECT generate_discriminator($1) AS out"
   },
+  "98343210dae5830ad351180ca43dd72e77876c52771e8718197e43da14028cb3": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "high",
+                    "Int8"
+                  ],
+                  [
+                    "low",
+                    "Int8"
+                  ]
+                ]
+              },
+              "name": "u128"
+            }
+          },
+          {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "high",
+                    "Int8"
+                  ],
+                  [
+                    "low",
+                    "Int8"
+                  ]
+                ]
+              },
+              "name": "u128"
+            }
+          }
+        ]
+      }
+    },
+    "query": "INSERT INTO channels VALUES (\n            $1, $2, 'text', 'general', 0, null, null, null, 0, false, false\n        )\n        "
+  },
   "bbfc76e3af9ea14f7db905a60a55ee902e6fd91abc1637767c9d65cf54d16d01": {
     "describe": {
       "columns": [],
@@ -360,6 +553,66 @@
       }
     },
     "query": "INSERT INTO tokens (user_id, token) VALUES ($1, $2)"
+  },
+  "d4b505cd03d6f5475e74b5c82aa19ed275202a16bbf174586bd24db2ab03cf87": {
+    "describe": {
+      "columns": [
+        {
+          "name": "allowed_permissions",
+          "ordinal": 0,
+          "type_info": "Int8"
+        },
+        {
+          "name": "denied_permissions",
+          "ordinal": 1,
+          "type_info": "Int8"
+        }
+      ],
+      "nullable": [
+        true,
+        true
+      ],
+      "parameters": {
+        "Left": [
+          {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "high",
+                    "Int8"
+                  ],
+                  [
+                    "low",
+                    "Int8"
+                  ]
+                ]
+              },
+              "name": "u128"
+            }
+          },
+          {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "high",
+                    "Int8"
+                  ],
+                  [
+                    "low",
+                    "Int8"
+                  ]
+                ]
+              },
+              "name": "u128"
+            }
+          },
+          "Int4"
+        ]
+      }
+    },
+    "query": "INSERT INTO roles\n            (id, guild_id, name, flags)\n        VALUES\n            ($1, $2, 'Default', $3)\n        RETURNING\n            allowed_permissions, denied_permissions\n        "
   },
   "d6936366559a2ff31bf0d5346b9e01c226dd6da007bfe74c1ea9d05b82d60481": {
     "describe": {

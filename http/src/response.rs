@@ -55,11 +55,6 @@ pub enum Error {
         /// The error message.
         message: &'static str,
     },
-    /// An invalid username was provided.
-    InvalidUsername {
-        /// The error message.
-        message: String,
-    },
     /// Something was already taken, e.g. a username or email.
     AlreadyTaken {
         /// What was already taken.
@@ -75,6 +70,13 @@ pub enum Error {
     InvalidToken {
         /// The error message.
         message: &'static str,
+    },
+    /// Validation error for a field.
+    ValidationError {
+        /// The field that failed validation.
+        field: &'static str,
+        /// The error message.
+        message: String,
     },
 }
 

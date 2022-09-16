@@ -22,20 +22,23 @@ fn validate_username<T: AsRef<str>>(username: T) -> Result<(), Error> {
     let length = username.chars().count();
 
     if length < 2 {
-        return Err(Error::InvalidUsername {
+        return Err(Error::ValidationError {
+            field: "username",
             message: "Username must be at least 2 characters long".to_string(),
         });
     }
 
     if length > 32 {
-        return Err(Error::InvalidUsername {
+        return Err(Error::ValidationError {
+            field: "username",
             message: "Username cannot be longer than 32 characters".to_string(),
         });
     }
 
     for forbidden in ['\n', '\r', '#', '@'] {
         if username.contains(forbidden) {
-            return Err(Error::InvalidUsername {
+            return Err(Error::ValidationError {
+                field: "username",
                 message: format!("Username cannot contain {:?}", forbidden),
             });
         }
@@ -163,6 +166,7 @@ pub async fn get_client_user(Auth(id, _): Auth, headers: HeaderMap) -> RouteResu
         guilds: Vec::new(),        // TODO
         relationships: Vec::new(), // TODO
         folders: None,             // TODO
+        dm_channels: Vec::new(),   // TODO
     })
     .promote_ok(&headers)
 }
