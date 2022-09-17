@@ -27,8 +27,8 @@ CREATE TABLE IF NOT EXISTS channel_overwrites (
     guild_id u128 NOT NULL,
     channel_id u128 NOT NULL,
     target_id u128 NOT NULL,
-    allow BIGINT,
-    deny BIGINT,
+    allow BIGINT NOT NULL DEFAULT 0,
+    deny BIGINT NOT NULL DEFAULT 0,
     PRIMARY KEY (guild_id, channel_id, target_id),
     FOREIGN KEY (guild_id)
         REFERENCES guilds (id)
@@ -58,5 +58,5 @@ CREATE TABLE IF NOT EXISTS channel_recipients (
 
 ALTER TABLE roles
 DROP COLUMN IF EXISTS permissions,
-ADD COLUMN IF NOT EXISTS allowed_permissions BIGINT DEFAULT 0,
-ADD COLUMN IF NOT EXISTS denied_permissions BIGINT DEFAULT 0;
+ADD COLUMN IF NOT EXISTS allowed_permissions BIGINT NOT NULL DEFAULT 0,
+ADD COLUMN IF NOT EXISTS denied_permissions BIGINT NOT NULL DEFAULT 0;

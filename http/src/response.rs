@@ -8,77 +8,7 @@ use axum::{
 use common::CastSnowflakes;
 use serde::Serialize;
 
-/// An error response.
-#[derive(Debug, Serialize)]
-#[serde(tag = "type")]
-#[serde(rename_all = "snake_case")]
-pub enum Error {
-    /// Internal server error occured, this is likely a bug.
-    InternalError {
-        /// What caused the error. `None` if unknown.
-        what: Option<&'static str>,
-        /// The error message.
-        message: String,
-        /// A debug version of the error, or `None` if there is no debug version.
-        debug: Option<String>,
-    },
-    /// Could not resolve a plausible IP address from the request.
-    MalformedIp {
-        /// The error message.
-        message: &'static str,
-    },
-    /// You are sending requests too quickly are you are being rate limited.
-    Ratelimited {
-        /// How long you should wait before sending another request, in whole seconds.
-        retry_after: f32,
-        /// The IP address that is being rate limited.
-        ip: String,
-        /// The ratelimited message.
-        message: String,
-    },
-    /// The entity was not found.
-    NotFound {
-        /// The type of item that couldn't be found.
-        entity: &'static str,
-        /// The error message.
-        message: String,
-    },
-    /// Tried authorizing a bot account with anything but an authentication token.
-    UnsupportedAuthMethod {
-        /// The error message.
-        message: &'static str,
-    },
-    /// Invalid login credentials were provided, i.e. an invalid password.
-    InvalidCredentials {
-        /// Which credential was invalid.
-        what: &'static str,
-        /// The error message.
-        message: &'static str,
-    },
-    /// Something was already taken, e.g. a username or email.
-    AlreadyTaken {
-        /// What was already taken.
-        what: &'static str,
-        /// The error message.
-        message: String,
-    },
-    /// The request required a valid authentication token, but one of the following happened:
-    ///
-    /// * The token was not provided.
-    /// * The token was malformed, i.e. a non-UTF-8 string.
-    /// * The token does not exist or is invalid.
-    InvalidToken {
-        /// The error message.
-        message: &'static str,
-    },
-    /// Validation error for a field.
-    ValidationError {
-        /// The field that failed validation.
-        field: &'static str,
-        /// The error message.
-        message: String,
-    },
-}
+pub use common::http::Error;
 
 /// A response to an endpoint.
 #[derive(Debug)]
@@ -118,27 +48,21 @@ where
     pub fn promote_ok<E>(self, headers: &HeaderMap) -> Result<HeaderAwareResponse<T>, E> {
         Ok(self.promote(headers))
     }
+
+    /// Wraps a promoted version of this response with Err.
+    pub fn promote_err<U>(self, headers: &HeaderMap) -> Result<U, HeaderAwareResponse<T>> {
+        Err(self.promote(headers))
+    }
 }
 
 impl Response<Error> {
     /// Creates a new not found response (404 Not Found) with the given entity.
     #[must_use]
     pub const fn not_found(entity: &'static str, message: String) -> Self {
-        Self(StatusCode::NOT_FOUND, Error::NotFound { entity, message })
-    }
-
-    /// Promotes this response into one that is aware of the given headers.
-    #[must_use]
-    pub fn promote(self, headers: &HeaderMap) -> HeaderAwareResponse<Error> {
-        HeaderAwareResponse {
-            response: self,
-            headers: headers.clone(),
-        }
-    }
-
-    /// Wraps a promoted version of this response with Err.
-    pub fn promote_err<T>(self, headers: &HeaderMap) -> Result<T, HeaderAwareResponse<Error>> {
-        Err(self.promote(headers))
+        Self(
+            StatusCode::NOT_FOUND,
+            Error::<u128>::NotFound { entity, message },
+        )
     }
 }
 
@@ -170,7 +94,7 @@ impl From<&str> for Response<Error> {
     fn from(message: &str) -> Self {
         Self(
             StatusCode::INTERNAL_SERVER_ERROR,
-            Error::InternalError {
+            Error::<u128>::InternalError {
                 what: None,
                 message: message.into(),
                 debug: None,
@@ -183,7 +107,7 @@ impl From<String> for Response<Error> {
     fn from(message: String) -> Self {
         Self(
             StatusCode::INTERNAL_SERVER_ERROR,
-            Error::InternalError {
+            Error::<u128>::InternalError {
                 what: None,
                 message,
                 debug: None,
@@ -196,7 +120,7 @@ impl From<sqlx::Error> for Response<Error> {
     fn from(err: sqlx::Error) -> Self {
         Self(
             StatusCode::INTERNAL_SERVER_ERROR,
-            Error::InternalError {
+            Error::<u128>::InternalError {
                 what: Some("database"),
                 message: err.to_string(),
                 debug: Some(format!("{:?}", err)),
@@ -209,7 +133,7 @@ impl From<argon2_async::Error> for Response<Error> {
     fn from(err: argon2_async::Error) -> Self {
         Self(
             StatusCode::INTERNAL_SERVER_ERROR,
-            Error::InternalError {
+            Error::<u128>::InternalError {
                 what: Some("hasher"),
                 message: err.to_string(),
                 debug: Some(format!("{:?}", err)),
@@ -222,7 +146,7 @@ impl From<redis::RedisError> for Response<Error> {
     fn from(err: redis::RedisError) -> Self {
         Self(
             StatusCode::INTERNAL_SERVER_ERROR,
-            Error::InternalError {
+            Error::<u128>::InternalError {
                 what: Some("redis"),
                 message: err.to_string(),
                 debug: Some(format!("{:?}", err)),
@@ -235,7 +159,7 @@ impl From<deadpool_redis::PoolError> for Response<Error> {
     fn from(err: deadpool_redis::PoolError) -> Self {
         Self(
             StatusCode::INTERNAL_SERVER_ERROR,
-            Error::InternalError {
+            Error::<u128>::InternalError {
                 what: Some("redis pool"),
                 message: err.to_string(),
                 debug: Some(format!("{:?}", err)),
@@ -247,7 +171,7 @@ impl From<deadpool_redis::PoolError> for Response<Error> {
 fn serialization_error(err: &(impl ToString + std::fmt::Debug)) -> AxumResponse {
     Response(
         StatusCode::INTERNAL_SERVER_ERROR,
-        Error::InternalError {
+        Error::<u128>::InternalError {
             what: Some("serialization"),
             message: err.to_string(),
             debug: Some(format!("{:?}", err)),
@@ -301,6 +225,16 @@ impl<T: Serialize> HeaderAwareResponse<T> {
             })
         })
     }
+
+    fn msgpack_compact(&self) -> bool {
+        self.headers
+            .get(HeaderName::from_static("x-msgpack-compact"))
+            .is_some_and(|value| {
+                value
+                    .to_str()
+                    .is_ok_and(|value| value.to_ascii_lowercase() != "false")
+            })
+    }
 }
 
 impl<T: Serialize + CastSnowflakes> HeaderAwareResponse<T>
@@ -316,24 +250,6 @@ where
     }
 }
 
-impl IntoResponse for HeaderAwareResponse<Error> {
-    fn into_response(self) -> AxumResponse {
-        if self.msgpack() {
-            match rmp_serde::to_vec_named(&self.response.1) {
-                Ok(bytes) => axum::http::Response::builder()
-                    .status(self.response.0)
-                    .header(CONTENT_TYPE, "application/msgpack")
-                    .body(axum::body::Full::from(bytes))
-                    .expect("invalid http status code received")
-                    .into_response(),
-                Err(err) => serialization_error(&err),
-            }
-        } else {
-            self.response.into_response()
-        }
-    }
-}
-
 impl<T: Serialize + CastSnowflakes> IntoResponse for HeaderAwareResponse<T>
 where
     T::StringResult: Serialize,
@@ -341,9 +257,19 @@ where
     fn into_response(self) -> AxumResponse {
         if self.msgpack() {
             match if self.stringify_snowflakes() {
-                rmp_serde::to_vec_named(&self.response.1.into_string_ids())
+                if self.msgpack_compact() {
+                    rmp_serde::to_vec(&self.response.1.into_string_ids())
+                } else {
+                    rmp_serde::to_vec_named(&self.response.1.into_string_ids())
+                }
             } else {
-                rmp_serde::to_vec_named(&self.response.1)
+                let target = &self.response.1;
+
+                if self.msgpack_compact() {
+                    rmp_serde::to_vec(target)
+                } else {
+                    rmp_serde::to_vec_named(target)
+                }
             } {
                 Ok(bytes) => axum::http::Response::builder()
                     .status(self.response.0)

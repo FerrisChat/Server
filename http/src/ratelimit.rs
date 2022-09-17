@@ -69,7 +69,7 @@ impl<S> Ratelimit<S> {
 
             let mut response = Response(
                 StatusCode::TOO_MANY_REQUESTS,
-                Error::Ratelimited {
+                Error::<u128>::Ratelimited {
                     retry_after: retry_after.as_secs_f32(),
                     ip: ip.to_string(),
                     message: format!(
@@ -126,7 +126,7 @@ where
                 return Box::pin(async move {
                     Ok(Response(
                         StatusCode::BAD_REQUEST,
-                        Error::MalformedIp {
+                        Error::<u128>::MalformedIp {
                             message: "Could not resolve an IP address from the request. \
                                 We require a valid IP address to protect us from DoS attacks.",
                         },

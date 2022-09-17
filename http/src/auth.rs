@@ -81,7 +81,7 @@ impl FromRequest<Body> for Auth {
             .ok_or_else(|| {
                 Response(
                     StatusCode::UNAUTHORIZED,
-                    Error::InvalidToken {
+                    Error::<u128>::InvalidToken {
                         message: "Missing Authorization header, which should contain the token.",
                     },
                 )
@@ -91,7 +91,7 @@ impl FromRequest<Body> for Auth {
             .map_err(|_| {
                 Response(
                     StatusCode::UNAUTHORIZED,
-                    Error::InvalidToken {
+                    Error::<u128>::InvalidToken {
                         message: "Invalid Authorization header",
                     },
                 )

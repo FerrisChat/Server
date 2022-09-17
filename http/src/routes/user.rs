@@ -22,14 +22,14 @@ fn validate_username<T: AsRef<str>>(username: T) -> Result<(), Error> {
     let length = username.chars().count();
 
     if length < 2 {
-        return Err(Error::ValidationError {
+        return Err(Error::<u128>::ValidationError {
             field: "username",
             message: "Username must be at least 2 characters long".to_string(),
         });
     }
 
     if length > 32 {
-        return Err(Error::ValidationError {
+        return Err(Error::<u128>::ValidationError {
             field: "username",
             message: "Username cannot be longer than 32 characters".to_string(),
         });
@@ -37,7 +37,7 @@ fn validate_username<T: AsRef<str>>(username: T) -> Result<(), Error> {
 
     for forbidden in ['\n', '\r', '#', '@'] {
         if username.contains(forbidden) {
-            return Err(Error::ValidationError {
+            return Err(Error::<u128>::ValidationError {
                 field: "username",
                 message: format!("Username cannot contain {:?}", forbidden),
             });
@@ -68,7 +68,7 @@ pub async fn create_user(
     {
         return Response(
             StatusCode::CONFLICT,
-            Error::AlreadyTaken {
+            Error::<u128>::AlreadyTaken {
                 what: "email",
                 message: "Email is already in use".to_string(),
             },
@@ -102,7 +102,7 @@ pub async fn create_user(
         transaction.rollback().await.promote(&headers)?;
         return Response(
             StatusCode::CONFLICT,
-            Error::AlreadyTaken {
+            Error::<u128>::AlreadyTaken {
                 what: "username",
                 message: "Username is already taken".to_string(),
             },
@@ -243,7 +243,7 @@ pub async fn edit_user(
             } else {
                 return Response(
                     StatusCode::CONFLICT,
-                    Error::AlreadyTaken {
+                    Error::<u128>::AlreadyTaken {
                         what: "username",
                         message: "Username is already taken".to_string(),
                     },
@@ -304,7 +304,7 @@ pub async fn delete_user(
     .ok_or_else(|| {
         Response(
             StatusCode::FORBIDDEN,
-            Error::UnsupportedAuthMethod {
+            Error::<u128>::UnsupportedAuthMethod {
                 message: "This user is a bot account, but this endpoint can only delete user \
                     accounts. To delete bot accounts, see the DELETE /bots/:id endpoint.",
             },
@@ -318,7 +318,7 @@ pub async fn delete_user(
     {
         return Response(
             StatusCode::UNAUTHORIZED,
-            Error::InvalidCredentials {
+            Error::<u128>::InvalidCredentials {
                 what: "password",
                 message: "Invalid password",
             },

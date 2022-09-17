@@ -12,6 +12,7 @@
 
 pub mod auth;
 pub mod cache;
+pub mod checks;
 pub mod database;
 pub mod ratelimit;
 pub mod response;

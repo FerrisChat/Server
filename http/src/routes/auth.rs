@@ -41,7 +41,7 @@ pub async fn login(
     if flags.contains(UserFlags::BOT) {
         return Response(
             StatusCode::FORBIDDEN,
-            Error::UnsupportedAuthMethod {
+            Error::<u128>::UnsupportedAuthMethod {
                 message: "Bots cannot login with this method, use a bot token instead",
             },
         )
@@ -54,7 +54,7 @@ pub async fn login(
     {
         return Response(
             StatusCode::UNAUTHORIZED,
-            Error::InvalidCredentials {
+            Error::<u128>::InvalidCredentials {
                 what: "password",
                 message: "Password is incorrect",
             },

@@ -53,7 +53,7 @@ pub async fn resolve_token(headers: &HeaderMap, token: &str) -> HeaderAwareResul
     .ok_or_else(|| {
         Response(
             StatusCode::UNAUTHORIZED,
-            Error::InvalidToken {
+            Error::<u128>::InvalidToken {
                 message: "Invalid authorization token",
             },
         )

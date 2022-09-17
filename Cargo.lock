@@ -452,6 +452,7 @@ dependencies = [
  "dotenv_codegen",
  "ferrischat_snowflake_generator",
  "forwarded-header-value",
+ "itertools",
  "redis",
  "ring",
  "rmp-serde",

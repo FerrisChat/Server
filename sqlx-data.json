@@ -13,6 +13,27 @@
     },
     "query": "UPDATE users SET avatar = $1 WHERE id = $2"
   },
+  "133fe085162608f1d2b554f6f7b1154e9648083bf057b86d24845917bc47c749": {
+    "describe": {
+      "columns": [
+        {
+          "name": "exists",
+          "ordinal": 0,
+          "type_info": "Bool"
+        }
+      ],
+      "nullable": [
+        null
+      ],
+      "parameters": {
+        "Left": [
+          "Record",
+          "Record"
+        ]
+      }
+    },
+    "query": "SELECT EXISTS(SELECT 1 FROM members WHERE guild_id = $1 AND id = $2) AS exists"
+  },
   "28dab3a902e30d7170e1502017801bd67027461b8a87b5f84b8c9f6e94a4747d": {
     "describe": {
       "columns": [
@@ -229,6 +250,76 @@
     },
     "query": "INSERT INTO\n            users (id, username, email, password)\n        VALUES\n            ($1, $2, $3, $4)\n        RETURNING\n            discriminator"
   },
+  "4e79c6bfb2602b75c8f96f28e216db1eb242a27354050d2463e1a2f2735d2fbf": {
+    "describe": {
+      "columns": [
+        {
+          "name": "channel_id: PostgresU128",
+          "ordinal": 0,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "high",
+                    "Int8"
+                  ],
+                  [
+                    "low",
+                    "Int8"
+                  ]
+                ]
+              },
+              "name": "u128"
+            }
+          }
+        },
+        {
+          "name": "target_id: PostgresU128",
+          "ordinal": 1,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "high",
+                    "Int8"
+                  ],
+                  [
+                    "low",
+                    "Int8"
+                  ]
+                ]
+              },
+              "name": "u128"
+            }
+          }
+        },
+        {
+          "name": "allow",
+          "ordinal": 2,
+          "type_info": "Int8"
+        },
+        {
+          "name": "deny",
+          "ordinal": 3,
+          "type_info": "Int8"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Record"
+        ]
+      }
+    },
+    "query": "\n            SELECT\n                channel_id AS \"channel_id: PostgresU128\",\n                target_id AS \"target_id: PostgresU128\",\n                allow,\n                deny\n            FROM channel_overwrites\n            WHERE channel_id IN (SELECT id FROM channels WHERE guild_id = $1)"
+  },
   "50293c2e54af11d4c2a553e29b671cef087a159c6ee7182d8ca929ecb748f3b7": {
     "describe": {
       "columns": [],
@@ -293,6 +384,64 @@
       }
     },
     "query": "INSERT INTO members (id, guild_id) VALUES ($1, $2) RETURNING joined_at"
+  },
+  "53be03fb3523feb1dca008e465921990d863a904cdf00fd157c8e47ddf1d55f7": {
+    "describe": {
+      "columns": [
+        {
+          "name": "role_id: PostgresU128",
+          "ordinal": 0,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "high",
+                    "Int8"
+                  ],
+                  [
+                    "low",
+                    "Int8"
+                  ]
+                ]
+              },
+              "name": "u128"
+            }
+          }
+        },
+        {
+          "name": "user_id: PostgresU128",
+          "ordinal": 1,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "high",
+                    "Int8"
+                  ],
+                  [
+                    "low",
+                    "Int8"
+                  ]
+                ]
+              },
+              "name": "u128"
+            }
+          }
+        }
+      ],
+      "nullable": [
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Record"
+        ]
+      }
+    },
+    "query": "SELECT\n                role_id AS \"role_id: PostgresU128\",\n                user_id AS \"user_id: PostgresU128\"\n            FROM\n                role_data\n            WHERE\n                guild_id = $1\n            "
   },
   "5b40708e478432b21a80fb59ee822061d87c99e28e0a9e65d2e77ef49600a83b": {
     "describe": {
@@ -377,6 +526,54 @@
       }
     },
     "query": "SELECT discriminator FROM users WHERE username = $1 AND discriminator = $2"
+  },
+  "7a01c5bda6df80e98a29021bde9ddc1bac9063deb37003fe0fb4984879f4b07c": {
+    "describe": {
+      "columns": [
+        {
+          "name": "target_id: PostgresU128",
+          "ordinal": 0,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "high",
+                    "Int8"
+                  ],
+                  [
+                    "low",
+                    "Int8"
+                  ]
+                ]
+              },
+              "name": "u128"
+            }
+          }
+        },
+        {
+          "name": "allow",
+          "ordinal": 1,
+          "type_info": "Int8"
+        },
+        {
+          "name": "deny",
+          "ordinal": 2,
+          "type_info": "Int8"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Record"
+        ]
+      }
+    },
+    "query": "\n                SELECT\n                    target_id AS \"target_id: PostgresU128\",\n                    allow,\n                    deny\n                FROM channel_overwrites\n                WHERE channel_id = $1"
   },
   "7b4b5b818b40cb78c177f05e13b277ef76102c1214c6280073f3a7e8a94ba4ef": {
     "describe": {
@@ -525,6 +722,335 @@
     },
     "query": "INSERT INTO channels VALUES (\n            $1, $2, 'text', 'general', 0, null, null, null, 0, false, false\n        )\n        "
   },
+  "a1b67d4fe9a68b4fac2c9fd73cbdb5c3ec80f52130a0df997d2d78076f652e71": {
+    "describe": {
+      "columns": [
+        {
+          "name": "name",
+          "ordinal": 0,
+          "type_info": "Text"
+        },
+        {
+          "name": "description",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "icon",
+          "ordinal": 2,
+          "type_info": "Text"
+        },
+        {
+          "name": "banner",
+          "ordinal": 3,
+          "type_info": "Text"
+        },
+        {
+          "name": "owner_id: PostgresU128",
+          "ordinal": 4,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "high",
+                    "Int8"
+                  ],
+                  [
+                    "low",
+                    "Int8"
+                  ]
+                ]
+              },
+              "name": "u128"
+            }
+          }
+        },
+        {
+          "name": "flags",
+          "ordinal": 5,
+          "type_info": "Int4"
+        },
+        {
+          "name": "vanity_url",
+          "ordinal": 6,
+          "type_info": "Text"
+        },
+        {
+          "name": "member_count!",
+          "ordinal": 7,
+          "type_info": "Int8"
+        }
+      ],
+      "nullable": [
+        false,
+        true,
+        true,
+        true,
+        false,
+        false,
+        true,
+        null
+      ],
+      "parameters": {
+        "Left": [
+          "Record"
+        ]
+      }
+    },
+    "query": "SELECT\n            name,\n            description,\n            icon,\n            banner,\n            owner_id AS \"owner_id: PostgresU128\",\n            flags,\n            vanity_url,\n            (SELECT COUNT(*) FROM members WHERE guild_id = $1) AS \"member_count!\"\n        FROM\n            guilds\n        WHERE\n            id = $1\n        "
+  },
+  "a848427446181523fcb1fac3721089eee523f35f6fee0d40c51524a38109e239": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id: PostgresU128",
+          "ordinal": 0,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "high",
+                    "Int8"
+                  ],
+                  [
+                    "low",
+                    "Int8"
+                  ]
+                ]
+              },
+              "name": "u128"
+            }
+          }
+        },
+        {
+          "name": "allowed_permissions",
+          "ordinal": 1,
+          "type_info": "Int8"
+        },
+        {
+          "name": "denied_permissions",
+          "ordinal": 2,
+          "type_info": "Int8"
+        },
+        {
+          "name": "position",
+          "ordinal": 3,
+          "type_info": "Int2"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Record",
+          "Record"
+        ]
+      }
+    },
+    "query": "\n        SELECT\n            id AS \"id: PostgresU128\",\n            allowed_permissions,\n            denied_permissions,\n            position\n        FROM roles\n        WHERE id\n        IN (\n            SELECT role_id\n            FROM role_data\n            WHERE user_id = $1 AND guild_id = $2\n        )"
+  },
+  "a979352afc5f111eb397e55055aa091d8bfb535ce5edcb755b80e30e185107be": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id: PostgresU128",
+          "ordinal": 0,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "high",
+                    "Int8"
+                  ],
+                  [
+                    "low",
+                    "Int8"
+                  ]
+                ]
+              },
+              "name": "u128"
+            }
+          }
+        },
+        {
+          "name": "nick",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "joined_at",
+          "ordinal": 2,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "username",
+          "ordinal": 3,
+          "type_info": "Text"
+        },
+        {
+          "name": "discriminator",
+          "ordinal": 4,
+          "type_info": "Int2"
+        },
+        {
+          "name": "avatar",
+          "ordinal": 5,
+          "type_info": "Text"
+        },
+        {
+          "name": "banner",
+          "ordinal": 6,
+          "type_info": "Text"
+        },
+        {
+          "name": "bio",
+          "ordinal": 7,
+          "type_info": "Text"
+        },
+        {
+          "name": "flags",
+          "ordinal": 8,
+          "type_info": "Int4"
+        }
+      ],
+      "nullable": [
+        false,
+        true,
+        false,
+        false,
+        false,
+        true,
+        true,
+        true,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Record"
+        ]
+      }
+    },
+    "query": "SELECT\n                m.id AS \"id: PostgresU128\",\n                m.nick AS nick,\n                m.joined_at AS joined_at,\n                u.username AS username,\n                u.discriminator AS discriminator,\n                u.avatar AS avatar,\n                u.banner AS banner,\n                u.bio AS bio,\n                u.flags AS flags\n            FROM\n                members m\n            CROSS JOIN LATERAL (\n                SELECT * FROM users u WHERE u.id = m.id\n            ) AS u\n            WHERE\n                guild_id = $1\n            "
+  },
+  "b2f8d8390cb433fea5fa517ab6d09e383d27ac803b702d74f7240b63e1be4d0b": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id: PostgresU128",
+          "ordinal": 0,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "high",
+                    "Int8"
+                  ],
+                  [
+                    "low",
+                    "Int8"
+                  ]
+                ]
+              },
+              "name": "u128"
+            }
+          }
+        },
+        {
+          "name": "name!",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "kind",
+          "ordinal": 2,
+          "type_info": "Text"
+        },
+        {
+          "name": "position!",
+          "ordinal": 3,
+          "type_info": "Int2"
+        },
+        {
+          "name": "parent_id?: PostgresU128",
+          "ordinal": 4,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "high",
+                    "Int8"
+                  ],
+                  [
+                    "low",
+                    "Int8"
+                  ]
+                ]
+              },
+              "name": "u128"
+            }
+          }
+        },
+        {
+          "name": "icon",
+          "ordinal": 5,
+          "type_info": "Text"
+        },
+        {
+          "name": "topic",
+          "ordinal": 6,
+          "type_info": "Text"
+        },
+        {
+          "name": "locked",
+          "ordinal": 7,
+          "type_info": "Bool"
+        },
+        {
+          "name": "nsfw",
+          "ordinal": 8,
+          "type_info": "Bool"
+        },
+        {
+          "name": "slowmode",
+          "ordinal": 9,
+          "type_info": "Int4"
+        },
+        {
+          "name": "user_limit",
+          "ordinal": 10,
+          "type_info": "Int2"
+        }
+      ],
+      "nullable": [
+        false,
+        true,
+        false,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "parameters": {
+        "Left": [
+          "Record"
+        ]
+      }
+    },
+    "query": "SELECT\n                id AS \"id: PostgresU128\",\n                name AS \"name!\",\n                type AS kind,\n                position AS \"position!\",\n                parent_id AS \"parent_id?: PostgresU128\",\n                icon,\n                topic,\n                locked,\n                nsfw,\n                slowmode,\n                user_limit\n            FROM\n                channels\n            WHERE\n                guild_id = $1\n            "
+  },
   "bbfc76e3af9ea14f7db905a60a55ee902e6fd91abc1637767c9d65cf54d16d01": {
     "describe": {
       "columns": [],
@@ -554,7 +1080,7 @@
     },
     "query": "INSERT INTO tokens (user_id, token) VALUES ($1, $2)"
   },
-  "d4b505cd03d6f5475e74b5c82aa19ed275202a16bbf174586bd24db2ab03cf87": {
+  "c3645c632dea79e76a58bae862e804d01c4c7506c4f4a436d16b11214a2fec95": {
     "describe": {
       "columns": [
         {
@@ -569,8 +1095,8 @@
         }
       ],
       "nullable": [
-        true,
-        true
+        false,
+        false
       ],
       "parameters": {
         "Left": [
@@ -612,7 +1138,7 @@
         ]
       }
     },
-    "query": "INSERT INTO roles\n            (id, guild_id, name, flags)\n        VALUES\n            ($1, $2, 'Default', $3)\n        RETURNING\n            allowed_permissions, denied_permissions\n        "
+    "query": "INSERT INTO roles\n            (id, guild_id, name, flags, position)\n        VALUES\n            ($1, $2, 'Default', $3, 0)\n        RETURNING\n            allowed_permissions, denied_permissions\n        "
   },
   "d6936366559a2ff31bf0d5346b9e01c226dd6da007bfe74c1ea9d05b82d60481": {
     "describe": {
@@ -640,6 +1166,26 @@
       }
     },
     "query": "UPDATE users SET banner = $1 WHERE id = $2"
+  },
+  "eba6f60203238acde004e5f938142789a0fc81be57a489a86d57923e8b94a317": {
+    "describe": {
+      "columns": [
+        {
+          "name": "exists",
+          "ordinal": 0,
+          "type_info": "Bool"
+        }
+      ],
+      "nullable": [
+        null
+      ],
+      "parameters": {
+        "Left": [
+          "Record"
+        ]
+      }
+    },
+    "query": "SELECT EXISTS(SELECT 1 FROM guilds WHERE id = $1) AS exists"
   },
   "f4d518e1cd7bc7ae03e5d9e75b568fc0b2eac97cd3919ec27f5d75aa71ac14eb": {
     "describe": {
@@ -688,5 +1234,83 @@
       }
     },
     "query": "SELECT id as \"id: PostgresU128\", password, flags FROM users WHERE email = $1"
+  },
+  "ffd06b326ce06ecc481b04605b5d654531962ee939543aff2af8b2cdf5a22061": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id: PostgresU128",
+          "ordinal": 0,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "high",
+                    "Int8"
+                  ],
+                  [
+                    "low",
+                    "Int8"
+                  ]
+                ]
+              },
+              "name": "u128"
+            }
+          }
+        },
+        {
+          "name": "name",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "color",
+          "ordinal": 2,
+          "type_info": "Int4Array"
+        },
+        {
+          "name": "gradient",
+          "ordinal": 3,
+          "type_info": "Bool"
+        },
+        {
+          "name": "allowed_permissions",
+          "ordinal": 4,
+          "type_info": "Int8"
+        },
+        {
+          "name": "denied_permissions",
+          "ordinal": 5,
+          "type_info": "Int8"
+        },
+        {
+          "name": "flags",
+          "ordinal": 6,
+          "type_info": "Int4"
+        },
+        {
+          "name": "position",
+          "ordinal": 7,
+          "type_info": "Int2"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        true,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Record"
+        ]
+      }
+    },
+    "query": "SELECT\n                id AS \"id: PostgresU128\",\n                name,\n                color,\n                gradient,\n                allowed_permissions,\n                denied_permissions,\n                flags,\n                position\n            FROM\n                roles\n            WHERE\n                guild_id = $1\n            "
   }
 }
