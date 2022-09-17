@@ -1,9 +1,9 @@
 use crate::{
-    checks::assert_member, get_pool, ratelimit, Auth, Error, PostgresU128, PromoteErr, Response,
-    RouteResult,
+    checks::assert_member, get_pool, ratelimit, Auth, Error, HeaderAwareResult, PostgresU128,
+    PromoteErr, Response, RouteResult, StatusCode,
 };
 use common::{
-    http::{CreateGuildPayload, GetGuildQuery},
+    http::{CreateGuildPayload, DeleteGuildPayload, GetGuildQuery},
     models::{
         Guild, GuildChannel, GuildChannelType, GuildFlags, GuildMemberCount, MaybePartialUser,
         Member, ModelType, PartialGuild, PermissionPair, Permissions, Role, RoleColor, RoleFlags,
@@ -15,7 +15,6 @@ use axum::{
     extract::{Json, Path, Query},
     handler::Handler,
     headers::HeaderMap,
-    http::StatusCode,
     routing::{get, post},
     Router,
 };
@@ -565,9 +564,97 @@ pub async fn get_guild(
     .promote_ok(&headers)
 }
 
+/// DELETE /guilds/:id
+#[allow(clippy::cast_sign_loss)]
+pub async fn delete_guild(
+    Auth(user_id, _): Auth,
+    Path(guild_id): Path<u128>,
+    json: Option<Json<DeleteGuildPayload>>,
+    headers: HeaderMap,
+) -> HeaderAwareResult<StatusCode> {
+    struct OwnerIdQueryResponse {
+        owner_id: PostgresU128,
+    }
+
+    let db = get_pool();
+    let owner_id: OwnerIdQueryResponse = sqlx::query_as!(
+        OwnerIdQueryResponse,
+        r#"SELECT
+            owner_id AS "owner_id: PostgresU128"
+        FROM
+            guilds
+        WHERE
+            id = $1
+        "#,
+        PostgresU128::new(guild_id) as _,
+    )
+    .fetch_optional(db)
+    .await
+    .promote(&headers)?
+    .ok_or_else(|| Response::not_found("guild", format!("Guild with ID {} not found", guild_id)))
+    .promote(&headers)?;
+
+    if owner_id.owner_id.to_u128() != user_id {
+        return Response(
+            StatusCode::FORBIDDEN,
+            Error::NotOwner {
+                guild_id,
+                message: "You must be the owner of the guild to perform this action",
+            },
+        )
+        .promote_err(&headers);
+    }
+
+    let user = sqlx::query!(
+        "SELECT flags, password FROM users WHERE id = $1",
+        PostgresU128::new(user_id) as _,
+    )
+    .fetch_one(db)
+    .await
+    .promote(&headers)?;
+
+    if !UserFlags::from_bits_truncate(user.flags as u32).contains(UserFlags::BOT) {
+        let Json(DeleteGuildPayload { password }) = json
+            .ok_or(Response(
+                StatusCode::BAD_REQUEST,
+                Error::MissingBody {
+                    message: "Missing request body, which is required for user accounts",
+                },
+            ))
+            .promote(&headers)?;
+
+        if !argon2_async::verify(password, user.password.unwrap_or_default())
+            .await
+            .promote(&headers)?
+        {
+            return Response(
+                StatusCode::UNAUTHORIZED,
+                Error::InvalidCredentials {
+                    what: "password",
+                    message: "Invalid password",
+                },
+            )
+            .promote_err(&headers);
+        }
+    }
+
+    sqlx::query!(
+        "DELETE FROM guilds WHERE id = $1",
+        PostgresU128::new(guild_id) as _,
+    )
+    .execute(db)
+    .await
+    .promote(&headers)?;
+
+    Ok(StatusCode::NO_CONTENT)
+}
+
 #[must_use]
 pub fn router() -> Router {
     Router::new()
         .route("/guilds", post(create_guild.layer(ratelimit!(2, 30))))
-        .route("/guilds/:id", get(get_guild.layer(ratelimit!(2, 15))))
+        .route(
+            "/guilds/:id",
+            get(get_guild.layer(ratelimit!(2, 15))).delete(delete_guild.layer(ratelimit!(3, 18))),
+        )
 }
