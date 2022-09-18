@@ -58,15 +58,13 @@ pub async fn assert_member(guild_id: u128, user_id: u128) -> Result<(), Response
     Ok(())
 }
 
-/// Asserts that the user has the given permissions. If a channel ID is provided, then the
-/// permission overwrites for that channel are also applied, along with its parents.
+/// Calculates the permissions of a member in a guild.
 #[allow(clippy::cast_sign_loss, clippy::default_trait_access)]
-pub async fn assert_permissions(
+pub async fn get_permissions(
     guild_id: u128,
     user_id: u128,
     channel_id: Option<u128>,
-    permissions: Permissions,
-) -> Result<(), Response<Error>> {
+) -> Result<Permissions, Response<Error>> {
     struct QueryResult {
         id: PostgresU128,
         allowed_permissions: i64,
@@ -152,11 +150,22 @@ pub async fn assert_permissions(
         None => None,
     };
 
-    if !permissions.contains(calculate_permissions(
+    Ok(calculate_permissions(
         user_id,
         &mut roles,
         overwrites.as_ref().map(AsRef::as_ref),
-    )) {
+    ))
+}
+
+/// Asserts that the user has the given permissions. If a channel ID is provided, then the
+/// permission overwrites for that channel are also applied, along with its parents.
+pub async fn assert_permissions(
+    guild_id: u128,
+    user_id: u128,
+    channel_id: Option<u128>,
+    permissions: Permissions,
+) -> Result<(), Response<Error>> {
+    if !permissions.contains(get_permissions(guild_id, user_id, channel_id).await?) {
         return Err(Response(
             StatusCode::FORBIDDEN,
             Error::<u128>::MissingPermissions {
