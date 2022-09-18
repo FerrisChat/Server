@@ -167,3 +167,37 @@ pub async fn assert_permissions(
 
     Ok(())
 }
+
+/// Asserts that the user is the owner of the guild.
+pub async fn assert_guild_owner(guild_id: u128, user_id: u128) -> Result<(), Response<Error>> {
+    struct OwnerIdQueryResponse {
+        owner_id: PostgresU128,
+    }
+
+    let db = get_pool();
+    let owner_id: OwnerIdQueryResponse = sqlx::query_as!(
+        OwnerIdQueryResponse,
+        r#"SELECT
+            owner_id AS "owner_id: PostgresU128"
+        FROM
+            guilds
+        WHERE
+            id = $1
+        "#,
+        PostgresU128::new(guild_id) as _,
+    )
+    .fetch_optional(db)
+    .await?
+    .ok_or_else(|| Response::not_found("guild", format!("Guild with ID {} not found", guild_id)))?;
+
+    if owner_id.owner_id.to_u128() != user_id {
+        return Err(Response(
+            StatusCode::FORBIDDEN,
+            Error::<u128>::MissingPermissions {
+                message: "You are missing permissions to perform this action",
+            },
+        ));
+    }
+
+    Ok(())
+}

@@ -1,6 +1,7 @@
 use crate::{
-    checks::assert_member, get_pool, ratelimit, Auth, Error, HeaderAwareResult, PostgresU128,
-    PromoteErr, Response, RouteResult, StatusCode,
+    checks::{assert_guild_owner, assert_member},
+    get_pool, ratelimit, Auth, Error, HeaderAwareResult, PostgresU128, PromoteErr, Response,
+    RouteResult, StatusCode,
 };
 use common::{
     http::{CreateGuildPayload, DeleteGuildPayload, GetGuildQuery},
@@ -572,39 +573,11 @@ pub async fn delete_guild(
     json: Option<Json<DeleteGuildPayload>>,
     headers: HeaderMap,
 ) -> HeaderAwareResult<StatusCode> {
-    struct OwnerIdQueryResponse {
-        owner_id: PostgresU128,
-    }
+    assert_guild_owner(guild_id, user_id)
+        .await
+        .promote(&headers)?;
 
     let db = get_pool();
-    let owner_id: OwnerIdQueryResponse = sqlx::query_as!(
-        OwnerIdQueryResponse,
-        r#"SELECT
-            owner_id AS "owner_id: PostgresU128"
-        FROM
-            guilds
-        WHERE
-            id = $1
-        "#,
-        PostgresU128::new(guild_id) as _,
-    )
-    .fetch_optional(db)
-    .await
-    .promote(&headers)?
-    .ok_or_else(|| Response::not_found("guild", format!("Guild with ID {} not found", guild_id)))
-    .promote(&headers)?;
-
-    if owner_id.owner_id.to_u128() != user_id {
-        return Response(
-            StatusCode::FORBIDDEN,
-            Error::NotOwner {
-                guild_id,
-                message: "You must be the owner of the guild to perform this action",
-            },
-        )
-        .promote_err(&headers);
-    }
-
     let user = sqlx::query!(
         "SELECT flags, password FROM users WHERE id = $1",
         PostgresU128::new(user_id) as _,
