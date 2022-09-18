@@ -1,10 +1,10 @@
 use crate::{
-    checks::{assert_guild_owner, assert_member},
+    checks::{assert_guild_owner, assert_member, assert_permissions},
     get_pool, ratelimit, Auth, Error, HeaderAwareResult, PostgresU128, PromoteErr, Response,
     RouteResult, StatusCode,
 };
 use common::{
-    http::{CreateGuildPayload, DeleteGuildPayload, GetGuildQuery},
+    http::{CreateGuildPayload, DeleteGuildPayload, EditGuildPayload, GetGuildQuery},
     models::{
         Guild, GuildChannel, GuildChannelType, GuildFlags, GuildMemberCount, MaybePartialUser,
         Member, ModelType, PartialGuild, PermissionPair, Permissions, Role, RoleColor, RoleFlags,
@@ -622,12 +622,123 @@ pub async fn delete_guild(
     Ok(StatusCode::NO_CONTENT)
 }
 
+/// PATCH /guilds/:id
+#[allow(clippy::cast_sign_loss, clippy::cast_possible_wrap)]
+pub async fn edit_guild(
+    Auth(user_id, _): Auth,
+    Path(guild_id): Path<u128>,
+    Json(EditGuildPayload {
+        name,
+        description,
+        icon,
+        banner,
+        public,
+    }): Json<EditGuildPayload>,
+    headers: HeaderMap,
+) -> RouteResult<PartialGuild> {
+    assert_permissions(guild_id, user_id, None, Permissions::MANAGE_GUILD)
+        .await
+        .promote(&headers)?;
+
+    let db = get_pool();
+    let guild = sqlx::query!(
+        "SELECT
+            name,
+            description,
+            icon,
+            banner,
+            flags
+        FROM
+            guilds
+        WHERE
+            id = $1",
+        PostgresU128::new(guild_id) as _,
+    )
+    .fetch_one(db)
+    .await
+    .promote(&headers)?;
+
+    let mut transaction = db.begin().await.promote(&headers)?;
+
+    macro_rules! update {
+        ($query:literal, $field:ident) => {{
+            if $field.is_absent() {
+                guild.$field
+            } else {
+                let value = Option::from($field);
+
+                sqlx::query!($query, value, PostgresU128::new(guild_id) as _)
+                    .execute(&mut transaction)
+                    .await
+                    .promote(&headers)?;
+
+                value
+            }
+        }};
+    }
+
+    let name = if let Some(name) = name {
+        sqlx::query!(
+            "UPDATE guilds SET name = $1 WHERE id = $2",
+            name,
+            PostgresU128::new(guild_id) as _,
+        )
+        .execute(&mut transaction)
+        .await
+        .promote(&headers)?;
+
+        name
+    } else {
+        guild.name
+    };
+
+    let mut flags = GuildFlags::from_bits_truncate(guild.flags as u32);
+
+    if let Some(public) = public {
+        if public {
+            flags.insert(GuildFlags::PUBLIC);
+        } else {
+            flags.remove(GuildFlags::PUBLIC);
+        }
+
+        sqlx::query!(
+            "UPDATE guilds SET flags = $1 WHERE id = $2",
+            flags.bits() as i32,
+            PostgresU128::new(guild_id) as _,
+        )
+        .execute(&mut transaction)
+        .await
+        .promote(&headers)?;
+    };
+
+    let description = update!(
+        "UPDATE guilds SET description = $1 WHERE id = $2",
+        description
+    );
+    let icon = update!("UPDATE guilds SET icon = $1 WHERE id = $2", icon);
+    let banner = update!("UPDATE guilds SET banner = $1 WHERE id = $2", banner);
+
+    Response::ok(PartialGuild {
+        id: guild_id,
+        owner_id: user_id,
+        name,
+        description,
+        icon,
+        banner,
+        flags,
+        member_count: None,
+    })
+    .promote_ok(&headers)
+}
+
 #[must_use]
 pub fn router() -> Router {
     Router::new()
         .route("/guilds", post(create_guild.layer(ratelimit!(2, 30))))
         .route(
             "/guilds/:id",
-            get(get_guild.layer(ratelimit!(2, 15))).delete(delete_guild.layer(ratelimit!(3, 18))),
+            get(get_guild.layer(ratelimit!(2, 15)))
+                .patch(edit_guild.layer(ratelimit!(2, 15)))
+                .delete(delete_guild.layer(ratelimit!(3, 18))),
         )
 }
