@@ -741,4 +741,8 @@ pub fn router() -> Router {
                 .patch(edit_guild.layer(ratelimit!(2, 15)))
                 .delete(delete_guild.layer(ratelimit!(3, 18))),
         )
+        .route(
+            "/guilds/:id/channels",
+            post(super::channel::create_channel.layer(ratelimit!(5, 10))),
+        )
 }

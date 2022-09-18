@@ -1,4 +1,5 @@
 use dotenv_codegen::dotenv;
+use sqlx::postgres::PgTypeInfo;
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 use std::sync::OnceLock;
 
@@ -75,5 +76,15 @@ impl From<u128> for PostgresU128 {
 impl From<PostgresU128> for u128 {
     fn from(value: PostgresU128) -> Self {
         value.to_u128()
+    }
+}
+
+impl sqlx::postgres::PgHasArrayType for PostgresU128 {
+    fn array_type_info() -> PgTypeInfo {
+        PgTypeInfo::with_name("u128")
+    }
+
+    fn array_compatible(_ty: &PgTypeInfo) -> bool {
+        false
     }
 }
