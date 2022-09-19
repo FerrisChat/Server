@@ -202,8 +202,9 @@ pub async fn assert_guild_owner(guild_id: u128, user_id: u128) -> Result<(), Res
     if owner_id.owner_id.to_u128() != user_id {
         return Err(Response(
             StatusCode::FORBIDDEN,
-            Error::<u128>::MissingPermissions {
-                message: "You are missing permissions to perform this action",
+            Error::NotOwner {
+                id: guild_id,
+                message: "You must be the owner of the guild to perform this action",
             },
         ));
     }

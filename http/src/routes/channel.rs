@@ -1,4 +1,7 @@
-use crate::{get_pool, ratelimit, Auth, Error, PostgresU128, PromoteErr, Response, RouteResult};
+use crate::{
+    get_pool, ratelimit, Auth, Error, HeaderAwareResult, PostgresU128, PromoteErr, Response,
+    RouteResult,
+};
 use common::{
     http::{CreateChannelPayload, HybridSnowflake},
     models::{
@@ -348,7 +351,86 @@ pub async fn get_channel(
     .promote_ok(&headers)
 }
 
+/// DELETE /channels/:id
+pub async fn delete_channel(
+    Auth(user_id, _): Auth,
+    Path(channel_id): Path<u128>,
+    headers: HeaderMap,
+) -> HeaderAwareResult<StatusCode> {
+    struct QueryResponse {
+        guild_id: Option<PostgresU128>,
+        owner_id: Option<PostgresU128>,
+        kind: String,
+    }
+
+    let db = get_pool();
+
+    let channel: QueryResponse = sqlx::query_as!(
+        QueryResponse,
+        r#"SELECT
+            guild_id AS "guild_id: PostgresU128",
+            owner_id AS "owner_id: PostgresU128",
+            type AS kind
+        FROM
+            channels
+        WHERE
+            id = $1
+        "#,
+        PostgresU128::new(channel_id) as _,
+    )
+    .fetch_optional(db)
+    .await
+    .promote(&headers)?
+    .ok_or_else(|| {
+        Response::not_found(
+            "channel",
+            format!("Channel with an ID of {} not found", channel_id),
+        )
+    })
+    .promote(&headers)?;
+
+    let kind = ChannelType::from(channel.kind);
+
+    match kind {
+        ChannelType::Guild(_) => {
+            assert_permissions(
+                channel.guild_id.unwrap().to_u128(),
+                user_id,
+                Some(channel_id),
+                Permissions::MANAGE_CHANNELS,
+            )
+            .await
+            .promote(&headers)?;
+        }
+        ChannelType::DM(_) => {
+            if channel.owner_id.is_some_and(|o| o.to_u128() != user_id) {
+                return Response(
+                    StatusCode::FORBIDDEN,
+                    Error::NotOwner {
+                        id: channel_id,
+                        message: "You must be the owner of the group chat to delete it.",
+                    },
+                )
+                .promote_err(&headers);
+            }
+        }
+    }
+
+    sqlx::query!(
+        "DELETE FROM channels WHERE id = $1",
+        PostgresU128::new(channel_id) as _
+    )
+    .execute(db)
+    .await
+    .promote(&headers)?;
+
+    Ok(StatusCode::NO_CONTENT)
+}
+
 #[must_use]
 pub fn router() -> Router {
-    Router::new().route("/channels/:id", get(get_channel.layer(ratelimit!(2, 5))))
+    Router::new().route(
+        "/channels/:id",
+        get(get_channel.layer(ratelimit!(4, 5))).delete(delete_channel.layer(ratelimit!(4, 8))),
+    )
 }
