@@ -1,15 +1,20 @@
-use crate::{get_pool, Auth, Error, PostgresU128, PromoteErr, Response, RouteResult};
+use crate::{get_pool, ratelimit, Auth, Error, PostgresU128, PromoteErr, Response, RouteResult};
 use common::{
     http::{CreateChannelPayload, HybridSnowflake},
-    models::{GuildChannel, GuildChannelType, ModelType, PermissionOverwrite, Permissions},
+    models::{
+        Channel, ChannelType, DMChannel, GuildChannel, GuildChannelType, ModelType,
+        PermissionOverwrite, PermissionPair, Permissions,
+    },
     CastSnowflakes, Snowflake,
 };
 
-use crate::checks::assert_permissions;
+use crate::checks::{assert_member, assert_permissions};
 use axum::{
     extract::{Json, Path},
+    handler::Handler,
     headers::HeaderMap,
     http::StatusCode,
+    routing::get,
     Router,
 };
 use ferrischat_snowflake_generator::generate_snowflake;
@@ -187,7 +192,163 @@ pub async fn create_channel(
     .promote_ok(&headers)
 }
 
+/// GET /channels/:id
+#[allow(clippy::too_many_lines, clippy::cast_sign_loss)]
+pub async fn get_channel(
+    Auth(user_id, _): Auth,
+    Path(channel_id): Path<u128>,
+    headers: HeaderMap,
+) -> RouteResult<Channel> {
+    struct QueryResponse {
+        guild_id: Option<PostgresU128>,
+        kind: String,
+        name: Option<String>,
+        position: Option<i16>,
+        parent_id: Option<PostgresU128>,
+        topic: Option<String>,
+        icon: Option<String>,
+        slowmode: Option<i32>,
+        nsfw: Option<bool>,
+        locked: Option<bool>,
+        user_limit: Option<i16>,
+        owner_id: Option<PostgresU128>,
+    }
+
+    struct OverwriteResponse {
+        target_id: PostgresU128,
+        allow: i64,
+        deny: i64,
+    }
+
+    struct UserIdResponse {
+        user_id: PostgresU128,
+    }
+
+    let db = get_pool();
+
+    let channel: QueryResponse = sqlx::query_as!(
+        QueryResponse,
+        r#"SELECT
+            guild_id AS "guild_id: PostgresU128",
+            type AS kind,
+            name,
+            position,
+            parent_id AS "parent_id: PostgresU128",
+            topic,
+            icon,
+            slowmode,
+            locked,
+            nsfw,
+            user_limit,
+            owner_id AS "owner_id: PostgresU128"
+        FROM
+            channels
+        WHERE
+            id = $1
+        "#,
+        PostgresU128::new(channel_id) as _,
+    )
+    .fetch_optional(db)
+    .await
+    .promote(&headers)?
+    .ok_or_else(|| {
+        Response::not_found(
+            "channel",
+            format!("Channel with an ID of {} not found", channel_id),
+        )
+    })
+    .promote(&headers)?;
+
+    let kind = ChannelType::from(channel.kind);
+
+    Response::ok(match kind {
+        ChannelType::Guild(kind) => {
+            let guild_id = channel.guild_id.unwrap();
+            assert_member(guild_id.to_u128(), user_id)
+                .await
+                .promote(&headers)?;
+
+            let overwrites: Vec<OverwriteResponse> = sqlx::query_as!(
+                OverwriteResponse,
+                r#"SELECT
+                    target_id AS "target_id: PostgresU128",
+                    allow,
+                    deny
+                FROM
+                    channel_overwrites
+                WHERE
+                    guild_id = $1
+                AND
+                    channel_id = $2
+                "#,
+                guild_id as _,
+                PostgresU128::new(channel_id) as _,
+            )
+            .fetch_all(db)
+            .await
+            .promote(&headers)?;
+
+            Channel::Guild(GuildChannel {
+                id: channel_id,
+                guild_id: guild_id.to_u128(),
+                kind,
+                name: channel.name.unwrap(),
+                position: channel.position.unwrap() as u16,
+                overwrites: overwrites
+                    .into_iter()
+                    .map(|o| PermissionOverwrite {
+                        id: o.target_id.to_u128(),
+                        permissions: PermissionPair {
+                            allow: Permissions::from_bits_truncate(o.allow),
+                            deny: Permissions::from_bits_truncate(o.deny),
+                        },
+                    })
+                    .collect(),
+                parent_id: channel.parent_id.map(|p| p.to_u128()),
+                topic: channel.topic,
+                icon: channel.icon,
+                slowmode: channel.slowmode.map(|n| n as u32),
+                locked: channel.locked,
+                nsfw: channel.nsfw,
+                last_message_id: None, // TODO
+                user_limit: channel.user_limit.map(|n| n as u16),
+            })
+        }
+        ChannelType::DM(kind) => {
+            let recipients: Vec<u128> = sqlx::query_as!(
+                UserIdResponse,
+                r#"SELECT
+                    user_id AS "user_id: PostgresU128"
+                FROM
+                    channel_recipients
+                WHERE
+                    channel_id = $1
+                "#,
+                PostgresU128::new(channel_id) as _,
+            )
+            .fetch_all(db)
+            .await
+            .promote(&headers)?
+            .into_iter()
+            .map(|r| r.user_id.to_u128())
+            .collect();
+
+            Channel::DM(DMChannel {
+                id: channel_id,
+                kind,
+                last_message_id: None, // TODO
+                name: channel.name,
+                topic: channel.topic,
+                icon: channel.icon,
+                owner_id: channel.owner_id.map(|o| o.to_u128()),
+                recipient_ids: recipients,
+            })
+        }
+    })
+    .promote_ok(&headers)
+}
+
 #[must_use]
 pub fn router() -> Router {
-    Router::new()
+    Router::new().route("/channels/:id", get(get_channel.layer(ratelimit!(2, 5))))
 }
