@@ -3,7 +3,7 @@ use crate::{
     RouteResult,
 };
 use common::{
-    http::{CreateChannelPayload, HybridSnowflake},
+    http::{CreateChannelPayload, EditChannelPayload, HybridSnowflake},
     models::{
         Channel, ChannelType, DMChannel, GuildChannel, GuildChannelType, ModelType,
         PermissionOverwrite, PermissionPair, Permissions,
@@ -351,19 +351,15 @@ pub async fn get_channel(
     .promote_ok(&headers)
 }
 
-/// DELETE /channels/:id
-pub async fn delete_channel(
-    Auth(user_id, _): Auth,
-    Path(channel_id): Path<u128>,
-    headers: HeaderMap,
-) -> HeaderAwareResult<StatusCode> {
+async fn get_channel_info(
+    channel_id: u128,
+    db: &sqlx::Pool<sqlx::postgres::Postgres>,
+) -> Result<(Option<u128>, Option<u128>, ChannelType), Response<Error>> {
     struct QueryResponse {
         guild_id: Option<PostgresU128>,
         owner_id: Option<PostgresU128>,
         kind: String,
     }
-
-    let db = get_pool();
 
     let channel: QueryResponse = sqlx::query_as!(
         QueryResponse,
@@ -379,22 +375,34 @@ pub async fn delete_channel(
         PostgresU128::new(channel_id) as _,
     )
     .fetch_optional(db)
-    .await
-    .promote(&headers)?
+    .await?
     .ok_or_else(|| {
         Response::not_found(
             "channel",
             format!("Channel with an ID of {} not found", channel_id),
         )
-    })
-    .promote(&headers)?;
+    })?;
 
-    let kind = ChannelType::from(channel.kind);
+    Ok((
+        channel.guild_id.map(|g| g.to_u128()),
+        channel.owner_id.map(|o| o.to_u128()),
+        ChannelType::from(channel.kind),
+    ))
+}
+
+/// DELETE /channels/:id
+pub async fn delete_channel(
+    Auth(user_id, _): Auth,
+    Path(channel_id): Path<u128>,
+    headers: HeaderMap,
+) -> HeaderAwareResult<StatusCode> {
+    let db = get_pool();
+    let (guild_id, owner_id, kind) = get_channel_info(channel_id, db).await.promote(&headers)?;
 
     match kind {
         ChannelType::Guild(_) => {
             assert_permissions(
-                channel.guild_id.unwrap().to_u128(),
+                guild_id.unwrap(),
                 user_id,
                 Some(channel_id),
                 Permissions::MANAGE_CHANNELS,
@@ -403,7 +411,7 @@ pub async fn delete_channel(
             .promote(&headers)?;
         }
         ChannelType::DM(_) => {
-            if channel.owner_id.is_some_and(|o| o.to_u128() != user_id) {
+            if owner_id.is_some_and(|o| o.to_u128() != user_id) {
                 return Response(
                     StatusCode::FORBIDDEN,
                     Error::NotOwner {
@@ -427,10 +435,85 @@ pub async fn delete_channel(
     Ok(StatusCode::NO_CONTENT)
 }
 
+/// PATCH /channels/:id
+#[allow(clippy::cast_possible_wrap)]
+pub async fn edit_channel(
+    auth @ Auth(user_id, _): Auth,
+    path @ Path(channel_id): Path<u128>,
+    Json(EditChannelPayload {
+        name,
+        icon,
+        topic,
+        user_limit,
+    }): Json<EditChannelPayload>,
+    headers: HeaderMap,
+) -> RouteResult<Channel> {
+    let db = get_pool();
+    let (guild_id, _, kind) = get_channel_info(channel_id, db).await.promote(&headers)?;
+
+    match kind {
+        ChannelType::Guild(_) => {
+            assert_permissions(
+                guild_id.unwrap(),
+                user_id,
+                Some(channel_id),
+                Permissions::MODIFY_CHANNELS,
+            )
+            .await
+            .promote(&headers)?;
+        }
+        ChannelType::DM(_) => {}
+    }
+
+    let mut transaction = db.begin().await.promote(&headers)?;
+
+    macro_rules! update {
+        ($query:literal, $field:ident, $map_fn:expr $(,)?) => {{
+            if !$field.is_absent() {
+                let value = $field.into_option().map($map_fn);
+
+                sqlx::query!($query, value, PostgresU128::new(channel_id) as _)
+                    .execute(&mut transaction)
+                    .await
+                    .promote(&headers)?;
+            }
+        }};
+        ($query:literal, $field:ident $(,)?) => {{
+            update!($query, $field, |v| v);
+        }};
+    }
+
+    if let Some(name) = name {
+        validate_channel_name(&name).promote(&headers)?;
+
+        sqlx::query!(
+            "UPDATE channels SET name = $1 WHERE id = $2",
+            name,
+            PostgresU128::new(channel_id) as _,
+        )
+        .execute(&mut transaction)
+        .await
+        .promote(&headers)?;
+    }
+
+    update!("UPDATE channels SET icon = $1 WHERE id = $2", icon);
+    update!("UPDATE channels SET topic = $1 WHERE id = $2", topic);
+    update!(
+        "UPDATE channels SET user_limit = $1 WHERE id = $2",
+        user_limit,
+        |v| v as i16,
+    );
+    transaction.commit().await.promote(&headers)?;
+
+    get_channel(auth, path, headers).await
+}
+
 #[must_use]
 pub fn router() -> Router {
     Router::new().route(
         "/channels/:id",
-        get(get_channel.layer(ratelimit!(4, 5))).delete(delete_channel.layer(ratelimit!(4, 8))),
+        get(get_channel.layer(ratelimit!(4, 5)))
+            .patch(edit_channel.layer(ratelimit!(4, 5)))
+            .delete(delete_channel.layer(ratelimit!(4, 8))),
     )
 }
